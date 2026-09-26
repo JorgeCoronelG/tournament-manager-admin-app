@@ -1,0 +1,16 @@
+node_modules
+dist
+.angular
+.git
+.github
+.gitignore
+.vscode
+.idea
+.claude
+coverage
+Dockerfile
+docker-compose.yml
+*.md
+test-results
+playwright-report
+blob-report

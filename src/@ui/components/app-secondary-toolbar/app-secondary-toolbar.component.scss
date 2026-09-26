@@ -1,0 +1,27 @@
+@reference "../../styles/tailwind.css";
+.secondary-toolbar {
+  @apply backdrop-blur border-b shadow-b;
+  background: var(--app-secondary-toolbar-background);
+  height: var(--app-secondary-toolbar-height);
+  margin-top: calc(var(--app-secondary-toolbar-height) * -1);
+
+  &.fixed {
+    width: var(--app-toolbar-width);
+  }
+}
+
+.secondary-toolbar-placeholder {
+  height: var(--app-secondary-toolbar-height);
+}
+
+::ng-deep {
+  app-breadcrumbs {
+    @apply hidden;
+  }
+
+  @media (min-width: theme("screens.sm")) {
+    app-breadcrumbs {
+      @apply block;
+    }
+  }
+}

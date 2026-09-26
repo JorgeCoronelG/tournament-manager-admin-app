@@ -1,0 +1,147 @@
+@reference "../../../../@ui/styles/tailwind.css";
+.app-sidenav {
+  background: var(--app-sidenav-background);
+  color: var(--app-sidenav-color);
+  height: 100%;
+  @apply transition-all duration-400 ease-out-swift;
+  width: var(--app-sidenav-width);
+
+  &.collapsed {
+    width: var(--app-sidenav-collapsed-width);
+
+    &:not(.open) {
+      .app-sidenav-toolbar__headline,
+      .app-sidenav-toolbar__collapse-toggle {
+        opacity: 0;
+        padding-inline-start: var(--app-sidenav-item-padding-horizontal);
+      }
+
+      ::ng-deep {
+        .app-sidenav-item__icon {
+          margin-inline-end: var(--app-sidenav-item-padding-horizontal);
+        }
+
+        .app-sidenav-subheading,
+        .app-sidenav-item__badge,
+        .app-sidenav-item__label,
+        .app-sidenav-user__title,
+        .app-sidenav-user__subtitle,
+        .app-sidenav-user__dropdown-icon {
+          opacity: 0;
+        }
+
+        .app-sidenav-user {
+          @apply pr-2.5;
+        }
+
+        .simplebar-track.simplebar-vertical {
+          visibility: hidden !important;
+        }
+      }
+    }
+
+    ::ng-deep {
+      .app-sidenav-subheading,
+      .app-sidenav-item__label {
+        @apply transition-all duration-400 ease-out-swift;
+      }
+
+      .app-sidenav-item__badge {
+        @apply transition-all duration-200 ease-out-swift;
+      }
+    }
+
+    &.open {
+      width: var(--app-sidenav-width);
+
+      .app-sidenav-toolbar__collapse-toggle {
+        @apply transition-all duration-400 ease-out-swift;
+      }
+
+      ::ng-deep {
+        .app-sidenav-item__badge {
+          @apply transition-all duration-400 ease-out-swift;
+        }
+      }
+    }
+  }
+
+  ::ng-deep {
+    .simplebar-track.simplebar-horizontal {
+      visibility: hidden !important;
+    }
+  }
+}
+
+/** SIDENAV TOOLBAR */
+.app-sidenav-toolbar__container {
+  background: var(--app-sidenav-background);
+
+  @apply sticky top-0 z-10;
+}
+
+.sidenav-toolbar {
+  align-items: center;
+  background: var(--app-sidenav-toolbar-background);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  height: var(--app-toolbar-height);
+  white-space: nowrap;
+  width: 100%;
+  @apply py-0 px-6;
+}
+
+.app-sidenav-toolbar__headline {
+  @apply text-2xl font-bold tracking-wide select-none transition-all duration-400 ease-out-swift;
+  padding-inline-start: var(--app-sidenav-item-icon-gap);
+}
+
+.app-sidenav-toolbar__collapse-toggle {
+  @apply transition-all duration-200 ease-out-swift;
+}
+
+.app-sidenav-toolbar__divider {
+  height: 1px;
+  background: var(--app-sidenav-section-divider-color);
+}
+
+/** APP SIDENAV USER */
+.app-sidenav-user__container {
+  background: var(--app-sidenav-toolbar-background);
+  border-color: var(--app-sidenav-section-divider-color);
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  @apply border-t px-2 py-3;
+}
+
+.app-sidenav-user {
+  @apply relative transition-all duration-300 ease-out rounded hover:bg-white/10 select-none cursor-pointer p-1.5 pt-2;
+}
+
+.app-sidenav-user__image {
+  @apply w-9 h-9 block rounded-full;
+}
+
+.app-sidenav-user__content {
+  @apply pl-3;
+}
+
+.app-sidenav-user__title {
+  @apply text-sm font-medium whitespace-nowrap transition duration-300 ease-out;
+}
+
+.app-sidenav-user__subtitle {
+  @apply text-xs font-medium text-white/50 whitespace-nowrap transition duration-300 ease-out;
+}
+
+.app-sidenav-user__dropdown-icon {
+  @apply text-white/50 transition duration-300 ease-out;
+}
+
+.app-sidenav-user--open {
+  @apply bg-white/10;
+}

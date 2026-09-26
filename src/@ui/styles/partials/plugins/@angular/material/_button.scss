@@ -1,0 +1,59 @@
+@use "@angular/material" as mat;
+
+@mixin button-color($role) {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-#{$role}),
+      filled-label-text-color: var(--mat-sys-on-#{$role}),
+      protected-container-color: var(--mat-sys-#{$role}),
+      protected-label-text-color: var(--mat-sys-on-#{$role}),
+      outlined-label-text-color: var(--mat-sys-#{$role}),
+      text-label-text-color: var(--mat-sys-#{$role}),
+      tonal-container-color: var(--mat-sys-#{$role}-container),
+      tonal-label-text-color: var(--mat-sys-on-#{$role}-container)
+    )
+  );
+}
+
+:root {
+  .mat-mdc-button,
+  .mat-mdc-outlined-button,
+  .mat-mdc-unelevated-button,
+  .mat-mdc-raised-button {
+    @apply rounded-button min-w-[6rem];
+  }
+
+  // M3 only knows `primary`; keep the `accent` (tertiary) and `warn` (error)
+  // color variants that the app palette provides.
+  .mat-mdc-button-base.mat-accent,
+  .mat-mdc-button-base.mat-tertiary {
+    @include button-color(tertiary);
+  }
+
+  .mat-mdc-button-base.mat-warn,
+  .mat-mdc-button-base.mat-error {
+    @include button-color(error);
+  }
+
+  .mat-button-toggle-group:not(.mat-button-toggle-vertical) {
+    @apply rounded-button;
+
+    .mat-button-toggle:first-child .mat-button-toggle-label-content {
+      @apply pl-4;
+    }
+
+    .mat-button-toggle:last-child .mat-button-toggle-label-content {
+      @apply pr-4;
+    }
+  }
+
+  .mat-button-toggle-button {
+    @apply font-medium;
+  }
+
+  .mat-mdc-icon-button {
+    .mat-icon {
+      @apply inline-flex items-center justify-center;
+    }
+  }
+}

@@ -1,0 +1,14 @@
+<div
+  [class.app-layout-boxed]="config().boxed"
+  [class.app-layout-footer-enabled]="isFooterVisible()"
+  [class.app-layout-footer-fixed]="config().footer.fixed && isFooterVisible()"
+  [class.app-layout-horizontal]="config().layout === 'horizontal'"
+  [class.app-layout-scroll-disabled]="scrollDisabled()"
+  [class.app-layout-search-overlay-open]="searchOpen()"
+  [class.app-layout-sidenav-collapsed]="sidenavCollapsed()"
+  [class.app-layout-toolbar-fixed]="config().toolbar.fixed"
+  [class.app-layout-vertical]="config().layout === 'vertical'"
+  class="app-base-layout-container"
+>
+  <ng-content />
+</div>

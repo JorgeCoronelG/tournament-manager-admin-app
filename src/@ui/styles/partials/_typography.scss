@@ -1,0 +1,82 @@
+// Typography helpers shared by the templates.
+
+.display-3 {
+  font: 400 56px / 56px var(--app-font);
+  letter-spacing: -0.02em;
+}
+
+.display-2 {
+  font: 400 45px / 48px var(--app-font);
+  letter-spacing: -0.005em;
+}
+
+.display-1,
+h1 {
+  font: 400 34px / 40px var(--app-font);
+  letter-spacing: normal;
+}
+
+.headline,
+h2 {
+  font: 400 24px / 32px var(--app-font);
+  letter-spacing: -0.019em;
+}
+
+.title,
+h3 {
+  font: 500 18px / 26px var(--app-font);
+  letter-spacing: -0.014em;
+}
+
+.subheading-2,
+h4 {
+  font: 400 16px / 28px var(--app-font);
+  letter-spacing: -0.011em;
+}
+
+.subheading-1,
+h5 {
+  font: 500 14px / 24px var(--app-font);
+  letter-spacing: -0.006em;
+}
+
+.body-2,
+h6 {
+  font: 400 14px / 20px var(--app-font);
+  letter-spacing: -0.006em;
+}
+
+.body-1,
+p {
+  font: 400 15px / 24px var(--app-font);
+  letter-spacing: -0.009em;
+}
+
+.caption {
+  font: 400 12px / 20px var(--app-font);
+  letter-spacing: 0;
+}
+
+.text-xs {
+  letter-spacing: 0;
+}
+
+.text-sm {
+  letter-spacing: -0.009em;
+}
+
+.text-base {
+  letter-spacing: -0.011em;
+}
+
+.text-lg {
+  letter-spacing: -0.014em;
+}
+
+.text-2xl {
+  letter-spacing: -0.019em;
+}
+
+.text-3xl {
+  letter-spacing: -0.021em;
+}

@@ -1,0 +1,15 @@
+/*
+ * Tailwind CSS 4 entry point (global utilities).
+ *
+ * Everything is imported WITHOUT `layer()` on purpose: unlayered rules are what
+ * made utilities win over Angular Material's styles in Tailwind 3, together with
+ * `important: ":root"` in the config. Wrapping them in layers would make every
+ * Material rule beat every utility.
+ */
+@import "tailwindcss/theme.css";
+@import "tailwindcss/preflight.css";
+@import "./partials/base.css";
+@import "tailwindcss/utilities.css";
+
+/* The theme lives in a JS config: colors, screens, radii and the theme/icon plugins */
+@config "../tailwind/tailwind.config.ts";

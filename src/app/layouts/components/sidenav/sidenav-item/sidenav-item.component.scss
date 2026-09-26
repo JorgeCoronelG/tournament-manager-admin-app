@@ -1,0 +1,170 @@
+@reference "../../../../../@ui/styles/tailwind.css";
+// Buttons do not stretch to their container like anchors do; keep margins working
+button.app-sidenav-item {
+  width: -webkit-fill-available;
+  width: -moz-available;
+  width: stretch;
+}
+
+.app-sidenav-item {
+  align-items: center;
+  text-align: start;
+  box-sizing: border-box;
+  color: var(--app-sidenav-item-color);
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  min-height: var(--app-sidenav-item-min-height);
+  padding: var(--app-sidenav-item-padding-vertical)
+    var(--app-sidenav-item-padding-horizontal);
+  position: relative;
+  text-decoration: none;
+  user-select: none;
+  font-weight: var(--app-sidenav-item-font-weight);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  @apply transition-all duration-400 ease-out-swift;
+
+  &.app-sidenav-item--active {
+    background: var(--app-sidenav-item-background-active);
+
+    .app-sidenav-item__icon {
+      color: var(--app-sidenav-item-icon-color-active);
+    }
+
+    .app-sidenav-item__label {
+      color: var(--app-sidenav-item-color-active);
+    }
+
+    .app-sidenav-item__dropdown-icon {
+      color: var(--app-sidenav-item-color-active);
+    }
+  }
+
+  &:hover {
+    background: var(--app-sidenav-item-background-hover);
+
+    .app-sidenav-item__icon {
+      color: var(--app-sidenav-item-icon-color-hover);
+    }
+
+    .app-sidenav-item__label {
+      color: var(--app-sidenav-item-color-hover);
+    }
+
+    .app-sidenav-item__dropdown-icon {
+      color: var(--app-sidenav-item-color-hover);
+    }
+  }
+
+  &.app-sidenav-item--open {
+    .app-sidenav-item__dropdown-icon {
+      transform: rotate(90deg) !important;
+    }
+  }
+}
+
+@for $i from 1 through 6 {
+  :host(.item-level-#{$i}) .app-sidenav-item {
+    background: var(--app-sidenav-item-dropdown-background);
+    padding-inline-start: calc(
+      var(--app-sidenav-item-icon-size) +
+        var(--app-sidenav-item-icon-gap) +
+        var(--app-sidenav-item-padding-horizontal) +
+        (var(--app-sidenav-item-dropdown-gap) * #{$i - 1})
+    );
+
+    &.app-sidenav-item--active {
+      background: var(--app-sidenav-item-dropdown-background-active);
+
+      .app-sidenav-item__label {
+        color: var(--app-sidenav-item-dropdown-color-active);
+      }
+    }
+
+    &:hover {
+      background: var(--app-sidenav-item-dropdown-background-hover);
+
+      .app-sidenav-item__label {
+        color: var(--app-sidenav-item-dropdown-color-hover);
+      }
+    }
+  }
+}
+
+.app-sidenav-item__icon,
+.app-sidenav-item__label,
+.app-sidenav-item__dropdown-icon {
+  transition: inherit;
+}
+
+.app-sidenav-item__icon {
+  flex: none;
+  color: var(--app-sidenav-item-icon-color);
+  font-size: var(--app-sidenav-item-icon-size);
+  height: var(--app-sidenav-item-icon-size);
+  margin-inline-end: var(--app-sidenav-item-icon-gap);
+  width: var(--app-sidenav-item-icon-size);
+}
+
+.app-sidenav-item__label {
+  flex: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-sidenav-item__badge {
+  flex: none;
+  border-radius: 9999px;
+  font-size: 11px;
+  line-height: 20px;
+  padding: 0 7px;
+  text-align: center;
+  font-weight: 700;
+  @apply ms-2;
+}
+
+.app-sidenav-item__dropdown-icon {
+  color: var(--app-sidenav-item-icon-color);
+  font-size: 18px;
+  height: 18px;
+  line-height: 18px;
+  transform: rotate(0deg) !important;
+  width: 18px;
+  @apply ms-2;
+}
+
+.app-sidenav-item__dropdown {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 300ms cubic-bezier(0.35, 0, 0.25, 1),
+    opacity 300ms cubic-bezier(0.35, 0, 0.25, 1);
+
+  &.app-sidenav-item__dropdown--open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+.app-sidenav-item__dropdown-content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-sidenav-subheading {
+  box-sizing: border-box;
+  color: var(--app-sidenav-subheading-color);
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-weight: 600;
+  user-select: none;
+  @apply text-xs py-3 px-6 mt-6;
+}
+
+/** If first item is subheading, remove margin */
+:host(:first-child) .app-sidenav-subheading {
+  @apply -mt-3;
+}

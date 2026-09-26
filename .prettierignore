@@ -1,0 +1,10 @@
+dist
+.angular
+node_modules
+coverage
+package-lock.json
+nginx
+mock
+test-results
+playwright-report
+blob-report

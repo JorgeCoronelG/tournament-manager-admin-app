@@ -1,0 +1,52 @@
+<app-secondary-toolbar [current]="'dashboard.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      @for (stat of stats; track stat.key) {
+        <div class="bg-foreground rounded shadow p-6 flex items-center gap-4">
+          <div
+            class="w-12 h-12 rounded-full bg-primary-600/10 text-primary-600 flex items-center justify-center flex-none"
+          >
+            <mat-icon [svgIcon]="stat.icon" />
+          </div>
+          <div>
+            <div class="text-3xl font-semibold">{{ stat.count() }}</div>
+            <div class="text-secondary text-sm">
+              {{ "dashboard.stats." + stat.key | transloco }}
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="bg-foreground rounded shadow">
+      <div class="flex items-center px-6 py-4 border-b">
+        <h2 class="m-0 flex-auto">{{ "dashboard.recent" | transloco }}</h2>
+        <a [routerLink]="['/customers']" color="primary" mat-button>{{
+          "dashboard.viewAll" | transloco
+        }}</a>
+      </div>
+
+      <ul class="list-none m-0 p-0">
+        @for (customer of recent(); track customer.id) {
+          <li
+            class="flex items-center gap-4 px-6 py-3 border-b last:border-b-0"
+          >
+            <a
+              [routerLink]="['/customers', customer.id]"
+              class="flex-auto font-medium text-primary-600 dark:text-primary-400 hover:underline"
+              >{{ customer.name }}</a
+            >
+            <span class="text-secondary text-sm hidden sm:inline">{{
+              customer.createdAt | appDateFormatRelative
+            }}</span>
+            <app-customer-status-chip [status]="customer.status" />
+          </li>
+        }
+      </ul>
+    </div>
+  </app-page-layout-content>
+</app-page-layout>

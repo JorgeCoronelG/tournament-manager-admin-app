@@ -1,0 +1,32 @@
+// Global styles use `@apply` and `theme()`, so they need Tailwind as a reference
+@use "sass:meta";
+@reference "./@ui/styles/tailwind.css";
+
+// App Core
+@include meta.load-css("./@ui/styles/core");
+
+/*
+  You can override any CSS Variable or style here
+  Example:
+
+  :root {
+   --app-sidenav-background: #333333;
+  }
+
+  All possible variables can be found in @ui/styles/core or by simply inspecting the element you want to change
+  in Chrome/Firefox DevTools
+*/
+
+/**
+  Uncomment the below code and adjust the values to fit your colors, the application will automatically adjust
+ */
+html {
+  // --app-color-primary: blue;
+  // --app-color-primary-contrast: white;
+
+  // --app-color-accent: yellow;
+  // --app-color-accent-contrast: black;
+
+  // --app-color-warn: yellow;
+  // --app-color-warn-contrast: black;
+}

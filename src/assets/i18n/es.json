@@ -1,0 +1,121 @@
+{
+  "common": {
+    "ok": "Aceptar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "retry": "Reintentar",
+    "back": "Volver"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Ingresa un correo válido"
+  },
+  "errors": {
+    "network": "No se puede conectar con el servidor. Revisa tu conexión.",
+    "forbidden": "No tienes permiso para hacer eso.",
+    "notFound": "No se encontró el recurso solicitado.",
+    "server": "El servidor tuvo un problema. Inténtalo más tarde.",
+    "generic": "Algo salió mal."
+  },
+  "nav": {
+    "main": "Principal",
+    "dashboard": "Panel",
+    "customers": "Clientes",
+    "home": "Inicio"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "recent": "Clientes recientes",
+    "viewAll": "Ver todos",
+    "stats": {
+      "total": "Clientes totales",
+      "active": "Clientes activos",
+      "inactive": "Clientes inactivos"
+    }
+  },
+  "customers": {
+    "title": "Clientes",
+    "new": "Nuevo cliente",
+    "search": "Buscar clientes",
+    "created": "Cliente creado",
+    "empty": "Ningún cliente coincide con tu búsqueda.",
+    "error": "No pudimos cargar los clientes.",
+    "fields": {
+      "name": "Nombre",
+      "email": "Correo",
+      "company": "Empresa",
+      "country": "País",
+      "status": "Estado",
+      "createdAt": "Creado"
+    },
+    "status": {
+      "all": "Todos",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "form": {
+      "title": "Nuevo cliente"
+    },
+    "detail": {
+      "title": "Cliente",
+      "notFound": "Este cliente no existe."
+    }
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "message": "La página que buscas no existe o fue movida.",
+    "back": "Volver al panel"
+  },
+  "styleguide": {
+    "title": "Guía de estilo"
+  },
+  "toolbar": {
+    "openMenu": "Abrir menú",
+    "search": "Buscar",
+    "language": "Cambiar idioma"
+  },
+  "search": {
+    "placeholder": "Buscar...",
+    "hint": "Presiona Enter para buscar",
+    "close": "Cerrar búsqueda"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "unread": "{{count}} sin leer",
+    "caughtUp": "Estás al día.",
+    "none": "No hay notificaciones",
+    "markAllRead": "Marcar todas como leídas"
+  },
+  "user": {
+    "guest": "Invitado",
+    "preferences": "Preferencias"
+  },
+  "sidenav": {
+    "collapse": "Contraer barra lateral",
+    "expand": "Expandir barra lateral"
+  },
+  "config": {
+    "open": "Abrir ajustes",
+    "title": "Configuración",
+    "themeBase": "Base del tema",
+    "darkMode": "Modo oscuro",
+    "themeColors": "Colores del tema",
+    "layouts": "Diseños",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "roundedCorners": "Esquinas redondeadas",
+    "radius": "Radio de borde",
+    "buttonStyle": "Estilo de botones",
+    "inherit": "Heredar",
+    "rounded": "Redondeado",
+    "layout": "Diseño",
+    "orientation": "Orientación",
+    "rtl": "RTL",
+    "toolbar": "Barra superior",
+    "position": "Posición",
+    "fixed": "Fija",
+    "static": "Estática",
+    "footer": "Pie de página",
+    "visible": "Visible"
+  }
+}

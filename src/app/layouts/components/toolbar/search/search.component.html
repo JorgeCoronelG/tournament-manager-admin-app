@@ -1,0 +1,26 @@
+<div [class.show]="show()" class="search">
+  <button
+    (click)="close()"
+    [attr.aria-label]="'search.close' | transloco"
+    class="ltr:right-12 rtl:left-12 top-12 absolute"
+    color="primary"
+    mat-icon-button
+    type="button"
+  >
+    <mat-icon svgIcon="mat:close" />
+  </button>
+
+  <input
+    #searchInput
+    (keyup.enter)="search()"
+    (keyup.escape)="close()"
+    [formField]="searchForm.query"
+    class="search-input"
+    [placeholder]="'search.placeholder' | transloco"
+  />
+  <div class="search-hint">{{ "search.hint" | transloco }}</div>
+</div>
+
+@if (show()) {
+  <div (click)="close()" class="search-overlay" role="presentation"></div>
+}

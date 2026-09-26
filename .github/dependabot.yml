@@ -1,0 +1,73 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    ignore:
+      # Angular majors need `ng update` migrations, which Dependabot cannot run.
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-devkit/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "angular-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types:
+          ["version-update:semver-major", "version-update:semver-minor"]
+    groups:
+      # Angular packages, its CLI/tooling and the TypeScript range they pin
+      # must move together or the workspace stops building.
+      angular:
+        patterns:
+          - "@angular/*"
+          - "@angular-devkit/*"
+          - "angular-eslint"
+          - "typescript"
+          - "rxjs"
+      lint-and-format:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "prettier"
+      tests:
+        patterns:
+          - "vitest"
+          - "jsdom"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "postcss"
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Playwright is pinned to the version of the Docker image used to run it
+  # (see docker-compose.e2e.yml); bump both together by hand.
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: monthly
+    ignore:
+      - dependency-name: "@playwright/test"
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

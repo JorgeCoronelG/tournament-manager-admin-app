@@ -1,0 +1,96 @@
+@let navItem = item();
+
+@if (isLink(navItem) && !isFunction(navItem.route)) {
+  <a
+    [fragment]="navItem.fragment"
+    [routerLinkActiveOptions]="
+      navItem.routerLinkActiveOptions || { exact: false }
+    "
+    [routerLink]="navItem.route"
+    class="app-sidenav-item"
+    matRipple
+    matRippleColor="var(--app-sidenav-item-ripple-color)"
+    routerLinkActive="app-sidenav-item--active"
+  >
+    @if (level() === 0 && navItem.icon) {
+      <mat-icon [svgIcon]="navItem.icon" class="app-sidenav-item__icon" />
+    }
+    <span class="app-sidenav-item__label">{{ navItem.label | transloco }}</span>
+    @if (navItem.badge) {
+      <span
+        [class]="navItem.badge.bgClass + ' ' + navItem.badge.textClass"
+        class="app-sidenav-item__badge"
+        >{{ navItem.badge.value }}</span
+      >
+    }
+  </a>
+}
+
+@if (isLink(navItem) && isFunction(navItem.route)) {
+  <button
+    (click)="navItem.route()"
+    class="app-sidenav-item"
+    matRipple
+    matRippleColor="var(--app-sidenav-item-ripple-color)"
+    type="button"
+  >
+    @if (level() === 0 && navItem.icon) {
+      <mat-icon [svgIcon]="navItem.icon" class="app-sidenav-item__icon" />
+    }
+    <span class="app-sidenav-item__label">{{ navItem.label | transloco }}</span>
+    @if (navItem.badge) {
+      <span
+        [class]="navItem.badge.bgClass + ' ' + navItem.badge.textClass"
+        class="app-sidenav-item__badge"
+        >{{ navItem.badge.value }}</span
+      >
+    }
+  </button>
+}
+
+@if (isDropdown(navItem)) {
+  <button
+    (click)="toggleOpen()"
+    [attr.aria-expanded]="isOpen()"
+    [class.app-sidenav-item--active]="isOpen() || isActive()"
+    [class.app-sidenav-item--open]="isOpen()"
+    class="app-sidenav-item"
+    matRipple
+    matRippleColor="var(--app-sidenav-item-ripple-color)"
+    type="button"
+  >
+    @if (level() === 0 && navItem.icon) {
+      <mat-icon [svgIcon]="navItem.icon" class="app-sidenav-item__icon" />
+    }
+    <span class="app-sidenav-item__label">{{ navItem.label | transloco }}</span>
+    @if (navItem.badge) {
+      <span
+        [class]="navItem.badge.bgClass + ' ' + navItem.badge.textClass"
+        class="app-sidenav-item__badge"
+        >{{ navItem.badge.value }}</span
+      >
+    }
+    <mat-icon
+      class="app-sidenav-item__dropdown-icon"
+      svgIcon="mat:keyboard_arrow_right"
+    />
+  </button>
+  <div
+    [class.app-sidenav-item__dropdown--open]="isOpen()"
+    [attr.inert]="isOpen() ? null : ''"
+    class="app-sidenav-item__dropdown"
+  >
+    <div class="app-sidenav-item__dropdown-content">
+      @for (subItem of navItem.children; track subItem) {
+        <app-sidenav-item [item]="subItem" [level]="level() + 1" />
+      }
+    </div>
+  </div>
+}
+
+@if (isSubheading(navItem)) {
+  <div class="app-sidenav-subheading">{{ navItem.label | transloco }}</div>
+  @for (subItem of navItem.children; track subItem) {
+    <app-sidenav-item [item]="subItem" [level]="0" />
+  }
+}

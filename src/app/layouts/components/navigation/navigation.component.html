@@ -1,0 +1,7 @@
+<div class="border-b">
+  <div class="navigation flex items-center container">
+    @for (item of items(); track item) {
+      <app-navigation-item [item]="item" />
+    }
+  </div>
+</div>

@@ -1,0 +1,39 @@
+<app-base-layout>
+  <app-progress-bar />
+  <app-search />
+  <mat-sidenav-container class="app-layout-sidenav-container">
+    <mat-sidenav
+      (closedStart)="onSidenavClosed()"
+      [disableClose]="sidenavDisableClose()"
+      [fixedInViewport]="sidenavFixedInViewport()"
+      [mode]="sidenavMode()"
+      [opened]="sidenavOpen()"
+    >
+      <app-sidenav [collapsed]="sidenavCollapsed()" />
+    </mat-sidenav>
+    <mat-sidenav-content class="app-layout-sidenav-content">
+      <app-toolbar
+        [class.dark]="config().layout === 'vertical'"
+        class="app-toolbar"
+      />
+      <main class="app-layout-content">
+        <router-outlet />
+      </main>
+      @if (config().footer.visible) {
+        <app-footer class="app-footer" />
+      }
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+  <app-config-panel-toggle (openConfig)="configpanel.open()" />
+  <!-- CONFIGPANEL -->
+  <app-sidebar
+    #configpanel
+    [invisibleBackdrop]="true"
+    [opened]="configPanelOpen()"
+    (openedChange)="onConfigPanelChange($event)"
+    position="right"
+  >
+    <app-config-panel />
+  </app-sidebar>
+  <!-- END CONFIGPANEL -->
+</app-base-layout>

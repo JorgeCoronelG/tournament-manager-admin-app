@@ -1,0 +1,33 @@
+@use "@angular/material" as mat;
+
+// Density is only relevant to the size tokens; colors come from _themes.scss.
+@function density-theme($scale) {
+  @return mat.define-theme(
+    (
+      density: (
+        scale: $scale
+      )
+    )
+  );
+}
+
+// Default density of the app: compact form controls
+.app-mat-dense-default {
+  $theme: density-theme(-2);
+  @include mat.form-field-density($theme);
+  @include mat.autocomplete-density($theme);
+  @include mat.select-density($theme);
+  @include mat.input-density($theme);
+}
+
+.app-mat-dense-md {
+  @include mat.all-component-densities(density-theme(-1));
+}
+
+.app-mat-dense-sm {
+  @include mat.all-component-densities(density-theme(-2));
+}
+
+.app-mat-dense-xs {
+  @include mat.all-component-densities(density-theme(-3));
+}

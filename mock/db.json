@@ -1,0 +1,436 @@
+{
+  "customers": [
+    {
+      "id": 1,
+      "name": "Ken Shannon",
+      "email": "ken.shannon@example.com",
+      "company": "Umbrella",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-08-24T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Frances Martínez",
+      "email": "frances.martinez@example.com",
+      "company": "Wayne Enterprises",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-08-16T16:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Diego Torvalds",
+      "email": "diego.torvalds@example.com",
+      "company": "Cyberdyne",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-08-14T10:00:00Z"
+    },
+    {
+      "id": 4,
+      "name": "Isabel Allen",
+      "email": "isabel.allen@example.com",
+      "company": "Massive Dynamic",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-08-04T09:00:00Z"
+    },
+    {
+      "id": 5,
+      "name": "Tomás Gómez",
+      "email": "tomas.gomez@example.com",
+      "company": "Acme Corp",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-07-30T18:00:00Z"
+    },
+    {
+      "id": 6,
+      "name": "Paula Liskov",
+      "email": "paula.liskov@example.com",
+      "company": "Umbrella",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-07-26T20:00:00Z"
+    },
+    {
+      "id": 7,
+      "name": "Grace Stroustrup",
+      "email": "grace.stroustrup@example.com",
+      "company": "Wayne Enterprises",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-07-20T11:00:00Z"
+    },
+    {
+      "id": 8,
+      "name": "Radia Torres",
+      "email": "radia.torres@example.com",
+      "company": "Cyberdyne",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-07-14T23:00:00Z"
+    },
+    {
+      "id": 9,
+      "name": "Edsger Berners-Lee",
+      "email": "edsger.berners-lee@example.com",
+      "company": "Massive Dynamic",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-07-06T10:00:00Z"
+    },
+    {
+      "id": 10,
+      "name": "Lucía García",
+      "email": "lucia.garcia@example.com",
+      "company": "Acme Corp",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-07-02T10:00:00Z"
+    },
+    {
+      "id": 11,
+      "name": "Rafael Hopper",
+      "email": "rafael.hopper@example.com",
+      "company": "Umbrella",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-06-22T23:00:00Z"
+    },
+    {
+      "id": 12,
+      "name": "Marta Johnson",
+      "email": "marta.johnson@example.com",
+      "company": "Wayne Enterprises",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-06-20T18:00:00Z"
+    },
+    {
+      "id": 13,
+      "name": "Rubén Sánchez",
+      "email": "ruben.sanchez@example.com",
+      "company": "Cyberdyne",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-06-15T05:00:00Z"
+    },
+    {
+      "id": 14,
+      "name": "Alan Hamilton",
+      "email": "alan.hamilton@example.com",
+      "company": "Massive Dynamic",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-06-05T11:00:00Z"
+    },
+    {
+      "id": 15,
+      "name": "Tim Dijkstra",
+      "email": "tim.dijkstra@example.com",
+      "company": "Acme Corp",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-05-29T18:00:00Z"
+    },
+    {
+      "id": 16,
+      "name": "Annie Díaz",
+      "email": "annie.diaz@example.com",
+      "company": "Umbrella",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-05-25T11:00:00Z"
+    },
+    {
+      "id": 17,
+      "name": "Mateo Thompson",
+      "email": "mateo.thompson@example.com",
+      "company": "Wayne Enterprises",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-05-21T11:00:00Z"
+    },
+    {
+      "id": 18,
+      "name": "Elena Wilson",
+      "email": "elena.wilson@example.com",
+      "company": "Cyberdyne",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-05-12T08:00:00Z"
+    },
+    {
+      "id": 19,
+      "name": "Hugo Romero",
+      "email": "hugo.romero@example.com",
+      "company": "Massive Dynamic",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-05-07T23:00:00Z"
+    },
+    {
+      "id": 20,
+      "name": "Irene Lamarr",
+      "email": "irene.lamarr@example.com",
+      "company": "Acme Corp",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-05-02T19:00:00Z"
+    },
+    {
+      "id": 21,
+      "name": "Linus López",
+      "email": "linus.lopez@example.com",
+      "company": "Umbrella",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-04-27T18:00:00Z"
+    },
+    {
+      "id": 22,
+      "name": "Hedy Turing",
+      "email": "hedy.turing@example.com",
+      "company": "Wayne Enterprises",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-04-19T19:00:00Z"
+    },
+    {
+      "id": 23,
+      "name": "Bjarne Knuth",
+      "email": "bjarne.knuth@example.com",
+      "company": "Cyberdyne",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-04-15T09:00:00Z"
+    },
+    {
+      "id": 24,
+      "name": "Valentina Pérez",
+      "email": "valentina.perez@example.com",
+      "company": "Massive Dynamic",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-04-05T18:00:00Z"
+    },
+    {
+      "id": 25,
+      "name": "Pablo Ritchie",
+      "email": "pablo.ritchie@example.com",
+      "company": "Acme Corp",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-04-03T01:00:00Z"
+    },
+    {
+      "id": 26,
+      "name": "Alba Easley",
+      "email": "alba.easley@example.com",
+      "company": "Umbrella",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-03-28T19:00:00Z"
+    },
+    {
+      "id": 27,
+      "name": "Sergio Ruiz",
+      "email": "sergio.ruiz@example.com",
+      "company": "Wayne Enterprises",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-03-22T18:00:00Z"
+    },
+    {
+      "id": 28,
+      "name": "Margaret Perlman",
+      "email": "margaret.perlman@example.com",
+      "company": "Cyberdyne",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-03-16T17:00:00Z"
+    },
+    {
+      "id": 29,
+      "name": "Claude van Rossum",
+      "email": "claude.van.rossum@example.com",
+      "company": "Massive Dynamic",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-03-09T21:00:00Z"
+    },
+    {
+      "id": 30,
+      "name": "Sophie Lovelace",
+      "email": "sophie.lovelace@example.com",
+      "company": "Acme Corp",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-02-28T23:00:00Z"
+    },
+    {
+      "id": 31,
+      "name": "Andrés Shannon",
+      "email": "andres.shannon@example.com",
+      "company": "Umbrella",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-02-24T22:00:00Z"
+    },
+    {
+      "id": 32,
+      "name": "Sofía Martínez",
+      "email": "sofia.martinez@example.com",
+      "company": "Wayne Enterprises",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-02-16T22:00:00Z"
+    },
+    {
+      "id": 33,
+      "name": "Iván Torvalds",
+      "email": "ivan.torvalds@example.com",
+      "company": "Cyberdyne",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-02-13T03:00:00Z"
+    },
+    {
+      "id": 34,
+      "name": "Clara Allen",
+      "email": "clara.allen@example.com",
+      "company": "Massive Dynamic",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-02-08T07:00:00Z"
+    },
+    {
+      "id": 35,
+      "name": "Dennis Gómez",
+      "email": "dennis.gomez@example.com",
+      "company": "Acme Corp",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-02-02T10:00:00Z"
+    },
+    {
+      "id": 36,
+      "name": "Katherine Liskov",
+      "email": "katherine.liskov@example.com",
+      "company": "Umbrella",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2026-01-24T03:00:00Z"
+    },
+    {
+      "id": 37,
+      "name": "Guido Stroustrup",
+      "email": "guido.stroustrup@example.com",
+      "company": "Wayne Enterprises",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-01-17T21:00:00Z"
+    },
+    {
+      "id": 38,
+      "name": "Camila Torres",
+      "email": "camila.torres@example.com",
+      "company": "Cyberdyne",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2026-01-13T13:00:00Z"
+    },
+    {
+      "id": 39,
+      "name": "Miguel Berners-Lee",
+      "email": "miguel.berners-lee@example.com",
+      "company": "Massive Dynamic",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2026-01-07T03:00:00Z"
+    },
+    {
+      "id": 40,
+      "name": "Nora García",
+      "email": "nora.garcia@example.com",
+      "company": "Acme Corp",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2025-12-31T10:00:00Z"
+    },
+    {
+      "id": 41,
+      "name": "Adrián Hopper",
+      "email": "adrian.hopper@example.com",
+      "company": "Umbrella",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2025-12-28T20:00:00Z"
+    },
+    {
+      "id": 42,
+      "name": "Barbara Johnson",
+      "email": "barbara.johnson@example.com",
+      "company": "Wayne Enterprises",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2025-12-20T07:00:00Z"
+    },
+    {
+      "id": 43,
+      "name": "Donald Sánchez",
+      "email": "donald.sanchez@example.com",
+      "company": "Cyberdyne",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2025-12-15T08:00:00Z"
+    },
+    {
+      "id": 44,
+      "name": "Carmen Hamilton",
+      "email": "carmen.hamilton@example.com",
+      "company": "Massive Dynamic",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2025-12-07T23:00:00Z"
+    },
+    {
+      "id": 45,
+      "name": "Javier Dijkstra",
+      "email": "javier.dijkstra@example.com",
+      "company": "Acme Corp",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2025-12-04T15:00:00Z"
+    },
+    {
+      "id": 46,
+      "name": "Laura Díaz",
+      "email": "laura.diaz@example.com",
+      "company": "Umbrella",
+      "country": "Mexico",
+      "status": "active",
+      "createdAt": "2025-11-28T19:00:00Z"
+    },
+    {
+      "id": 47,
+      "name": "Óscar Thompson",
+      "email": "oscar.thompson@example.com",
+      "company": "Wayne Enterprises",
+      "country": "United States",
+      "status": "active",
+      "createdAt": "2025-11-19T02:00:00Z"
+    },
+    {
+      "id": 48,
+      "name": "Ada Wilson",
+      "email": "ada.wilson@example.com",
+      "company": "Cyberdyne",
+      "country": "Mexico",
+      "status": "inactive",
+      "createdAt": "2025-11-14T14:00:00Z"
+    }
+  ]
+}

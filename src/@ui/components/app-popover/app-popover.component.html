@@ -1,0 +1,9 @@
+<div class="app-popover">
+  @if (text !== null) {
+    <div [innerHTML]="text"></div>
+  } @else if (template) {
+    <ng-container *ngTemplateOutlet="template; context: context" />
+  } @else if (component) {
+    <ng-container *ngComponentOutlet="component" />
+  }
+</div>

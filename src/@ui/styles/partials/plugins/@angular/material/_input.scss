@@ -1,0 +1,9 @@
+.mdc-notched-outline__notch {
+  border-right: none;
+}
+
+:root {
+  .mdc-text-field--outlined {
+    --mat-form-field-outlined-container-shape: theme("borderRadius.DEFAULT");
+  }
+}

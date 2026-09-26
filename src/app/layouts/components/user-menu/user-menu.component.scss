@@ -1,0 +1,22 @@
+@reference "../../../../@ui/styles/tailwind.css";
+.app-user-menu {
+  @apply flex flex-col bg-foreground shadow-lg border border-divider rounded py-2 min-w-[240px];
+}
+
+.app-user-menu-item {
+  @apply relative flex items-center gap-4 px-2 mx-2 py-2 rounded hover:bg-primary-600/10 cursor-pointer transition duration-100 ease-out select-none h-10;
+
+  &:hover {
+    .app-user-menu-item__icon {
+      @apply text-primary-600;
+    }
+  }
+}
+
+.app-user-menu-item__label {
+  @apply flex-auto font-medium transition duration-100 ease-out;
+}
+
+.app-user-menu-item__icon {
+  @apply flex-none transition duration-100 ease-out;
+}

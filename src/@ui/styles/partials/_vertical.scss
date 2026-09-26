@@ -1,0 +1,15 @@
+.app-layout-vertical {
+  --app-toolbar-width: 100%;
+
+  app-secondary-toolbar {
+    .fixed {
+      @apply top-0 relative pt-3 -mb-4 bg-none border-t-0 shadow-none;
+    }
+  }
+
+  &.app-layout-footer-fixed {
+    &.app-layout-scroll-disabled .app-layout-content {
+      height: calc(100% - var(--app-toolbar-height) - var(--app-footer-height));
+    }
+  }
+}

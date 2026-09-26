@@ -1,0 +1,18 @@
+// Icon colors: M3 no longer colors <mat-icon color="..."> by itself
+:root {
+  .mat-icon {
+    &.mat-primary {
+      color: var(--mat-sys-primary);
+    }
+
+    &.mat-accent,
+    &.mat-tertiary {
+      color: var(--mat-sys-tertiary);
+    }
+
+    &.mat-warn,
+    &.mat-error {
+      color: var(--mat-sys-error);
+    }
+  }
+}

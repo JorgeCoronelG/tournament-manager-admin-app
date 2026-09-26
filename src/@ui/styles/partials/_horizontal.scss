@@ -1,0 +1,55 @@
+.app-layout-horizontal {
+  // Workaround: CSS calc() functions can't deal with values without a unit (e.g. 0 instead of 0px), when this is 0, SCSS or PostCSS make it a 0 instead of 0px, breaking the layout.
+  --app-navigation-height: 0.00001px;
+  --app-toolbar-width: 100%;
+
+  @media (min-width: theme("screens.lg")) {
+    --app-toolbar-width: calc(100% - var(--app-sidenav-width));
+
+    &.app-layout-sidenav-collapsed {
+      --app-toolbar-width: calc(100% - var(--app-sidenav-collapsed-width));
+    }
+  }
+
+  .app-layout-sidenav-container {
+    /* When the sidenav is not fixed, stretch the sidenav container to fill the available space. This
+       causes `<mat-sidenav-content>` to act as our scrolling element for desktop layouts. */
+    flex: 1;
+  }
+
+  &.app-layout-footer-fixed {
+    &.app-layout-scroll-disabled .app-layout-content {
+      height: calc(100% - var(--app-toolbar-height) - var(--app-footer-height));
+    }
+  }
+}
+
+@media (min-width: theme("screens.lg")) {
+  body:not([dir="rtl"]) {
+    .app-layout-horizontal {
+      &.app-layout-sidenav-collapsed .app-layout-sidenav-content {
+        margin-left: var(--app-sidenav-collapsed-width) !important;
+        margin-right: 0 !important;
+      }
+
+      &:not(.app-layout-sidenav-collapsed) .app-layout-sidenav-content {
+        margin-left: var(--app-sidenav-width) !important;
+        margin-right: 0 !important;
+      }
+    }
+  }
+
+  [dir="rtl"] {
+    .app-layout-horizontal {
+      &.app-layout-sidenav-collapsed .app-layout-sidenav-content {
+        margin-right: var(--app-sidenav-collapsed-width) !important;
+        margin-left: 0 !important;
+      }
+
+      &:not(.app-layout-sidenav-collapsed) .app-layout-sidenav-content {
+        margin-right: var(--app-sidenav-width) !important;
+        margin-left: 0 !important;
+      }
+    }
+  }
+}

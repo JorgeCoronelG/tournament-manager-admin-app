@@ -1,0 +1,27 @@
+// Fonts
+@use "partials/fonts/inter";
+
+// Styles / CSS Variables
+@use "partials/styles/style-dark";
+@use "partials/styles/style-light";
+@use "partials/styles/style-default";
+
+@use "themes";
+@use "partials/typography";
+
+// Partials
+@use "partials/css-vars";
+@use "partials/layout";
+@use "partials/horizontal";
+@use "partials/misc";
+@use "partials/vertical";
+@use "partials/print";
+@use "partials/plugins/@angular/material/index";
+
+// Layouts
+@use "partials/layouts/layout-apollo";
+@use "partials/layouts/layout-ares";
+@use "partials/layouts/layout-hermes";
+@use "partials/layouts/layout-ikaros";
+@use "partials/layouts/layout-poseidon";
+@use "partials/layouts/layout-zeus";

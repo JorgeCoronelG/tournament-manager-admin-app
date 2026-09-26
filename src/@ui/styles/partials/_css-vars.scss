@@ -1,0 +1,42 @@
+// @formatter:off
+body {
+  // Typography
+  --app-font: theme("fontFamily.sans");
+
+  // Sidenav
+  --app-sidenav-width: 280px;
+  --app-sidenav-collapsed-width: 72px;
+
+  // Sidenav Item
+  --app-sidenav-item-min-height: 48px;
+  --app-sidenav-item-padding-vertical: theme("space.2");
+  --app-sidenav-item-padding-horizontal: theme("space.6");
+  --app-sidenav-item-font-weight: 500;
+  --app-sidenav-item-icon-gap: theme("space.4");
+  --app-sidenav-item-icon-size: theme("space.6");
+  --app-sidenav-item-dropdown-gap: theme("space.3");
+
+  // Toolbar
+  --app-toolbar-height: 64px;
+
+  // Secondary Toolbar
+  --app-secondary-toolbar-height: 54px;
+
+  // Navigation
+  --app-navigation-height: 64px;
+
+  // Footer
+  --app-footer-height: 56px;
+  --app-footer-z-index: 100;
+  --app-footer-elevation: 0 -10px 30px 0 rgba(82, 63, 104, 0.06);
+
+  // Page Layouts
+  --app-page-layout-header-height: 200px;
+  --app-page-layout-toolbar-height: 64px;
+
+  // Misc
+  --app-blink-scrollbar-width: 12px;
+  --app-default-icon-size: 24px;
+  --app-border-radius: 0.25rem;
+}
+// @formatter:on

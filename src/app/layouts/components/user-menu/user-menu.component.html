@@ -1,0 +1,32 @@
+<div class="app-user-menu">
+  <div class="flex items-center gap-3 px-4 py-3">
+    <img
+      [src]="user().avatarUrl"
+      alt=""
+      class="w-10 h-10 rounded-full flex-none"
+    />
+    <div class="min-w-0">
+      <div class="font-medium truncate">
+        {{ user().name || ("user.guest" | transloco) }}
+      </div>
+      @if (user().role) {
+        <div class="text-xs text-secondary truncate">{{ user().role }}</div>
+      }
+    </div>
+  </div>
+
+  <div class="border-b border-divider mx-4 mb-2"></div>
+
+  <button
+    (click)="openPreferences()"
+    class="app-user-menu-item"
+    matRipple
+    matRippleColor="rgb(var(--app-color-primary-600), 0.1)"
+    type="button"
+  >
+    <mat-icon class="app-user-menu-item__icon icon-sm" svgIcon="mat:settings" />
+    <span class="app-user-menu-item__label text-start">{{
+      "user.preferences" | transloco
+    }}</span>
+  </button>
+</div>

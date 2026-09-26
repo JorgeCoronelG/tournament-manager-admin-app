@@ -1,0 +1,17 @@
+<button
+  #originRef
+  (click)="showPopover()"
+  [attr.aria-label]="'notifications.title' | transloco"
+  [class.bg-hover]="dropdownOpen()"
+  class="button"
+  mat-icon-button
+  type="button"
+>
+  <mat-icon
+    [matBadge]="unreadCount()"
+    [matBadgeHidden]="unreadCount() === 0"
+    color="primary"
+    matBadgeSize="small"
+    svgIcon="mat:notifications"
+  />
+</button>

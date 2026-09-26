@@ -1,0 +1,21 @@
+// TODO: Check this again
+.app-style-light {
+  .app-sidenav {
+    @apply border-r border-r-gray-200;
+
+    .app-sidenav-user {
+      .app-sidenav-user__subtitle,
+      .app-sidenav-user__dropdown-icon {
+        @apply text-black/50;
+      }
+
+      &:hover {
+        @apply bg-gray-100 text-gray-900;
+      }
+    }
+  }
+
+  .app-sidenav-user--open {
+    @apply bg-gray-100;
+  }
+}

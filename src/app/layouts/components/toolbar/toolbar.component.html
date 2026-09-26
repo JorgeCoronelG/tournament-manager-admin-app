@@ -1,0 +1,97 @@
+<div
+  [class.container]="isVerticalLayout()"
+  class="toolbar text-default w-full px-6 flex items-center"
+>
+  <button
+    (click)="openSidenav()"
+    [attr.aria-label]="'toolbar.openMenu' | transloco"
+    [class.hidden]="isDesktop()"
+    mat-icon-button
+    type="button"
+  >
+    <mat-icon svgIcon="mat:menu" />
+  </button>
+
+  @if (isVerticalLayout()) {
+    <a [routerLink]="['/']" class="ltr:mr-4 rtl:ml-4 flex items-center">
+      <img alt="Logo" class="w-8 select-none" src="assets/img/logo/logo.svg" />
+      <h1
+        [class.hidden]="isDesktop()"
+        class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none"
+      >
+        {{ title() }}
+      </h1>
+    </a>
+  }
+
+  @if (isVerticalLayout() && isNavbarInToolbar()) {
+    <div [class.hidden]="!isDesktop()" class="px-6 flex-none flex items-center">
+      @for (item of navigationItems(); track item) {
+        <app-navigation-item [item]="item" />
+      }
+    </div>
+  }
+
+  <span class="flex-1"></span>
+
+  <div class="-mx-1 flex items-center">
+    <div class="px-1">
+      <button
+        (click)="openSearch()"
+        [attr.aria-label]="'toolbar.search' | transloco"
+        mat-icon-button
+        type="button"
+      >
+        <mat-icon color="primary" svgIcon="mat:search" />
+      </button>
+    </div>
+
+    <div class="px-1">
+      <app-toolbar-notifications />
+    </div>
+
+    <div class="px-1">
+      <button
+        [attr.aria-label]="'toolbar.language' | transloco"
+        [matMenuTriggerFor]="languageMenu"
+        mat-icon-button
+        type="button"
+      >
+        <mat-icon color="primary" svgIcon="mat:translate" />
+      </button>
+    </div>
+
+    @if (userVisible()) {
+      <div class="px-1">
+        <app-toolbar-user />
+      </div>
+    }
+
+    <mat-menu
+      #languageMenu="matMenu"
+      overlapTrigger="false"
+      xPosition="before"
+      yPosition="below"
+    >
+      @for (language of languages; track language.code) {
+        <button
+          (click)="setLanguage(language.code)"
+          [attr.aria-current]="
+            language.code === currentLanguage() ? 'true' : null
+          "
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon
+            [svgIcon]="language.code === currentLanguage() ? 'mat:check' : ''"
+          />
+          <span>{{ language.label }}</span>
+        </button>
+      }
+    </mat-menu>
+  </div>
+</div>
+
+@if (isVerticalLayout() && isNavbarBelowToolbar()) {
+  <app-navigation [class.hidden]="!isDesktop()" />
+}

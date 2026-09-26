@@ -1,0 +1,92 @@
+.app-layout-ares {
+  --app-sidenav-background: var(--app-background-background);
+  --app-toolbar-background: var(--app-background-background);
+
+  --app-sidenav-color: theme("textColor.default");
+  --app-sidenav-section-divider-color: transparent;
+  --app-sidenav-item-background-hover: rgb(var(--app-color-primary-600) / 0.1);
+  --app-sidenav-item-background-active: var(--app-background-card);
+  --app-sidenav-item-color: theme("textColor.default");
+  --app-sidenav-item-color-hover: theme("textColor.default");
+  --app-sidenav-item-color-active: theme("textColor.default");
+  --app-sidenav-item-dropdown-color-active: var(
+    --app-sidenav-item-color-active
+  );
+  --app-sidenav-item-dropdown-background-active: var(--app-background-hover);
+
+  --app-sidenav-item-dropdown-background: var(--app-background-background);
+  --app-sidenav-item-dropdown-background-hover: var(--app-background-hover);
+
+  --app-secondary-toolbar-background: var(--app-background-background);
+
+  --app-sidenav-toolbar-background: var(--app-background-background);
+
+  --app-secondary-toolbar-height: 64px;
+
+  .app-sidenav {
+    border: none;
+
+    app-sidenav-item {
+      .app-sidenav-item {
+        width: unset;
+        @apply rounded-full py-2 mx-4;
+
+        &.app-sidenav-item--active {
+          @apply shadow;
+        }
+      }
+
+      .item-level-0 > .app-sidenav-item {
+        @apply my-1;
+      }
+
+      .item-level-1 .app-sidenav-item.app-sidenav-item--active {
+        @apply shadow-none font-medium;
+
+        .app-sidenav-item__label {
+          @apply text-default;
+        }
+      }
+
+      .item-level-1 .app-sidenav-item:hover .app-sidenav-item__label {
+        @apply text-default;
+      }
+    }
+  }
+
+  .app-layout-sidenav-collapsed
+    .app-sidenav
+    app-sidenav-item
+    .app-sidenav-item {
+    @apply mx-0;
+  }
+
+  app-toolbar {
+    @apply border-b-0;
+  }
+
+  app-secondary-toolbar {
+    @apply rounded-b;
+
+    .secondary-toolbar {
+      @apply bg-transparent shadow-none border-t-0 border-b-0 -mb-6;
+    }
+  }
+
+  app-footer {
+    @apply rounded-t overflow-hidden;
+  }
+
+  .app-page-layout-header {
+    background: var(--app-background-background);
+    color: theme("textColor.default");
+  }
+
+  &.app-style-default {
+    --app-sidenav-item-background-active: theme("backgroundColor.primary.600");
+    --app-sidenav-item-color-active: theme("textColor.on-primary.600");
+    --app-sidenav-item-dropdown-color-active: var(--app-sidenav-item-color);
+    --app-sidenav-item-dropdown-color-hover: theme("textColor.default");
+    --app-sidenav-item-icon-color-active: theme("textColor.on-primary.600");
+  }
+}

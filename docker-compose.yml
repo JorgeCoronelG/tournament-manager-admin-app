@@ -1,0 +1,50 @@
+services:
+  # Mock API (json-server) with the data in mock/db.json. Changes made through
+  # the API are kept in a copy inside the container, so a restart resets them.
+  api:
+    image: node:24-alpine
+    working_dir: /tmp
+    command: >
+      sh -c "cp /data/db.json /tmp/db.json &&
+      npx --yes json-server@0.17.4 --host 0.0.0.0 --port 3000 /tmp/db.json"
+    volumes:
+      - ./mock:/data:ro
+    ports:
+      - "3000:3000"
+    profiles: ["dev", "prod"]
+
+  # Development: docker compose --profile dev up --build  -> http://localhost:4200
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    profiles: ["dev"]
+
+  # Production: docker compose --profile prod up --build  -> http://localhost:8080
+  prod:
+    build:
+      context: .
+      target: prod
+    ports:
+      - "8080:8080"
+    environment:
+      # The browser calls the API directly, so this is the address it can reach
+      API_URL: ${API_URL:-http://localhost:3000}
+    depends_on:
+      - api
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    profiles: ["prod"]

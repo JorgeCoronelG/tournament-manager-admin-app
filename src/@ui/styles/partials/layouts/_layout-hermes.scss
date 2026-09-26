@@ -1,0 +1,32 @@
+.app-layout-hermes {
+  --app-toolbar-height: 100px;
+  --app-secondary-toolbar-background: var(--app-background-background);
+  --app-secondary-toolbar-height: 64px;
+
+  &.app-style-light {
+    --app-toolbar-background: var(--app-background-background);
+  }
+
+  &.app-style-default {
+    // TODO: CHeck this again
+    //--app-navigation-background: #{$sidenav-background};
+    //--app-toolbar-background: #{lighten($sidenav-background, 5)};
+    //--app-navigation-color: white;
+  }
+
+  &.app-style-dark {
+    --app-toolbar-background: var(--app-background-background);
+  }
+
+  // Hide sidenav on vertical layout:
+  // Global Search displays it, even when it's out of the view
+  @media (min-width: theme("screens.lg")) {
+    .app-sidenav {
+      @apply hidden;
+    }
+  }
+
+  app-secondary-toolbar .secondary-toolbar {
+    @apply shadow-none -mb-6 border-t-0 border-b-0;
+  }
+}

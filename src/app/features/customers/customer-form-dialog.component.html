@@ -1,0 +1,62 @@
+<h2 mat-dialog-title>{{ "customers.form.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-1 !pt-2 min-w-[320px]">
+    <mat-form-field>
+      <mat-label>{{ "customers.fields.name" | transloco }}</mat-label>
+      <input [formField]="customerForm.name" autocomplete="off" matInput />
+      @if (customerForm.name().errors().length) {
+        <mat-error>{{ "validation.required" | transloco }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "customers.fields.email" | transloco }}</mat-label>
+      <input
+        [formField]="customerForm.email"
+        autocomplete="off"
+        matInput
+        type="email"
+      />
+      @if (customerForm.email().errors().length) {
+        <mat-error>{{
+          (customerForm.email().value()
+            ? "validation.email"
+            : "validation.required"
+          ) | transloco
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "customers.fields.company" | transloco }}</mat-label>
+      <input [formField]="customerForm.company" autocomplete="off" matInput />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "customers.fields.country" | transloco }}</mat-label>
+      <input [formField]="customerForm.country" autocomplete="off" matInput />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "customers.fields.status" | transloco }}</mat-label>
+      <mat-select [formField]="customerForm.status">
+        <mat-option value="active">{{
+          "customers.status.active" | transloco
+        }}</mat-option>
+        <mat-option value="inactive">{{
+          "customers.status.inactive" | transloco
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button [disabled]="saving()" color="primary" mat-flat-button type="submit">
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

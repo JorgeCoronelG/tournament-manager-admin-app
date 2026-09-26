@@ -1,0 +1,44 @@
+// @formatter:off
+body {
+  // Sidenav
+  --app-sidenav-background: theme("colors.gray.900");
+  --app-sidenav-color: theme("colors.white");
+
+  --app-sidenav-toolbar-background: theme("colors.gray.900");
+  --app-sidenav-section-divider-color: theme("colors.white / 0.12");
+
+  // Sidenav Item
+  --app-sidenav-item-background-hover: theme("colors.gray.950 / 30%");
+  --app-sidenav-item-background-active: theme("colors.gray.950 / 30%");
+  --app-sidenav-item-color: theme("colors.gray.300");
+  --app-sidenav-item-color-hover: theme("colors.white");
+  --app-sidenav-item-color-active: theme("colors.white");
+  --app-sidenav-item-icon-color: theme("colors.primary.400 / 60%");
+  --app-sidenav-item-icon-color-hover: theme("colors.primary.600");
+  --app-sidenav-item-icon-color-active: theme("colors.primary.600");
+  --app-sidenav-item-dropdown-background: var(
+    --app-sidenav-item-background-active
+  );
+  --app-sidenav-item-dropdown-background-hover: theme("colors.gray.950 / 80%");
+  --app-sidenav-item-dropdown-color-hover: var(--app-sidenav-item-color-hover);
+  --app-sidenav-item-dropdown-background-active: var(
+    --app-sidenav-item-dropdown-background-hover
+  );
+  --app-sidenav-item-dropdown-color-active: var(
+    --app-sidenav-item-color-active
+  );
+  --app-sidenav-item-ripple-color: theme("colors.white / 10%");
+  --app-sidenav-subheading-color: theme("colors.primary.300 / 80%");
+
+  // Toolbar
+  --app-toolbar-background: theme("backgroundColor.foreground / 70%");
+  --app-toolbar-icon-color: rgb(var(--app-color-primary-600));
+
+  // Secondary Toolbar
+  --app-secondary-toolbar-background: var(--app-toolbar-background);
+
+  // Navigation
+  --app-navigation-color: theme("textColor.default");
+  --app-navigation-background: var(--app-background-card);
+}
+// @formatter:on

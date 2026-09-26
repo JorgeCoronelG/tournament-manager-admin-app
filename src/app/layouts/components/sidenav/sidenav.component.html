@@ -1,0 +1,81 @@
+<div
+  (mouseenter)="collapseOpenSidenav()"
+  (mouseleave)="collapseCloseSidenav()"
+  [class.collapsed]="collapsed()"
+  [class.open]="collapsed() && collapsedOpen()"
+  class="app-sidenav flex flex-col"
+>
+  <div class="app-sidenav-toolbar__container">
+    <div class="sidenav-toolbar flex-none flex items-center">
+      <img [src]="imageUrl()" alt="" class="w-6 select-none flex-none" />
+      <h2 class="app-sidenav-toolbar__headline flex-auto">
+        {{ title() }}
+      </h2>
+      @if (showCollapsePin()) {
+        <button
+          (click)="toggleCollapse()"
+          [attr.aria-label]="
+            (collapsed() ? 'sidenav.expand' : 'sidenav.collapse') | transloco
+          "
+          class="app-sidenav-toolbar__collapse-toggle -mr-4 leading-none flex-none hidden lg:block"
+          mat-icon-button
+          type="button"
+        >
+          @if (!collapsed()) {
+            <mat-icon class="icon-xs" svgIcon="mat:radio_button_checked" />
+          }
+          @if (collapsed()) {
+            <mat-icon class="icon-xs" svgIcon="mat:radio_button_unchecked" />
+          }
+        </button>
+      }
+    </div>
+
+    <div class="app-sidenav-toolbar__divider"></div>
+  </div>
+
+  <app-scrollbar class="flex-1 flex flex-col">
+    <div class="pt-6 flex-1">
+      @for (item of items(); track trackByRoute(item)) {
+        <app-sidenav-item [item]="item" [level]="0" />
+      }
+    </div>
+
+    <div
+      class="app-sidenav-footer flex items-center justify-center opacity-20 px-6 py-6 select-none flex-none"
+    >
+      <img [src]="imageUrl()" alt="" class="w-8 select-none" />
+    </div>
+  </app-scrollbar>
+
+  @if (userVisible()) {
+    <div class="app-sidenav-user__container flex-none">
+      <button
+        #userProfileMenuOriginRef
+        (click)="openProfileMenu(userProfileMenuOriginRef)"
+        [attr.aria-expanded]="userMenuOpen()"
+        [class.app-sidenav-user--open]="userMenuOpen()"
+        class="app-sidenav-user flex items-center w-full text-start"
+        matRipple
+        matRippleColor="var(--app-sidenav-item-ripple-color)"
+        type="button"
+      >
+        <img
+          [src]="user().avatarUrl"
+          alt=""
+          class="app-sidenav-user__image flex-none"
+        />
+        <div class="app-sidenav-user__content flex-auto">
+          <div class="app-sidenav-user__title">
+            {{ user().name || ("user.guest" | transloco) }}
+          </div>
+          <div class="app-sidenav-user__subtitle">{{ user().role }}</div>
+        </div>
+        <mat-icon
+          class="app-sidenav-user__dropdown-icon flex-none"
+          svgIcon="mat:arrow_drop_down"
+        />
+      </button>
+    </div>
+  }
+</div>

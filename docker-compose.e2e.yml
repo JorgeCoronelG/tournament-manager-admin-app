@@ -1,0 +1,58 @@
+# End-to-end tests. `app` (ng serve) and `api` (mock) share a network namespace
+# with `e2e`, so the browser reaches both on localhost, exactly like in
+# development (apiUrl = http://localhost:3000).
+#
+#   scripts/e2e-docker.sh                       run the suite
+#   scripts/e2e-docker.sh --update-snapshots    regenerate visual baselines
+# Own project name so `down -v` never touches the development containers
+name: base-angular-dashboard-e2e
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4200/"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  api:
+    image: node:24-alpine
+    network_mode: "service:app"
+    working_dir: /tmp
+    command: >
+      sh -c "cp /data/db.json /tmp/db.json &&
+      npx --yes json-server@0.17.4 --host 0.0.0.0 --port 3000 /tmp/db.json"
+    volumes:
+      - ./mock:/data:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/customers?_limit=1"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  # Keep the image tag in sync with the exact "@playwright/test" version
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.55.0-noble
+    network_mode: "service:app"
+    ipc: host
+    working_dir: /work/e2e
+    volumes:
+      - .:/work
+      - e2e_node_modules:/work/e2e/node_modules
+    environment:
+      CI: ${CI:-}
+    depends_on:
+      app:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+
+volumes:
+  e2e_node_modules:

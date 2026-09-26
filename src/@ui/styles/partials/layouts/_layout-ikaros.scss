@@ -1,0 +1,10 @@
+.app-layout-ikaros {
+  // Workaround: CSS calc() functions can't deal with values without a unit (e.g. 0 instead of 0px), when this is 0, SCSS or PostCSS make it a 0 instead of 0px, breaking the layout.
+  --app-navigation-height: 0.00001px;
+
+  &.app-style-default {
+    // TODO: Check this again
+    //--app-toolbar-background: #{$sidenav-background};
+    --app-navigation-color: white;
+  }
+}
