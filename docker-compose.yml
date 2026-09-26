@@ -2,7 +2,7 @@ services:
   # Mock API (json-server) with the data in mock/db.json. Changes made through
   # the API are kept in a copy inside the container, so a restart resets them.
   api:
-    image: node:24-alpine
+    image: node:26-alpine
     working_dir: /tmp
     command: >
       sh -c "cp /data/db.json /tmp/db.json &&
