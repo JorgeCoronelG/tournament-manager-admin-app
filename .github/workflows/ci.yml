@@ -14,7 +14,7 @@ jobs:
     name: Lint, test and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: verify
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build --target prod -t base-angular-dashboard .
       - name: Smoke test the image
         run: |
@@ -47,7 +47,7 @@ jobs:
     name: End-to-end and visual tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run Playwright in Docker
         run: sh scripts/e2e-docker.sh
         env:
