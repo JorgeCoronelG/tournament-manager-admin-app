@@ -70,8 +70,6 @@
     "rememberMe": "Recordarme",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "submit": "Iniciar sesión",
-    "noAccount": "¿No tienes una cuenta?",
-    "createAccount": "Créala aquí",
     "invalidCredentials": "Correo o contraseña incorrectos.",
     "error": "No pudimos iniciar sesión. Inténtalo de nuevo."
   },
