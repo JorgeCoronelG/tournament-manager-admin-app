@@ -26,6 +26,10 @@ import { AuthApi } from "../../core/auth/auth.api";
 import { AuthTokenService } from "../../core/auth/auth-token.service";
 import { toAppUser } from "../../core/auth/authenticated-user.mapper";
 import { LoginModel } from "../../core/auth/login.model";
+import {
+  readRememberedEmail,
+  writeRememberedEmail,
+} from "../../core/auth/remembered-email.storage";
 import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { CurrentUserService } from "../../core/user/current-user.service";
 
@@ -54,10 +58,12 @@ export class LoginComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
+  private readonly rememberedEmail = readRememberedEmail();
+
   private readonly model = signal<LoginModel>({
-    email: "",
+    email: this.rememberedEmail ?? "",
     password: "",
-    rememberMe: false,
+    rememberMe: this.rememberedEmail !== null,
   });
 
   readonly loginForm = form(this.model, (login) => {
@@ -78,10 +84,12 @@ export class LoginComponent {
       this.submitting.set(true);
 
       try {
-        const { email, password } = this.model();
+        const { email, password, rememberMe } = this.model();
         const response = await firstValueFrom(
           this.authApi.login(email, password),
         );
+
+        writeRememberedEmail(rememberMe ? email : null);
 
         this.authToken.setToken(response.token);
         this.currentUser.setUser(toAppUser(response.user));

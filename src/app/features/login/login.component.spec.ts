@@ -19,6 +19,7 @@ describe("LoginComponent", () => {
     login.mockReset();
     setToken.mockReset();
     error.mockReset();
+    localStorage.clear();
 
     TestBed.configureTestingModule({
       providers: [
@@ -90,5 +91,73 @@ describe("LoginComponent", () => {
     expect(setToken).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
     expect(error).toHaveBeenCalledWith("Correo o contraseña incorrectos.");
+  });
+
+  it("remembers the email when rememberMe is checked", async () => {
+    login.mockReturnValue(
+      of({
+        user: {
+          id: 1,
+          name: "Ada",
+          surnames: "Lovelace",
+          email: "ada@example.com",
+          photo_url: "",
+        },
+        token: "token-123",
+        token_type: "Bearer",
+      }),
+    );
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const { loginForm } = fixture.componentInstance;
+    fixture.detectChanges();
+
+    loginForm.email().value.set("ada@example.com");
+    loginForm.password().value.set("secret");
+    loginForm.rememberMe().value.set(true);
+    await fixture.componentInstance.login();
+
+    expect(localStorage.getItem("app.auth.remembered-email")).toBe(
+      "ada@example.com",
+    );
+  });
+
+  it("forgets the email when rememberMe is unchecked", async () => {
+    localStorage.setItem("app.auth.remembered-email", "old@example.com");
+    login.mockReturnValue(
+      of({
+        user: {
+          id: 1,
+          name: "Ada",
+          surnames: "Lovelace",
+          email: "ada@example.com",
+          photo_url: "",
+        },
+        token: "token-123",
+        token_type: "Bearer",
+      }),
+    );
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const { loginForm } = fixture.componentInstance;
+    fixture.detectChanges();
+
+    loginForm.email().value.set("ada@example.com");
+    loginForm.password().value.set("secret");
+    loginForm.rememberMe().value.set(false);
+    await fixture.componentInstance.login();
+
+    expect(localStorage.getItem("app.auth.remembered-email")).toBeNull();
+  });
+
+  it("prefills the email and checks rememberMe when one was remembered", () => {
+    localStorage.setItem("app.auth.remembered-email", "ada@example.com");
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const { loginForm } = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(loginForm.email().value()).toBe("ada@example.com");
+    expect(loginForm.rememberMe().value()).toBe(true);
   });
 });
