@@ -15,7 +15,8 @@
     "forbidden": "No tienes permiso para hacer eso.",
     "notFound": "No se encontró el recurso solicitado.",
     "server": "El servidor tuvo un problema. Inténtalo más tarde.",
-    "generic": "Algo salió mal."
+    "generic": "Algo salió mal.",
+    "validationTitle": "Revisa los siguientes campos"
   },
   "nav": {
     "main": "Principal",
@@ -89,6 +90,14 @@
     "resetSubmit": "Cambiar contraseña",
     "requestAnother": "Solicitar otro código"
   },
+  "changePassword": {
+    "title": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "passwordError": "La contraseña debe tener al menos 8 caracteres",
+    "confirmPassword": "Confirmar contraseña",
+    "submit": "Guardar"
+  },
   "notFound": {
     "title": "Página no encontrada",
     "message": "La página que buscas no existe o fue movida.",
@@ -116,6 +125,7 @@
   "user": {
     "guest": "Invitado",
     "preferences": "Preferencias",
+    "changePassword": "Cambiar contraseña",
     "logout": "Cerrar sesión"
   },
   "sidenav": {

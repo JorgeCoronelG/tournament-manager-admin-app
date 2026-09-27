@@ -34,7 +34,6 @@ export class AuthApi {
     return this.http.post<{ message: string }>(
       this.settings.authApi("/forgot-password"),
       { email },
-      { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
     );
   }
 
@@ -52,7 +51,21 @@ export class AuthApi {
         password,
         password_confirmation: passwordConfirmation,
       },
-      { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
+    );
+  }
+
+  changePassword(
+    currentPassword: string,
+    password: string,
+    passwordConfirmation: string,
+  ) {
+    return this.http.put<{ message: string }>(
+      this.settings.authApi("/user/password"),
+      {
+        current_password: currentPassword,
+        password,
+        password_confirmation: passwordConfirmation,
+      },
     );
   }
 }

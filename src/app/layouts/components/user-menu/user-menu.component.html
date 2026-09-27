@@ -31,6 +31,19 @@
   </button>
 
   <button
+    (click)="openChangePassword()"
+    class="app-user-menu-item"
+    matRipple
+    matRippleColor="rgb(var(--app-color-primary-600), 0.1)"
+    type="button"
+  >
+    <mat-icon class="app-user-menu-item__icon icon-sm" svgIcon="mat:password" />
+    <span class="app-user-menu-item__label text-start">{{
+      "user.changePassword" | transloco
+    }}</span>
+  </button>
+
+  <button
     (click)="logout()"
     class="app-user-menu-item"
     matRipple
