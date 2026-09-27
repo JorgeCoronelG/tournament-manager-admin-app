@@ -70,8 +70,4 @@ export class ToolbarComponent {
   openSidenav(): void {
     this.layoutService.openSidenav();
   }
-
-  openSearch(): void {
-    this.layoutService.openSearch();
-  }
 }

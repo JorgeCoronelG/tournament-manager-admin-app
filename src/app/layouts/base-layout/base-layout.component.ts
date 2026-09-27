@@ -54,7 +54,6 @@ export class BaseLayoutComponent implements AfterViewInit {
   readonly scrollDisabled = routeDataSignal(
     (data) => data.scrollDisabled ?? false,
   );
-  readonly searchOpen = this.layoutService.searchOpen;
 
   readonly sidenavContainer = contentChild.required(MatSidenavContainer);
 

@@ -17,7 +17,6 @@ import { ConfigPanelComponent } from "../components/config-panel/config-panel.co
 import { MatDialogModule } from "@angular/material/dialog";
 import { BaseLayoutComponent } from "../base-layout/base-layout.component";
 import { MatDrawerMode, MatSidenavModule } from "@angular/material/sidenav";
-import { SearchComponent } from "../components/toolbar/search/search.component";
 import { AppProgressBarComponent } from "@ui/components/app-progress-bar/app-progress-bar.component";
 
 @Component({
@@ -36,7 +35,6 @@ import { AppProgressBarComponent } from "@ui/components/app-progress-bar/app-pro
     MatDialogModule,
     MatSidenavModule,
     RouterOutlet,
-    SearchComponent,
     AppProgressBarComponent,
   ],
 })

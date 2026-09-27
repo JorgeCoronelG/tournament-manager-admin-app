@@ -25,12 +25,4 @@ describe("AppLayoutService", () => {
     service.expandSidenav();
     expect(service.sidenavCollapsed()).toBe(false);
   });
-
-  it("toggles the search overlay", () => {
-    service.openSearch();
-    expect(service.searchOpen()).toBe(true);
-
-    service.closeSearch();
-    expect(service.searchOpen()).toBe(false);
-  });
 });

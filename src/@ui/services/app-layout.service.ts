@@ -19,9 +19,6 @@ export class AppLayoutService {
   private readonly _configPanelOpen = signal(false);
   readonly configPanelOpen = this._configPanelOpen.asReadonly();
 
-  private readonly _searchOpen = signal(false);
-  readonly searchOpen = this._searchOpen.asReadonly();
-
   readonly isDesktop = this.observeQuery("(min-width: 1280px)");
   readonly ltLg = this.observeQuery("(max-width: 1279px)");
   readonly gtMd = this.observeQuery("(min-width: 960px)");
@@ -79,13 +76,5 @@ export class AppLayoutService {
 
   closeConfigpanel() {
     this._configPanelOpen.set(false);
-  }
-
-  openSearch() {
-    this._searchOpen.set(true);
-  }
-
-  closeSearch() {
-    this._searchOpen.set(false);
   }
 }

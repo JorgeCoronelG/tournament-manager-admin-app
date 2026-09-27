@@ -99,7 +99,7 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
         } else {
           snackbar.error(
             backendMessage(error) ??
-            transloco.translate(errorMessageKey(error)),
+              transloco.translate(errorMessageKey(error)),
             transloco.translate("common.ok"),
           );
         }

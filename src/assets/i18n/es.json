@@ -107,13 +107,7 @@
     "title": "Guía de estilo"
   },
   "toolbar": {
-    "openMenu": "Abrir menú",
-    "search": "Buscar"
-  },
-  "search": {
-    "placeholder": "Buscar...",
-    "hint": "Presiona Enter para buscar",
-    "close": "Cerrar búsqueda"
+    "openMenu": "Abrir menú"
   },
   "notifications": {
     "title": "Notificaciones",

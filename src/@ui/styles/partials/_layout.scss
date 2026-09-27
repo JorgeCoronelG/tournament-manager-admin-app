@@ -58,20 +58,6 @@
   overflow-y: auto;
 }
 
-.app-layout-search-overlay-open {
-  overflow: hidden;
-  position: fixed;
-
-  .app-layout-sidenav-container {
-    pointer-events: none;
-    transform: perspective(1000px) translate3d(0, 50vh, 0)
-      rotate3d(1, 0, 0, 30deg);
-    transform-origin: 50vw 50vh;
-    transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
-    @apply rounded shadow-2xl overflow-visible;
-  }
-}
-
 .app-layout-toolbar-fixed {
   .app-toolbar {
     position: fixed;
