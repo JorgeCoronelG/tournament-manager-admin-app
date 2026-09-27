@@ -15,7 +15,6 @@ import { MatInputModule } from "@angular/material/input";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatSortModule, Sort } from "@angular/material/sort";
 import { MatTableModule } from "@angular/material/table";
 import { debounce, form, FormField } from "@angular/forms/signals";
@@ -25,6 +24,7 @@ import { AppPageLayoutContentDirective } from "@ui/components/app-page-layout/ap
 import { AppPageLayoutComponent } from "@ui/components/app-page-layout/app-page-layout.component";
 import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolbar/app-secondary-toolbar.component";
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { CustomerFormDialogComponent } from "./customer-form-dialog.component";
 import { CustomerStatusChipComponent } from "./customer-status-chip.component";
 import { Customer, CustomersQuery } from "./customer.model";
@@ -58,7 +58,7 @@ import { CustomersApi } from "./customers.api";
 export class CustomersListComponent {
   private readonly api = inject(CustomersApi);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
   readonly columns = [
@@ -133,10 +133,9 @@ export class CustomersListComponent {
       .subscribe((created) => {
         if (created) {
           this.resource.reload();
-          this.snackBar.open(
+          this.snackbar.success(
             this.transloco.translate("customers.created"),
             this.transloco.translate("common.ok"),
-            { duration: 4000 },
           );
         }
       });

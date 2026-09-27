@@ -4,9 +4,9 @@ import {
   HttpInterceptorFn,
 } from "@angular/common/http";
 import { inject } from "@angular/core";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { TranslocoService } from "@jsverse/transloco";
 import { catchError, throwError } from "rxjs";
+import { SnackbarService } from "../snackbar/snackbar.service";
 
 /**
  * Set to `true` on requests whose callers handle the error themselves and do
@@ -36,7 +36,7 @@ export function errorMessageKey(error: HttpErrorResponse): string {
 
 /** Shows a snackbar for failed requests and lets the error continue */
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
-  const snackBar = inject(MatSnackBar);
+  const snackbar = inject(SnackbarService);
   const transloco = inject(TranslocoService);
 
   return next(request).pipe(
@@ -45,10 +45,9 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
         error instanceof HttpErrorResponse &&
         !request.context.get(SKIP_ERROR_NOTIFICATION)
       ) {
-        snackBar.open(
+        snackbar.error(
           transloco.translate(errorMessageKey(error)),
           transloco.translate("common.ok"),
-          { duration: 5000 },
         );
       }
 

@@ -1,0 +1,29 @@
+@use "@angular/material" as mat;
+
+@mixin snack-bar-color($role) {
+  @include mat.snack-bar-overrides(
+    (
+      container-color: rgb(var(--app-status-#{$role})),
+      supporting-text-color: rgb(var(--app-status-on-#{$role})),
+      button-color: rgb(var(--app-status-on-#{$role}))
+    )
+  );
+}
+
+body {
+  .app-snackbar--success {
+    @include snack-bar-color(success);
+  }
+
+  .app-snackbar--warning {
+    @include snack-bar-color(warning);
+  }
+
+  .app-snackbar--error {
+    @include snack-bar-color(error);
+  }
+
+  .app-snackbar--info {
+    @include snack-bar-color(info);
+  }
+}

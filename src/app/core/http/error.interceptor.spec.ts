@@ -10,8 +10,8 @@ import {
   provideHttpClientTesting,
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { provideTestI18n } from "../../../testing/i18n";
+import { SnackbarService } from "../snackbar/snackbar.service";
 import {
   errorInterceptor,
   errorMessageKey,
@@ -21,17 +21,17 @@ import {
 describe("errorInterceptor", () => {
   let http: HttpClient;
   let controller: HttpTestingController;
-  let open: ReturnType<typeof vi.fn>;
+  let error: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    open = vi.fn();
+    error = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
         provideTestI18n(),
-        { provide: MatSnackBar, useValue: { open } },
+        { provide: SnackbarService, useValue: { error } },
       ],
     });
 
@@ -47,10 +47,9 @@ describe("errorInterceptor", () => {
     http.get("/x").subscribe({ error: onError });
     controller.expectOne("/x").flush("", { status: 500, statusText: "Error" });
 
-    expect(open).toHaveBeenCalledWith(
+    expect(error).toHaveBeenCalledWith(
       "The server had a problem. Try again later.",
       "OK",
-      { duration: 5000 },
     );
     expect(onError).toHaveBeenCalledOnce();
   });
@@ -63,14 +62,14 @@ describe("errorInterceptor", () => {
       .subscribe({ error: () => undefined });
     controller.expectOne("/x").flush("", { status: 500, statusText: "Error" });
 
-    expect(open).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("does not interfere with successful responses", () => {
     http.get("/x").subscribe();
     controller.expectOne("/x").flush({});
 
-    expect(open).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("maps status codes to message keys", () => {
