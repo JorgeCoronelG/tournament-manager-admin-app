@@ -15,6 +15,15 @@ export const appRoutes: AppRoutes = [
       import("./features/login/login.component").then((m) => m.LoginComponent),
   },
   {
+    path: "recuperar-contrasena",
+    title: "forgotPassword.title",
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import("./features/forgot-password/forgot-password.component").then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+  },
+  {
     path: "dashboard",
     component: LayoutComponent,
     canActivate: [authGuard],

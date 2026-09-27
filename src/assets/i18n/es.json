@@ -73,6 +73,22 @@
     "invalidCredentials": "Correo o contraseña incorrectos.",
     "error": "No pudimos iniciar sesión. Inténtalo de nuevo."
   },
+  "forgotPassword": {
+    "title": "Recuperar contraseña",
+    "requestSubtitle": "Ingresa tu correo y te enviaremos un código de verificación.",
+    "sendCode": "Enviar código",
+    "backToLogin": "Volver a iniciar sesión",
+    "resetTitle": "Ingresa el código",
+    "resetSubtitle": "Ingresa el código de 6 dígitos que enviamos a tu correo, junto con tu nueva contraseña.",
+    "code": "Código de verificación",
+    "codeError": "Ingresa un código de 6 dígitos",
+    "newPassword": "Nueva contraseña",
+    "passwordError": "La contraseña debe tener al menos 8 caracteres",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "resetSubmit": "Cambiar contraseña",
+    "requestAnother": "Solicitar otro código"
+  },
   "notFound": {
     "title": "Página no encontrada",
     "message": "La página que buscas no existe o fue movida.",
