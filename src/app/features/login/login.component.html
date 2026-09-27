@@ -48,6 +48,7 @@
         />
         <button
           (click)="togglePasswordVisibility()"
+          [attr.aria-label]="'login.toggleVisibility' | transloco"
           [matTooltip]="'login.toggleVisibility' | transloco"
           mat-icon-button
           matIconSuffix
@@ -72,10 +73,6 @@
           "login.forgotPassword" | transloco
         }}</a>
       </div>
-
-      @if (errorKey()) {
-        <p class="text-warn-600 text-sm">{{ errorKey() | transloco }}</p>
-      }
 
       <button
         [disabled]="submitting()"

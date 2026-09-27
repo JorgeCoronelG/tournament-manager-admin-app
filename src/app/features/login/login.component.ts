@@ -21,10 +21,12 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { TranslocoPipe } from "@jsverse/transloco";
+import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { AuthApi } from "../../core/auth/auth.api";
 import { AuthTokenService } from "../../core/auth/auth-token.service";
+import { toAppUser } from "../../core/auth/authenticated-user.mapper";
 import { LoginModel } from "../../core/auth/login.model";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { CurrentUserService } from "../../core/user/current-user.service";
 
 @Component({
@@ -49,6 +51,8 @@ export class LoginComponent {
   private readonly authApi = inject(AuthApi);
   private readonly authToken = inject(AuthTokenService);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly snackbar = inject(SnackbarService);
+  private readonly transloco = inject(TranslocoService);
 
   private readonly model = signal<LoginModel>({
     email: "",
@@ -64,7 +68,6 @@ export class LoginComponent {
 
   readonly passwordVisible = signal(false);
   readonly submitting = signal(false);
-  readonly errorKey = signal<string | null>(null);
 
   togglePasswordVisibility(): void {
     this.passwordVisible.update((visible) => !visible);
@@ -73,7 +76,6 @@ export class LoginComponent {
   login(): Promise<boolean> {
     return submit(this.loginForm, async () => {
       this.submitting.set(true);
-      this.errorKey.set(null);
 
       try {
         const { email, password } = this.model();
@@ -82,19 +84,16 @@ export class LoginComponent {
         );
 
         this.authToken.setToken(response.token);
-        this.currentUser.setUser({
-          name: response.user.name,
-          role: "",
-          avatarUrl: "assets/img/avatars/default.jpg",
-        });
+        this.currentUser.setUser(toAppUser(response.user));
 
         await this.router.navigateByUrl("/dashboard");
       } catch (error) {
-        this.errorKey.set(
+        const key =
           error instanceof HttpErrorResponse && error.status === 401
             ? "login.invalidCredentials"
-            : "login.error",
-        );
+            : "login.error";
+
+        this.snackbar.error(this.transloco.translate(key));
       } finally {
         this.submitting.set(false);
       }

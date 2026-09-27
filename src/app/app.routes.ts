@@ -2,18 +2,22 @@ import { LayoutComponent } from "./layouts/layout/layout.component";
 import { AppRoutes } from "@ui/interfaces/app-route.interface";
 import { customersRoutes } from "./features/customers/customers.routes";
 import { environment } from "../environments/environment";
+import { authGuard } from "./core/auth/auth.guard";
+import { guestGuard } from "./core/auth/guest.guard";
 
 export const appRoutes: AppRoutes = [
   {
     path: "",
     pathMatch: "full",
     title: "login.title",
+    canActivate: [guestGuard],
     loadComponent: () =>
       import("./features/login/login.component").then((m) => m.LoginComponent),
   },
   {
     path: "dashboard",
     component: LayoutComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: "",

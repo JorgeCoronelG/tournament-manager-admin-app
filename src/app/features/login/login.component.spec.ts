@@ -5,17 +5,20 @@ import { of, throwError } from "rxjs";
 import { provideTestI18n } from "../../../testing/i18n";
 import { AuthApi } from "../../core/auth/auth.api";
 import { AuthTokenService } from "../../core/auth/auth-token.service";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { CurrentUserService } from "../../core/user/current-user.service";
 import { LoginComponent } from "./login.component";
 
 describe("LoginComponent", () => {
   const login = vi.fn();
   const setToken = vi.fn();
+  const error = vi.fn();
   let navigateByUrl: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     login.mockReset();
     setToken.mockReset();
+    error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -23,6 +26,7 @@ describe("LoginComponent", () => {
         provideRouter([]),
         { provide: AuthApi, useValue: { login } },
         { provide: AuthTokenService, useValue: { setToken } },
+        { provide: SnackbarService, useValue: { error } },
       ],
     });
 
@@ -44,7 +48,13 @@ describe("LoginComponent", () => {
   it("logs in, stores the token and navigates to the dashboard", async () => {
     login.mockReturnValue(
       of({
-        user: { id: 1, name: "Ada", email: "ada@example.com" },
+        user: {
+          id: 1,
+          name: "Ada",
+          surnames: "Lovelace",
+          email: "ada@example.com",
+          photo_url: "",
+        },
         token: "token-123",
         token_type: "Bearer",
       }),
@@ -60,11 +70,11 @@ describe("LoginComponent", () => {
 
     expect(login).toHaveBeenCalledWith("ada@example.com", "secret");
     expect(setToken).toHaveBeenCalledWith("token-123");
-    expect(TestBed.inject(CurrentUserService).user().name).toBe("Ada");
+    expect(TestBed.inject(CurrentUserService).user().name).toBe("Ada Lovelace");
     expect(navigateByUrl).toHaveBeenCalledWith("/dashboard");
   });
 
-  it("shows an inline error on invalid credentials", async () => {
+  it("shows a snackbar error on invalid credentials", async () => {
     login.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 401 })),
     );
@@ -79,8 +89,6 @@ describe("LoginComponent", () => {
 
     expect(setToken).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.errorKey()).toBe(
-      "login.invalidCredentials",
-    );
+    expect(error).toHaveBeenCalledWith("Incorrect email or password.");
   });
 });

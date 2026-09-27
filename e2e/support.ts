@@ -7,8 +7,36 @@ export async function freezeTime(page: Page): Promise<void> {
   await page.clock.setFixedTime(FIXED_NOW);
 }
 
+/**
+ * `/dashboard/**` is behind `authGuard`, which checks the stored token against
+ * `GET /user` (see `AuthSessionService`). There is no auth backend in the e2e
+ * stack, so we seed a fake token and stub that request instead.
+ */
+async function mockSession(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    localStorage.setItem("app.auth.token", "e2e-fake-token");
+  });
+
+  // Empty name/surnames/photo_url keep the "Guest" look the screenshots were baselined with
+  await page.route("http://localhost:8000/api/user", (route) =>
+    route.fulfill({
+      json: {
+        id: 1,
+        name: "",
+        surnames: "",
+        email: "e2e@example.com",
+        photo_url: "",
+      },
+    }),
+  );
+}
+
 /** Waits for the splash screen to disappear and, for pages inside the layout, for it to be ready */
 export async function gotoApp(page: Page, path = "/dashboard"): Promise<void> {
+  if (path.startsWith("/dashboard")) {
+    await mockSession(page);
+  }
+
   await page.goto(path);
   await page.locator("#app-splash-screen").waitFor({ state: "detached" });
   if (path.startsWith("/dashboard")) {
