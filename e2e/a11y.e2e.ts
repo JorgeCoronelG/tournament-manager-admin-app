@@ -12,7 +12,6 @@ const pages = [
 test.describe("accessibility (axe)", () => {
   test.beforeEach(async ({ page }) => {
     await freezeTime(page);
-    await page.addInitScript(() => localStorage.setItem("app.lang", "en"));
   });
 
   for (const { name, path } of pages) {

@@ -85,8 +85,7 @@
   },
   "toolbar": {
     "openMenu": "Abrir menú",
-    "search": "Buscar",
-    "language": "Cambiar idioma"
+    "search": "Buscar"
   },
   "search": {
     "placeholder": "Buscar...",

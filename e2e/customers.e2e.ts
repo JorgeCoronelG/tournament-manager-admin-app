@@ -4,7 +4,6 @@ import { freezeTime, gotoApp } from "./support";
 test.describe("dashboard and customers", () => {
   test.beforeEach(async ({ page }) => {
     await freezeTime(page);
-    await page.addInitScript(() => localStorage.setItem("app.lang", "en"));
   });
 
   test("the dashboard shows the customer statistics from the API", async ({
@@ -12,9 +11,9 @@ test.describe("dashboard and customers", () => {
   }) => {
     await gotoApp(page);
 
-    await expect(page).toHaveTitle(/Dashboard/);
-    await expect(page.getByText("Total customers")).toBeVisible();
-    await expect(page.getByText("Recent customers")).toBeVisible();
+    await expect(page).toHaveTitle(/Panel/);
+    await expect(page.getByText("Clientes totales")).toBeVisible();
+    await expect(page.getByText("Clientes recientes")).toBeVisible();
     await expect(page.locator("li a")).toHaveCount(5);
   });
 
@@ -35,24 +34,24 @@ test.describe("dashboard and customers", () => {
 
     await page.getByRole("searchbox").fill("zzzzzz");
     await expect(
-      page.getByText("No customers match your search."),
+      page.getByText("Ningún cliente coincide con tu búsqueda."),
     ).toBeVisible();
     await page.getByRole("searchbox").fill("");
 
     // Wait for each panel to be gone before opening it again
     const chooseStatus = async (option: string) => {
-      await page.getByRole("combobox", { name: "Status" }).click();
+      await page.getByRole("combobox", { name: "Estado" }).click();
       await page.getByRole("option", { name: option, exact: true }).click();
       await expect(page.getByRole("listbox")).toBeHidden();
     };
 
-    await chooseStatus("Inactive");
-    await expect(rows.first()).toContainText("Inactive");
+    await chooseStatus("Inactivo");
+    await expect(rows.first()).toContainText("Inactivo");
 
-    await chooseStatus("All");
+    await chooseStatus("Todos");
 
     const firstBefore = await rows.first().locator("a").textContent();
-    await page.getByRole("button", { name: "Name" }).click();
+    await page.getByRole("button", { name: "Nombre" }).click();
     await expect(rows.first().locator("a")).not.toHaveText(firstBefore ?? "");
 
     await page.getByRole("button", { name: "Next page" }).click();
@@ -66,37 +65,37 @@ test.describe("dashboard and customers", () => {
     await page.locator("tr[mat-row] a").first().click();
 
     await expect(page).toHaveURL(/\/customers\/\d+$/);
-    await expect(page.getByText("Company", { exact: true })).toBeVisible();
+    await expect(page.getByText("Empresa", { exact: true })).toBeVisible();
 
     await gotoApp(page, "/dashboard/customers/99999");
-    await expect(page.getByText("This customer does not exist.")).toBeVisible();
+    await expect(page.getByText("Este cliente no existe.")).toBeVisible();
   });
 
   test("a customer can be created, with validation", async ({ page }) => {
     await gotoApp(page, "/dashboard/customers");
-    await page.getByRole("button", { name: "New customer" }).click();
+    await page.getByRole("button", { name: "Nuevo cliente" }).click();
 
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("button", { name: "Save" }).click();
-    await expect(dialog.getByText("This field is required")).toHaveCount(2);
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog.getByText("Este campo es obligatorio")).toHaveCount(2);
 
-    await dialog.getByLabel("Name").fill("E2E Person");
-    await dialog.getByLabel("Email").fill("not-an-email");
-    await dialog.getByRole("button", { name: "Save" }).click();
-    await expect(dialog.getByText("Enter a valid email address")).toBeVisible();
+    await dialog.getByLabel("Nombre").fill("E2E Person");
+    await dialog.getByLabel("Correo").fill("not-an-email");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog.getByText("Ingresa un correo válido")).toBeVisible();
 
-    await dialog.getByLabel("Email").fill(`e2e.${Date.now()}@example.com`);
+    await dialog.getByLabel("Correo").fill(`e2e.${Date.now()}@example.com`);
     const [response] = await Promise.all([
       page.waitForResponse(
         (r) =>
           r.request().method() === "POST" && r.url().endsWith("/customers"),
       ),
-      dialog.getByRole("button", { name: "Save" }).click(),
+      dialog.getByRole("button", { name: "Guardar" }).click(),
     ]);
     const { id } = await response.json();
 
     await expect(dialog).toBeHidden();
-    await expect(page.getByText("Customer created")).toBeVisible();
+    await expect(page.getByText("Cliente creado")).toBeVisible();
 
     // Remove what this test created so later (visual) tests see the same data
     await page.request.delete(`http://localhost:3000/customers/${id}`);
@@ -105,8 +104,8 @@ test.describe("dashboard and customers", () => {
   test("unknown routes show the 404 page", async ({ page }) => {
     await gotoApp(page, "/dashboard/this/does/not/exist");
 
-    await expect(page.getByText("Page not found").first()).toBeVisible();
-    await page.getByRole("link", { name: "Back to the dashboard" }).click();
+    await expect(page.getByText("Página no encontrada").first()).toBeVisible();
+    await page.getByRole("link", { name: "Volver al panel" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
   });
 });

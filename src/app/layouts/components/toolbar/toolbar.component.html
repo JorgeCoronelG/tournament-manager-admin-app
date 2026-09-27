@@ -53,45 +53,11 @@
       <app-toolbar-notifications />
     </div>
 
-    <div class="px-1">
-      <button
-        [attr.aria-label]="'toolbar.language' | transloco"
-        [matMenuTriggerFor]="languageMenu"
-        mat-icon-button
-        type="button"
-      >
-        <mat-icon color="primary" svgIcon="mat:translate" />
-      </button>
-    </div>
-
     @if (userVisible()) {
       <div class="px-1">
         <app-toolbar-user />
       </div>
     }
-
-    <mat-menu
-      #languageMenu="matMenu"
-      overlapTrigger="false"
-      xPosition="before"
-      yPosition="below"
-    >
-      @for (language of languages; track language.code) {
-        <button
-          (click)="setLanguage(language.code)"
-          [attr.aria-current]="
-            language.code === currentLanguage() ? 'true' : null
-          "
-          mat-menu-item
-          type="button"
-        >
-          <mat-icon
-            [svgIcon]="language.code === currentLanguage() ? 'mat:check' : ''"
-          />
-          <span>{{ language.label }}</span>
-        </button>
-      }
-    </mat-menu>
   </div>
 </div>
 

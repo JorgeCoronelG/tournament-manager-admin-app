@@ -89,6 +89,6 @@ describe("LoginComponent", () => {
 
     expect(setToken).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
-    expect(error).toHaveBeenCalledWith("Incorrect email or password.");
+    expect(error).toHaveBeenCalledWith("Correo o contraseña incorrectos.");
   });
 });

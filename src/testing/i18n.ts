@@ -1,13 +1,13 @@
 import { EnvironmentProviders, importProvidersFrom } from "@angular/core";
 import { TranslocoTestingModule } from "@jsverse/transloco";
-import en from "../assets/i18n/en.json";
+import es from "../assets/i18n/es.json";
 
-/** English translations, resolved synchronously, for tests */
+/** Spanish translations, resolved synchronously, for tests */
 export function provideTestI18n(): EnvironmentProviders {
   return importProvidersFrom(
     TranslocoTestingModule.forRoot({
-      langs: { en },
-      translocoConfig: { availableLangs: ["en"], defaultLang: "en" },
+      langs: { es },
+      translocoConfig: { availableLangs: ["es"], defaultLang: "es" },
       preloadLangs: true,
     }),
   );

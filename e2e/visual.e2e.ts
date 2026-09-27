@@ -8,15 +8,12 @@ import { freezeTime, gotoApp } from "./support";
 test.describe("visual regression", () => {
   test.beforeEach(async ({ page }) => {
     await freezeTime(page);
-    await page.addInitScript(() => {
-      localStorage.clear();
-      localStorage.setItem("app.lang", "en");
-    });
+    await page.addInitScript(() => localStorage.clear());
   });
 
   test("dashboard", async ({ page }) => {
     await gotoApp(page);
-    await expect(page.getByText("Recent customers")).toBeVisible();
+    await expect(page.getByText("Clientes recientes")).toBeVisible();
 
     await expect(page).toHaveScreenshot("dashboard.png");
   });
@@ -30,7 +27,7 @@ test.describe("visual regression", () => {
 
   test("settings panel", async ({ page }) => {
     await gotoApp(page);
-    await page.getByRole("button", { name: "Open settings" }).click();
+    await page.getByRole("button", { name: "Abrir ajustes" }).click();
     await page.locator(".sidebar.open").waitFor();
 
     await expect(page).toHaveScreenshot("settings-panel.png");

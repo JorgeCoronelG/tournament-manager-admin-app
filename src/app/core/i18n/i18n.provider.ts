@@ -6,16 +6,16 @@ import {
   provideAppInitializer,
 } from "@angular/core";
 import { provideTransloco } from "@jsverse/transloco";
-import { LanguageService, LANGUAGES } from "./language.service";
+import { LANG, LanguageService } from "./language.service";
 import { TranslocoHttpLoader } from "./transloco-http.loader";
 
 export function provideI18n(): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideTransloco({
       config: {
-        availableLangs: LANGUAGES.map((language) => language.code),
-        defaultLang: "en",
-        fallbackLang: "en",
+        availableLangs: [LANG],
+        defaultLang: LANG,
+        fallbackLang: LANG,
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
       },

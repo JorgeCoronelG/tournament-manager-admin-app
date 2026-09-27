@@ -48,8 +48,8 @@ describe("errorInterceptor", () => {
     controller.expectOne("/x").flush("", { status: 500, statusText: "Error" });
 
     expect(error).toHaveBeenCalledWith(
-      "The server had a problem. Try again later.",
-      "OK",
+      "El servidor tuvo un problema. Inténtalo más tarde.",
+      "Aceptar",
     );
     expect(onError).toHaveBeenCalledOnce();
   });
