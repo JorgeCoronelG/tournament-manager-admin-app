@@ -20,8 +20,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
-import { apiErrorMessage } from "../../core/auth/api-error-message";
+import { TranslocoPipe } from "@jsverse/transloco";
 import { AuthApi } from "../../core/auth/auth.api";
 import { ForgotPasswordModel } from "../../core/auth/forgot-password.model";
 import { ResetPasswordModel } from "../../core/auth/reset-password.model";
@@ -47,7 +46,6 @@ export class ForgotPasswordComponent {
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
   private readonly snackbar = inject(SnackbarService);
-  private readonly transloco = inject(TranslocoService);
 
   readonly step = signal<"request" | "reset">("request");
   readonly submitting = signal(false);
@@ -88,10 +86,8 @@ export class ForgotPasswordComponent {
         this.sentTo.set(email);
         this.step.set("reset");
         this.snackbar.info(response.message);
-      } catch (error) {
-        this.snackbar.error(
-          apiErrorMessage(error) ?? this.transloco.translate("errors.generic"),
-        );
+      } catch {
+        // The error interceptor already told the user
       } finally {
         this.submitting.set(false);
       }
@@ -126,10 +122,8 @@ export class ForgotPasswordComponent {
 
         this.snackbar.success(response.message);
         await this.router.navigateByUrl("/");
-      } catch (error) {
-        this.snackbar.error(
-          apiErrorMessage(error) ?? this.transloco.translate("errors.generic"),
-        );
+      } catch {
+        // The error interceptor already told the user
       } finally {
         this.submitting.set(false);
       }

@@ -1,0 +1,18 @@
+<h2 class="flex items-center gap-2" mat-dialog-title>
+  <mat-icon class="text-warn-600" svgIcon="mat:error" />
+  {{ "errors.validationTitle" | transloco }}
+</h2>
+
+<mat-dialog-content class="min-w-70">
+  <ul class="flex flex-col gap-1 pl-5 list-disc">
+    @for (message of messages; track message) {
+      <li>{{ message }}</li>
+    }
+  </ul>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button color="primary" mat-dialog-close mat-flat-button type="button">
+    {{ "common.ok" | transloco }}
+  </button>
+</mat-dialog-actions>

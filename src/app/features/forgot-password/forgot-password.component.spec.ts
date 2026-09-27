@@ -65,7 +65,7 @@ describe("ForgotPasswordComponent", () => {
     expect(fixture.componentInstance.step()).toBe("reset");
   });
 
-  it("shows the backend message on a forgot-password error", async () => {
+  it("stays on the request step when requesting a code fails", async () => {
     forgotPassword.mockReturnValue(
       throwError(
         () =>
@@ -83,7 +83,7 @@ describe("ForgotPasswordComponent", () => {
     requestForm.email().value.set("ada@example.com");
     await fixture.componentInstance.requestCode();
 
-    expect(error).toHaveBeenCalledWith("Demasiadas solicitudes.");
+    expect(info).not.toHaveBeenCalled();
     expect(fixture.componentInstance.step()).toBe("request");
   });
 
@@ -129,7 +129,7 @@ describe("ForgotPasswordComponent", () => {
     expect(navigateByUrl).toHaveBeenCalledWith("/");
   });
 
-  it("shows the backend message on an invalid code", async () => {
+  it("does not navigate when the code is rejected", async () => {
     forgotPassword.mockReturnValue(of({ message: "Se envió un código." }));
     resetPassword.mockReturnValue(
       throwError(
@@ -153,7 +153,7 @@ describe("ForgotPasswordComponent", () => {
     resetForm.passwordConfirmation().value.set("password123");
     await fixture.componentInstance.resetPassword();
 
-    expect(error).toHaveBeenCalledWith("Código inválido o expirado.");
+    expect(success).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
   });
 });

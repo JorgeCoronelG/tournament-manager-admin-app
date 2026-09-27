@@ -9,6 +9,7 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from "@angular/common/http/testing";
+import { MatDialog } from "@angular/material/dialog";
 import { TestBed } from "@angular/core/testing";
 import { provideTestI18n } from "../../../testing/i18n";
 import { SnackbarService } from "../snackbar/snackbar.service";
@@ -16,15 +17,20 @@ import {
   errorInterceptor,
   errorMessageKey,
   SKIP_ERROR_NOTIFICATION,
+  validationErrors,
+  backendMessage,
 } from "./error.interceptor";
+import { ValidationErrorsDialogComponent } from "./validation-errors-dialog/validation-errors-dialog.component";
 
 describe("errorInterceptor", () => {
   let http: HttpClient;
   let controller: HttpTestingController;
   let error: ReturnType<typeof vi.fn>;
+  let open: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     error = vi.fn();
+    open = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
@@ -32,6 +38,7 @@ describe("errorInterceptor", () => {
         provideHttpClientTesting(),
         provideTestI18n(),
         { provide: SnackbarService, useValue: { error } },
+        { provide: MatDialog, useValue: { open } },
       ],
     });
 
@@ -82,5 +89,80 @@ describe("errorInterceptor", () => {
     expect(key(404)).toBe("errors.notFound");
     expect(key(503)).toBe("errors.server");
     expect(key(422)).toBe("errors.generic");
+  });
+
+  it("opens the validation errors dialog on a 422 with field errors", () => {
+    http.post("/x", {}).subscribe({ error: () => undefined });
+    controller.expectOne("/x").flush(
+      {
+        code: 422,
+        error: {
+          email: ["El correo es obligatorio."],
+          name: ["El nombre es obligatorio.", "El nombre es muy corto."],
+        },
+      },
+      { status: 422, statusText: "Unprocessable Entity" },
+    );
+
+    expect(open).toHaveBeenCalledWith(ValidationErrorsDialogComponent, {
+      data: [
+        "El correo es obligatorio.",
+        "El nombre es obligatorio.",
+        "El nombre es muy corto.",
+      ],
+    });
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("shows the message in a snackbar on a 422 without field errors", () => {
+    http.post("/x", {}).subscribe({ error: () => undefined });
+    controller
+      .expectOne("/x")
+      .flush(
+        { code: 422, error: "Código inválido o expirado." },
+        { status: 422, statusText: "Unprocessable Entity" },
+      );
+
+    expect(open).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(
+      "Código inválido o expirado.",
+      "Aceptar",
+    );
+  });
+
+  it("shows the backend's business message when there is one", () => {
+    http.post("/x", {}).subscribe({ error: () => undefined });
+    controller
+      .expectOne("/x")
+      .flush(
+        { code: 401, error: "Contraseña actual incorrecta." },
+        { status: 401, statusText: "Unauthorized" },
+      );
+
+    expect(error).toHaveBeenCalledWith(
+      "Contraseña actual incorrecta.",
+      "Aceptar",
+    );
+    expect(backendMessage(new HttpErrorResponse({ status: 500 }))).toBeNull();
+  });
+
+  it("extracts and flattens the field errors from a 422 response", () => {
+    const extracted = validationErrors(
+      new HttpErrorResponse({
+        status: 422,
+        error: {
+          code: 422,
+          error: { email: ["required"], name: ["required"] },
+        },
+      }),
+    );
+
+    expect(extracted).toEqual(["required", "required"]);
+    expect(validationErrors(new HttpErrorResponse({ status: 401 }))).toBeNull();
+    expect(
+      validationErrors(
+        new HttpErrorResponse({ status: 422, error: { error: "message" } }),
+      ),
+    ).toBeNull();
   });
 });
