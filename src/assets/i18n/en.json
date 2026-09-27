@@ -11,8 +11,8 @@
     "email": "Enter a valid email address"
   },
   "errors": {
-    "network": "Cannot reach the server. Check your connection.",
-    "forbidden": "You are not allowed to do that.",
+    "network": "Can't connect to the server. Check your connection.",
+    "forbidden": "You don't have permission to do that.",
     "notFound": "The requested resource was not found.",
     "server": "The server had a problem. Try again later.",
     "generic": "Something went wrong."
@@ -39,7 +39,7 @@
     "search": "Search customers",
     "created": "Customer created",
     "empty": "No customers match your search.",
-    "error": "We could not load the customers.",
+    "error": "We couldn't load the customers.",
     "fields": {
       "name": "Name",
       "email": "Email",
@@ -61,6 +61,20 @@
       "notFound": "This customer does not exist."
     }
   },
+  "login": {
+    "title": "Login",
+    "subtitle": "Sign in with your credentials to continue.",
+    "email": "Email",
+    "password": "Password",
+    "toggleVisibility": "Toggle password visibility",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot your password?",
+    "submit": "Log in",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create one here",
+    "invalidCredentials": "Incorrect email or password.",
+    "error": "We couldn't log you in. Please try again."
+  },
   "notFound": {
     "title": "Page not found",
     "message": "The page you are looking for does not exist or was moved.",
@@ -76,27 +90,28 @@
   },
   "search": {
     "placeholder": "Search...",
-    "hint": "Hit enter to search",
+    "hint": "Press Enter to search",
     "close": "Close search"
   },
   "notifications": {
     "title": "Notifications",
     "unread": "{{count}} unread",
-    "caughtUp": "You are all caught up.",
+    "caughtUp": "You're all caught up.",
     "none": "No notifications",
     "markAllRead": "Mark all as read"
   },
   "user": {
     "guest": "Guest",
-    "preferences": "Preferences"
+    "preferences": "Preferences",
+    "logout": "Log out"
   },
   "sidenav": {
-    "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "collapse": "Collapse sidenav",
+    "expand": "Expand sidenav"
   },
   "config": {
     "open": "Open settings",
-    "title": "Configuration",
+    "title": "Settings",
     "themeBase": "Theme base",
     "darkMode": "Dark mode",
     "themeColors": "Theme colors",

@@ -18,6 +18,7 @@ import { provideNativeDateAdapter } from "@angular/material/core";
 import { provideIcons } from "./core/icons/icons.provider";
 import { provideI18n } from "./core/i18n/i18n.provider";
 import { AppErrorHandler } from "./core/http/app-error-handler";
+import { authTokenInterceptor } from "./core/http/auth-token.interceptor";
 import { errorInterceptor } from "./core/http/error.interceptor";
 import { TranslatedTitleStrategy } from "./core/router/translated-title.strategy";
 import { SettingsService } from "./core/settings/settings.service";
@@ -42,7 +43,9 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     { provide: TitleStrategy, useExisting: TranslatedTitleStrategy },
-    provideHttpClient(withInterceptors([errorInterceptor])),
+    provideHttpClient(
+      withInterceptors([authTokenInterceptor, errorInterceptor]),
+    ),
     provideI18n(),
 
     provideApp({

@@ -3,9 +3,10 @@ import { expect, test } from "@playwright/test";
 import { freezeTime, gotoApp } from "./support";
 
 const pages = [
-  { name: "dashboard", path: "/" },
-  { name: "customers", path: "/customers" },
-  { name: "not found", path: "/nowhere" },
+  { name: "login", path: "/" },
+  { name: "dashboard", path: "/dashboard" },
+  { name: "customers", path: "/dashboard/customers" },
+  { name: "not found", path: "/dashboard/nowhere" },
 ];
 
 test.describe("accessibility (axe)", () => {
@@ -54,7 +55,7 @@ test.describe("accessibility (axe)", () => {
         }),
       ),
     );
-    await gotoApp(page, "/customers");
+    await gotoApp(page, "/dashboard/customers");
     await page.waitForLoadState("networkidle");
     await expect(page.locator("body")).toHaveClass(/\bdark\b/);
 

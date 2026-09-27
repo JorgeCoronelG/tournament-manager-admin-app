@@ -6,6 +6,13 @@ import { environment } from "../environments/environment";
 export const appRoutes: AppRoutes = [
   {
     path: "",
+    pathMatch: "full",
+    title: "login.title",
+    loadComponent: () =>
+      import("./features/login/login.component").then((m) => m.LoginComponent),
+  },
+  {
+    path: "dashboard",
     component: LayoutComponent,
     children: [
       {

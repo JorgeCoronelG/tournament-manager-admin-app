@@ -12,7 +12,7 @@ import { TranslocoPipe } from "@jsverse/transloco";
       <div class="text-8xl font-bold text-primary-600 leading-none">404</div>
       <h1 class="mt-4 mb-2">{{ "notFound.title" | transloco }}</h1>
       <p class="text-secondary mb-6">{{ "notFound.message" | transloco }}</p>
-      <a [routerLink]="['/']" color="primary" mat-flat-button>{{
+      <a [routerLink]="['/dashboard']" color="primary" mat-flat-button>{{
         "notFound.back" | transloco
       }}</a>
     </div>

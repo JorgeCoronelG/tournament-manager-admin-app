@@ -4,7 +4,11 @@
 
 <app-page-layout>
   <app-page-layout-content>
-    <a [routerLink]="['/customers']" class="inline-block mb-4" mat-button>
+    <a
+      [routerLink]="['/dashboard/customers']"
+      class="inline-block mb-4"
+      mat-button
+    >
       <mat-icon svgIcon="mat:arrow_back" />
       {{ "common.back" | transloco }}
     </a>

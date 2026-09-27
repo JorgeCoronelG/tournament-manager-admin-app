@@ -1,0 +1,97 @@
+<div
+  class="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100"
+>
+  <div class="bg-foreground rounded shadow overflow-hidden w-full max-w-md">
+    @if (submitting()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <div class="p-6 pb-0 flex flex-col items-center justify-center">
+      <img alt="Logo" class="w-16" src="assets/img/logo/logo.svg" />
+    </div>
+
+    <div class="text-center mt-4">
+      <h2 class="m-0">{{ "login.title" | transloco }}</h2>
+      <p class="text-secondary m-0">{{ "login.subtitle" | transloco }}</p>
+    </div>
+
+    <form
+      (submit)="$event.preventDefault(); login()"
+      class="p-6 flex flex-col gap-4"
+      novalidate
+    >
+      <mat-form-field>
+        <mat-label>{{ "login.email" | transloco }}</mat-label>
+        <input
+          [formField]="loginForm.email"
+          autocomplete="email"
+          matInput
+          type="email"
+        />
+        @if (loginForm.email().errors().length) {
+          <mat-error>{{
+            (loginForm.email().value()
+              ? "validation.email"
+              : "validation.required"
+            ) | transloco
+          }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ "login.password" | transloco }}</mat-label>
+        <input
+          [formField]="loginForm.password"
+          [type]="passwordVisible() ? 'text' : 'password'"
+          autocomplete="current-password"
+          matInput
+        />
+        <button
+          (click)="togglePasswordVisibility()"
+          [matTooltip]="'login.toggleVisibility' | transloco"
+          mat-icon-button
+          matIconSuffix
+          type="button"
+        >
+          <mat-icon
+            [svgIcon]="
+              passwordVisible() ? 'mat:visibility_off' : 'mat:visibility'
+            "
+          />
+        </button>
+        @if (loginForm.password().errors().length) {
+          <mat-error>{{ "validation.required" | transloco }}</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="flex items-center justify-between">
+        <mat-checkbox [formField]="loginForm.rememberMe" color="primary">{{
+          "login.rememberMe" | transloco
+        }}</mat-checkbox>
+        <a [routerLink]="['/forgot-password']" class="text-sm">{{
+          "login.forgotPassword" | transloco
+        }}</a>
+      </div>
+
+      @if (errorKey()) {
+        <p class="text-warn-600 text-sm">{{ errorKey() | transloco }}</p>
+      }
+
+      <button
+        [disabled]="submitting()"
+        color="primary"
+        mat-flat-button
+        type="submit"
+      >
+        {{ "login.submit" | transloco }}
+      </button>
+
+      <p class="text-secondary text-center">
+        {{ "login.noAccount" | transloco }}<br />
+        <a [routerLink]="['/register']">{{
+          "login.createAccount" | transloco
+        }}</a>
+      </p>
+    </form>
+  </div>
+</div>

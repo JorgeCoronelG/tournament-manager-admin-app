@@ -21,7 +21,7 @@ test.describe("dashboard and customers", () => {
   test("the list can be searched, filtered, sorted and paginated", async ({
     page,
   }) => {
-    await gotoApp(page, "/customers");
+    await gotoApp(page, "/dashboard/customers");
 
     const rows = page.locator("tr[mat-row]");
     const range = page.locator(".mat-mdc-paginator-range-label");
@@ -62,18 +62,18 @@ test.describe("dashboard and customers", () => {
   test("a customer can be opened and a missing one is handled", async ({
     page,
   }) => {
-    await gotoApp(page, "/customers");
+    await gotoApp(page, "/dashboard/customers");
     await page.locator("tr[mat-row] a").first().click();
 
     await expect(page).toHaveURL(/\/customers\/\d+$/);
     await expect(page.getByText("Company", { exact: true })).toBeVisible();
 
-    await gotoApp(page, "/customers/99999");
+    await gotoApp(page, "/dashboard/customers/99999");
     await expect(page.getByText("This customer does not exist.")).toBeVisible();
   });
 
   test("a customer can be created, with validation", async ({ page }) => {
-    await gotoApp(page, "/customers");
+    await gotoApp(page, "/dashboard/customers");
     await page.getByRole("button", { name: "New customer" }).click();
 
     const dialog = page.getByRole("dialog");
@@ -103,10 +103,10 @@ test.describe("dashboard and customers", () => {
   });
 
   test("unknown routes show the 404 page", async ({ page }) => {
-    await gotoApp(page, "/this/does/not/exist");
+    await gotoApp(page, "/dashboard/this/does/not/exist");
 
     await expect(page.getByText("Page not found").first()).toBeVisible();
     await page.getByRole("link", { name: "Back to the dashboard" }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 });

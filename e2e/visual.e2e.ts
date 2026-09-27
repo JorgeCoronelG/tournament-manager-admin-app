@@ -22,7 +22,7 @@ test.describe("visual regression", () => {
   });
 
   test("customers", async ({ page }) => {
-    await gotoApp(page, "/customers");
+    await gotoApp(page, "/dashboard/customers");
     await expect(page.locator("tr[mat-row]")).toHaveCount(10);
 
     await expect(page).toHaveScreenshot("customers.png");
@@ -44,7 +44,7 @@ test.describe("visual regression", () => {
     test(`style guide, ${scheme} ${theme}`, async ({ page }) => {
       // The page scrolls inside the layout, so use a viewport tall enough for all of it
       await page.setViewportSize({ width: 1440, height: 1500 });
-      await gotoApp(page, "/styleguide");
+      await gotoApp(page, "/dashboard/styleguide");
       await page.evaluate(
         ([s, t]) => {
           document.body.classList.remove("light", "dark", "app-theme-default");

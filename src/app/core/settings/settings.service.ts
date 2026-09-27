@@ -3,13 +3,15 @@ import { environment } from "../../../environments/environment";
 
 interface RuntimeConfig {
   apiUrl?: string;
+  authApiUrl?: string;
 }
 
 function isRuntimeConfig(value: unknown): value is RuntimeConfig {
   return (
     !!value &&
     typeof value === "object" &&
-    (!("apiUrl" in value) || typeof value.apiUrl === "string")
+    (!("apiUrl" in value) || typeof value.apiUrl === "string") &&
+    (!("authApiUrl" in value) || typeof value.authApiUrl === "string")
   );
 }
 
@@ -24,6 +26,9 @@ export class SettingsService {
   private readonly _apiUrl = signal(environment.apiUrl);
   readonly apiUrl = this._apiUrl.asReadonly();
 
+  private readonly _authApiUrl = signal(environment.authApiUrl);
+  readonly authApiUrl = this._authApiUrl.asReadonly();
+
   /** Called once before the app starts. Never rejects. */
   async load(): Promise<void> {
     try {
@@ -33,6 +38,10 @@ export class SettingsService {
       if (isRuntimeConfig(config) && config.apiUrl) {
         this._apiUrl.set(config.apiUrl.replace(/\/+$/, ""));
       }
+
+      if (isRuntimeConfig(config) && config.authApiUrl) {
+        this._authApiUrl.set(config.authApiUrl.replace(/\/+$/, ""));
+      }
     } catch {
       // No config.json (e.g. `ng serve`) or it is not valid JSON: keep the defaults
     }
@@ -41,5 +50,10 @@ export class SettingsService {
   /** Builds an API URL from a path such as `/customers` */
   api(path: string): string {
     return `${this._apiUrl()}${path}`;
+  }
+
+  /** Builds an authentication API URL from a path such as `/login` */
+  authApi(path: string): string {
+    return `${this._authApiUrl()}${path}`;
   }
 }

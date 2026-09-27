@@ -7,9 +7,11 @@ export async function freezeTime(page: Page): Promise<void> {
   await page.clock.setFixedTime(FIXED_NOW);
 }
 
-/** Waits for the splash screen to disappear and the layout to be ready */
-export async function gotoApp(page: Page, path = "/"): Promise<void> {
+/** Waits for the splash screen to disappear and, for pages inside the layout, for it to be ready */
+export async function gotoApp(page: Page, path = "/dashboard"): Promise<void> {
   await page.goto(path);
   await page.locator("#app-splash-screen").waitFor({ state: "detached" });
-  await page.locator("app-sidenav").waitFor();
+  if (path.startsWith("/dashboard")) {
+    await page.locator("app-sidenav").waitFor();
+  }
 }

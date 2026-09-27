@@ -20,14 +20,14 @@ export class NavigationLoaderService {
           {
             type: "link",
             label: "nav.dashboard",
-            route: "/",
+            route: "/dashboard",
             icon: "mat:dashboard",
             routerLinkActiveOptions: { exact: true },
           },
           {
             type: "link",
             label: "nav.customers",
-            route: "/customers",
+            route: "/dashboard/customers",
             icon: "mat:people",
           },
         ],

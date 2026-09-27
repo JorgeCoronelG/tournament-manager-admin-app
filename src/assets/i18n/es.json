@@ -61,6 +61,20 @@
       "notFound": "Este cliente no existe."
     }
   },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "Ingresa tus credenciales para continuar.",
+    "email": "Correo",
+    "password": "Contraseña",
+    "toggleVisibility": "Mostrar u ocultar contraseña",
+    "rememberMe": "Recordarme",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "submit": "Iniciar sesión",
+    "noAccount": "¿No tienes una cuenta?",
+    "createAccount": "Créala aquí",
+    "invalidCredentials": "Correo o contraseña incorrectos.",
+    "error": "No pudimos iniciar sesión. Inténtalo de nuevo."
+  },
   "notFound": {
     "title": "Página no encontrada",
     "message": "La página que buscas no existe o fue movida.",
@@ -88,7 +102,8 @@
   },
   "user": {
     "guest": "Invitado",
-    "preferences": "Preferencias"
+    "preferences": "Preferencias",
+    "logout": "Cerrar sesión"
   },
   "sidenav": {
     "collapse": "Contraer barra lateral",

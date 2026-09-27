@@ -25,7 +25,7 @@
     <div class="bg-foreground rounded shadow">
       <div class="flex items-center px-6 py-4 border-b">
         <h2 class="m-0 flex-auto">{{ "dashboard.recent" | transloco }}</h2>
-        <a [routerLink]="['/customers']" color="primary" mat-button>{{
+        <a [routerLink]="['/dashboard/customers']" color="primary" mat-button>{{
           "dashboard.viewAll" | transloco
         }}</a>
       </div>
@@ -36,7 +36,7 @@
             class="flex items-center gap-4 px-6 py-3 border-b last:border-b-0"
           >
             <a
-              [routerLink]="['/customers', customer.id]"
+              [routerLink]="['/dashboard/customers', customer.id]"
               class="flex-auto font-medium text-primary-600 dark:text-primary-400 hover:underline"
               >{{ customer.name }}</a
             >
