@@ -11,7 +11,6 @@ import { NavigationService } from "../../../core/navigation/navigation.service";
 import { AppPopoverService } from "@ui/components/app-popover/app-popover.service";
 import { NavigationComponent } from "../navigation/navigation.component";
 import { ToolbarUserComponent } from "./toolbar-user/toolbar-user.component";
-import { ToolbarNotificationsComponent } from "./toolbar-notifications/toolbar-notifications.component";
 import { NavigationItemComponent } from "../navigation/navigation-item/navigation-item.component";
 import { RouterLink } from "@angular/router";
 import { MatIconModule } from "@angular/material/icon";
@@ -32,7 +31,6 @@ import { routeDataSignal } from "@ui/utils/route-data-signal";
     MatIconModule,
     RouterLink,
     NavigationItemComponent,
-    ToolbarNotificationsComponent,
     ToolbarUserComponent,
     NavigationComponent,
   ],

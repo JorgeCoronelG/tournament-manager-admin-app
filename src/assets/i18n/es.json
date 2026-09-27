@@ -109,13 +109,6 @@
   "toolbar": {
     "openMenu": "Abrir menú"
   },
-  "notifications": {
-    "title": "Notificaciones",
-    "unread": "{{count}} sin leer",
-    "caughtUp": "Estás al día.",
-    "none": "No hay notificaciones",
-    "markAllRead": "Marcar todas como leídas"
-  },
   "user": {
     "guest": "Invitado",
     "preferences": "Preferencias",
