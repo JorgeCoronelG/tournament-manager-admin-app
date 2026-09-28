@@ -11,7 +11,7 @@ import {
   LoadingBarModule,
   LoadingBarService,
 } from "@ngx-loading-bar/core";
-import { delayWhen, interval, of } from "rxjs";
+import { delayWhen, interval, map, of } from "rxjs";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { LoadingBarRouterModule } from "@ngx-loading-bar/router";
 
@@ -42,5 +42,19 @@ export class AppProgressBarComponent {
     { initialValue: 0 },
   );
 
-  readonly visible = computed(() => this.value() > 0 && this.value() !== 100);
+  readonly routerVisible = computed(
+    () => this.value() > 0 && this.value() !== 100,
+  );
+
+  readonly httpVisible = toSignal(
+    this.loader
+      .useRef("http")
+      .value$.pipe(map((value) => value > 0 && value !== 100)),
+    { initialValue: false },
+  );
+
+  readonly visible = computed(() => this.routerVisible() || this.httpVisible());
+  readonly mode = computed(() =>
+    this.httpVisible() ? "indeterminate" : "determinate",
+  );
 }

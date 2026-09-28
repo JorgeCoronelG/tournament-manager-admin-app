@@ -7,7 +7,12 @@ import {
   provideZonelessChangeDetection,
 } from "@angular/core";
 import { appRoutes } from "./app.routes";
-import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptors,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
+import { provideLoadingBarInterceptor } from "@ngx-loading-bar/http-client";
 import {
   provideRouter,
   TitleStrategy,
@@ -45,7 +50,9 @@ export const appConfig: ApplicationConfig = {
     { provide: TitleStrategy, useExisting: TranslatedTitleStrategy },
     provideHttpClient(
       withInterceptors([authTokenInterceptor, errorInterceptor]),
+      withInterceptorsFromDi(),
     ),
+    provideLoadingBarInterceptor(),
     provideI18n(),
 
     provideApp({

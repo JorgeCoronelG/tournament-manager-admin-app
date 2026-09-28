@@ -29,6 +29,7 @@
     "@jsverse/transloco": "^8.4.0",
     "@material-design-icons/svg": "^0.14.13",
     "@ngx-loading-bar/core": "^7.0.1",
+    "@ngx-loading-bar/http-client": "^7.0.1",
     "@ngx-loading-bar/router": "^7.0.1",
     "@tailwindcss/postcss": "^4.3.3",
     "luxon": "^3.7.2",
