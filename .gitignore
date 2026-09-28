@@ -1,8 +1,5 @@
 node_modules
 dist
-# Environment files (keep only the model/type definition)
-src/environments/*
-!src/environments/environment.model.ts
 .angular
 test-results
 playwright-report
