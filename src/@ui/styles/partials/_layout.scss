@@ -58,6 +58,12 @@
   overflow-y: auto;
 }
 
+// The collapsed sidenav is narrower than its own toolbar, which would otherwise
+// show a horizontal scrollbar at the bottom
+.app-layout-sidenav-container .mat-drawer-inner-container {
+  overflow-x: hidden;
+}
+
 .app-layout-toolbar-fixed {
   .app-toolbar {
     position: fixed;
