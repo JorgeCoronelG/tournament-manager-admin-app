@@ -40,8 +40,8 @@ describe("AuthSessionService", () => {
     me.mockReturnValue(
       of({
         id: 1,
-        name: "Ada",
-        surnames: "Lovelace",
+        first_name: "Ada",
+        last_name: "Lovelace",
         email: "ada@example.com",
         photo_url: "",
       }),

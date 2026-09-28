@@ -5,7 +5,7 @@ const DEFAULT_AVATAR_URL = "assets/img/avatars/default.jpg";
 
 export function toAppUser(user: AuthenticatedUser): AppUser {
   return {
-    name: [user.name, user.surnames].filter(Boolean).join(" "),
+    name: [user.first_name, user.last_name].filter(Boolean).join(" "),
     role: "",
     avatarUrl: user.photo_url || DEFAULT_AVATAR_URL,
   };

@@ -51,8 +51,8 @@ describe("LoginComponent", () => {
       of({
         user: {
           id: 1,
-          name: "Ada",
-          surnames: "Lovelace",
+          first_name: "Ada",
+          last_name: "Lovelace",
           email: "ada@example.com",
           photo_url: "",
         },
@@ -98,8 +98,8 @@ describe("LoginComponent", () => {
       of({
         user: {
           id: 1,
-          name: "Ada",
-          surnames: "Lovelace",
+          first_name: "Ada",
+          last_name: "Lovelace",
           email: "ada@example.com",
           photo_url: "",
         },
@@ -128,8 +128,8 @@ describe("LoginComponent", () => {
       of({
         user: {
           id: 1,
-          name: "Ada",
-          surnames: "Lovelace",
+          first_name: "Ada",
+          last_name: "Lovelace",
           email: "ada@example.com",
           photo_url: "",
         },
