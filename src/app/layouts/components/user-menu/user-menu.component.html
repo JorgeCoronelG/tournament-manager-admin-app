@@ -18,19 +18,6 @@
   <div class="border-b border-divider mx-4 mb-2"></div>
 
   <button
-    (click)="openPreferences()"
-    class="app-user-menu-item"
-    matRipple
-    matRippleColor="rgb(var(--app-color-primary-600), 0.1)"
-    type="button"
-  >
-    <mat-icon class="app-user-menu-item__icon icon-sm" svgIcon="mat:settings" />
-    <span class="app-user-menu-item__label text-start">{{
-      "user.preferences" | transloco
-    }}</span>
-  </button>
-
-  <button
     (click)="openChangePassword()"
     class="app-user-menu-item"
     matRipple

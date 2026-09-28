@@ -107,40 +107,17 @@
     "title": "Guía de estilo"
   },
   "toolbar": {
-    "openMenu": "Abrir menú"
+    "openMenu": "Abrir menú",
+    "darkMode": "Cambiar a modo oscuro",
+    "lightMode": "Cambiar a modo claro"
   },
   "user": {
     "guest": "Invitado",
-    "preferences": "Preferencias",
     "changePassword": "Cambiar contraseña",
     "logout": "Cerrar sesión"
   },
   "sidenav": {
     "collapse": "Contraer barra lateral",
     "expand": "Expandir barra lateral"
-  },
-  "config": {
-    "open": "Abrir ajustes",
-    "title": "Configuración",
-    "themeBase": "Base del tema",
-    "darkMode": "Modo oscuro",
-    "themeColors": "Colores del tema",
-    "layouts": "Diseños",
-    "light": "Claro",
-    "dark": "Oscuro",
-    "roundedCorners": "Esquinas redondeadas",
-    "radius": "Radio de borde",
-    "buttonStyle": "Estilo de botones",
-    "inherit": "Heredar",
-    "rounded": "Redondeado",
-    "layout": "Diseño",
-    "orientation": "Orientación",
-    "rtl": "RTL",
-    "toolbar": "Barra superior",
-    "position": "Posición",
-    "fixed": "Fija",
-    "static": "Estática",
-    "footer": "Pie de página",
-    "visible": "Visible"
   }
 }

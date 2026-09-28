@@ -38,6 +38,25 @@
   <span class="flex-1"></span>
 
   <div class="-mx-1 flex items-center">
+    <div class="px-1">
+      <button
+        (click)="toggleDarkMode()"
+        [attr.aria-label]="
+          (isDark() ? 'toolbar.lightMode' : 'toolbar.darkMode') | transloco
+        "
+        [matTooltip]="
+          (isDark() ? 'toolbar.lightMode' : 'toolbar.darkMode') | transloco
+        "
+        mat-icon-button
+        type="button"
+      >
+        <mat-icon
+          [svgIcon]="isDark() ? 'mat:light_mode' : 'mat:dark_mode'"
+          color="primary"
+        />
+      </button>
+    </div>
+
     @if (userVisible()) {
       <div class="px-1">
         <app-toolbar-user />

@@ -23,11 +23,6 @@ body.is-blink {
 }
 
 /** SCROLLBLOCK */
-.app-scrollblock {
-  position: fixed;
-  width: 100%;
-}
-
 /** GLOSSY DIALOG */
 .app-dialog-glossy .mat-mdc-dialog-container {
   @apply rounded;

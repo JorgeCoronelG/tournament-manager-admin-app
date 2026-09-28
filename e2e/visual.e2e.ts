@@ -25,14 +25,6 @@ test.describe("visual regression", () => {
     await expect(page).toHaveScreenshot("customers.png");
   });
 
-  test("settings panel", async ({ page }) => {
-    await gotoApp(page);
-    await page.getByRole("button", { name: "Abrir ajustes" }).click();
-    await page.locator(".sidebar.open").waitFor();
-
-    await expect(page).toHaveScreenshot("settings-panel.png");
-  });
-
   for (const [scheme, theme] of [
     ["light", "app-theme-default"],
     ["dark", "app-theme-default"],

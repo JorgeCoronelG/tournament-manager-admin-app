@@ -51,12 +51,12 @@ src/
 │   ├── tailwind/    # tailwind.config.ts y los plugins que generan los temas
 │   └── app.provider.ts
 ├── app/          # La aplicación
-│   ├── core/        # settings, http, i18n, navegación, usuario, notificaciones
+│   ├── core/        # settings, http, i18n, navegación, usuario, auth, snackbar
 │   ├── features/    # dashboard, customers, not-found, styleguide (solo desarrollo)
-│   ├── layouts/     # layout, toolbar, sidenav, config-panel, footer, user-menu
+│   ├── layouts/     # layout, toolbar, sidenav, footer, user-menu
 │   ├── app.config.ts  app.routes.ts
 ├── environments/ # development (por defecto), production y testing
-└── assets/i18n/  # en.json, es.json
+└── assets/i18n/  # es.json
 e2e/  mock/  nginx/  scripts/
 ```
 
@@ -67,7 +67,7 @@ Alias `@ui/*` → `src/@ui/*`; prefijo de selectores `app-`.
 1. Componente standalone `OnPush` en `src/app/features/<feature>/`.
 2. Ruta lazy en `src/app/app.routes.ts` (o un archivo de rutas por feature, como `customers.routes.ts`). El `title` de la ruta es una clave de traducción.
 3. Entrada en `src/app/core/navigation/navigation-loader.service.ts` (la etiqueta también es una clave).
-4. Textos en `src/assets/i18n/en.json` **y** `es.json`.
+4. Textos en `src/assets/i18n/es.json`.
 
 `features/customers` muestra el patrón completo: `httpResource`, filtros y formulario con Signal Forms, tabla con orden y paginación, estados de carga/error/vacío y tests.
 

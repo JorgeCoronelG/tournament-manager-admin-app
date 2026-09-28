@@ -16,9 +16,6 @@ export class AppLayoutService {
   private readonly _sidenavCollapsedOpen = signal(false);
   readonly sidenavCollapsedOpen = this._sidenavCollapsedOpen.asReadonly();
 
-  private readonly _configPanelOpen = signal(false);
-  readonly configPanelOpen = this._configPanelOpen.asReadonly();
-
   readonly isDesktop = this.observeQuery("(min-width: 1280px)");
   readonly ltLg = this.observeQuery("(max-width: 1279px)");
   readonly gtMd = this.observeQuery("(min-width: 960px)");
@@ -68,13 +65,5 @@ export class AppLayoutService {
 
   collapseCloseSidenav() {
     this._sidenavCollapsedOpen.set(false);
-  }
-
-  openConfigpanel() {
-    this._configPanelOpen.set(true);
-  }
-
-  closeConfigpanel() {
-    this._configPanelOpen.set(false);
   }
 }

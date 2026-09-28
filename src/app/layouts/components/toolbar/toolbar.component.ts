@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { AppLayoutService } from "@ui/services/app-layout.service";
 import { AppConfigService } from "@ui/config/app-config.service";
+import { AppColorScheme } from "@ui/config/app-config.interface";
 import { NavigationService } from "../../../core/navigation/navigation.service";
 import { AppPopoverService } from "@ui/components/app-popover/app-popover.service";
 import { NavigationComponent } from "../navigation/navigation.component";
@@ -15,6 +16,7 @@ import { NavigationItemComponent } from "../navigation/navigation-item/navigatio
 import { RouterLink } from "@angular/router";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { routeDataSignal } from "@ui/utils/route-data-signal";
 
 @Component({
@@ -29,6 +31,7 @@ import { routeDataSignal } from "@ui/utils/route-data-signal";
     TranslocoPipe,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     RouterLink,
     NavigationItemComponent,
     ToolbarUserComponent,
@@ -63,7 +66,19 @@ export class ToolbarComponent {
   readonly userVisible = computed(() => this.config().toolbar.user.visible);
   readonly title = computed(() => this.config().sidenav.title);
 
+  readonly isDark = computed(
+    () => this.config().style.colorScheme === AppColorScheme.DARK,
+  );
+
   readonly isDesktop = this.layoutService.isDesktop;
+
+  toggleDarkMode(): void {
+    this.configService.updateConfig({
+      style: {
+        colorScheme: this.isDark() ? AppColorScheme.LIGHT : AppColorScheme.DARK,
+      },
+    });
+  }
 
   openSidenav(): void {
     this.layoutService.openSidenav();

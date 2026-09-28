@@ -23,16 +23,4 @@
       }
     </mat-sidenav-content>
   </mat-sidenav-container>
-  <app-config-panel-toggle (openConfig)="configpanel.open()" />
-  <!-- CONFIGPANEL -->
-  <app-sidebar
-    #configpanel
-    [invisibleBackdrop]="true"
-    [opened]="configPanelOpen()"
-    (openedChange)="onConfigPanelChange($event)"
-    position="right"
-  >
-    <app-config-panel />
-  </app-sidebar>
-  <!-- END CONFIGPANEL -->
 </app-base-layout>
