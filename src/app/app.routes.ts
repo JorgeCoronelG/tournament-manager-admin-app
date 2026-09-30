@@ -25,6 +25,15 @@ export const appRoutes: AppRoutes = [
       ),
   },
   {
+    path: "activar-cuenta",
+    title: "activateAccount.title",
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import("./features/activate-account/activate-account.component").then(
+        (m) => m.ActivateAccountComponent,
+      ),
+  },
+  {
     path: "dashboard",
     component: LayoutComponent,
     canActivate: [authGuard],

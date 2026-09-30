@@ -1,0 +1,124 @@
+<div
+  class="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100"
+>
+  <div class="bg-foreground rounded shadow overflow-hidden w-full max-w-md">
+    @if (submitting()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <div class="p-6 pb-0 flex flex-col items-center justify-center">
+      <img alt="Logo" class="w-16" src="assets/img/logo/logo.svg" />
+    </div>
+
+    <div class="text-center mt-4 px-6">
+      <h2 class="m-0">{{ "activateAccount.title" | transloco }}</h2>
+      <p class="text-secondary m-0">
+        {{
+          (manualEntry()
+            ? "activateAccount.manualSubtitle"
+            : "activateAccount.subtitle"
+          ) | transloco
+        }}
+      </p>
+    </div>
+
+    <form
+      (submit)="$event.preventDefault(); activate()"
+      class="p-6 flex flex-col gap-4"
+      novalidate
+    >
+      @if (rejected(); as message) {
+        <div class="text-center text-warn" role="alert">
+          <p class="m-0 font-medium">{{ message }}</p>
+          <p class="m-0 mt-1 text-secondary">
+            {{ "activateAccount.askNewInvitation" | transloco }}
+          </p>
+        </div>
+      }
+
+      @if (manualEntry()) {
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>{{ "login.email" | transloco }}</mat-label>
+          <input
+            [formField]="activateForm.email"
+            autocomplete="email"
+            matInput
+            type="email"
+          />
+          @if (activateForm.email().errors().length) {
+            <mat-error>{{
+              (activateForm.email().value()
+                ? "validation.email"
+                : "validation.required"
+              ) | transloco
+            }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>{{ "forgotPassword.code" | transloco }}</mat-label>
+          <input
+            [formField]="activateForm.code"
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            matInput
+          />
+          @if (activateForm.code().errors().length) {
+            <mat-error>{{ "forgotPassword.codeError" | transloco }}</mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ "forgotPassword.newPassword" | transloco }}</mat-label>
+        <input
+          [formField]="activateForm.password"
+          autocomplete="new-password"
+          matInput
+          type="password"
+        />
+        @if (activateForm.password().errors().length) {
+          <mat-error>{{
+            "forgotPassword.passwordError" | transloco
+          }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{
+          "forgotPassword.confirmPassword" | transloco
+        }}</mat-label>
+        <input
+          [formField]="activateForm.passwordConfirmation"
+          autocomplete="new-password"
+          matInput
+          type="password"
+        />
+        @if (activateForm.passwordConfirmation().errors().length) {
+          <mat-error>{{
+            (activateForm.passwordConfirmation().value()
+              ? "forgotPassword.passwordMismatch"
+              : "validation.required"
+            ) | transloco
+          }}</mat-error>
+        }
+      </mat-form-field>
+
+      <button
+        [disabled]="submitting()"
+        color="primary"
+        mat-flat-button
+        type="submit"
+      >
+        {{ "activateAccount.submit" | transloco }}
+      </button>
+
+      <a
+        [routerLink]="['/']"
+        class="text-sm text-center text-secondary hover:underline"
+      >
+        {{ "forgotPassword.backToLogin" | transloco }}
+      </a>
+    </form>
+  </div>
+</div>

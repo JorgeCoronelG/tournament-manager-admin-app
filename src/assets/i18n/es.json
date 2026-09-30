@@ -9,7 +9,10 @@
   },
   "validation": {
     "required": "Este campo es obligatorio",
-    "email": "Ingresa un correo válido"
+    "email": "Ingresa un correo válido",
+    "minLength": "Debe tener al menos {{min}} caracteres",
+    "maxLength": "No puede tener más de {{max}} caracteres",
+    "phone": "Ingresa un teléfono de 10 dígitos, solo números"
   },
   "errors": {
     "network": "No se puede conectar con el servidor. Revisa tu conexión.",
@@ -92,6 +95,14 @@
     "passwordMismatch": "Las contraseñas no coinciden",
     "resetSubmit": "Cambiar contraseña",
     "requestAnother": "Solicitar otro código"
+  },
+  "activateAccount": {
+    "title": "Activar cuenta",
+    "subtitle": "Elige una contraseña para terminar de activar tu cuenta.",
+    "manualSubtitle": "Ingresa tu correo y el código de verificación que te enviamos, y elige una contraseña.",
+    "submit": "Activar cuenta",
+    "done": "Cuenta activada. Ya puedes iniciar sesión.",
+    "askNewInvitation": "Pide una nueva invitación al administrador."
   },
   "changePassword": {
     "title": "Cambiar contraseña",

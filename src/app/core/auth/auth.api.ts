@@ -54,6 +54,28 @@ export class AuthApi {
     );
   }
 
+  /**
+   * Public: sets the password of an invited user with the code from the e-mail.
+   * The caller shows the error (invalid or expired code) inline.
+   */
+  activateAccount(
+    email: string,
+    code: string,
+    password: string,
+    passwordConfirmation: string,
+  ) {
+    return this.http.post<{ message: string }>(
+      this.settings.authApi("/activate-account"),
+      {
+        email,
+        code,
+        password,
+        password_confirmation: passwordConfirmation,
+      },
+      { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
+    );
+  }
+
   changePassword(
     currentPassword: string,
     password: string,
