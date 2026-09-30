@@ -68,6 +68,57 @@
       "notFound": "Este cliente no existe."
     }
   },
+  "users": {
+    "title": "Usuarios",
+    "new": "Nuevo usuario",
+    "search": "Buscar usuarios",
+    "created": "Usuario creado. Le enviamos un correo para activar su cuenta.",
+    "updated": "Usuario actualizado",
+    "activated": "Usuario activado",
+    "deactivated": "Usuario desactivado",
+    "deleted": "Usuario eliminado",
+    "invitationSent": "Invitación reenviada",
+    "empty": "Ningún usuario coincide con tu búsqueda.",
+    "error": "No pudimos cargar los usuarios.",
+    "fields": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "roles": "Roles",
+      "status": "Estado",
+      "createdAt": "Alta",
+      "actions": "Acciones"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "filters": {
+      "allRoles": "Todos los roles",
+      "allStatuses": "Todos los estados"
+    },
+    "actions": {
+      "edit": "Editar",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "resendInvitation": "Reenviar invitación",
+      "delete": "Eliminar"
+    },
+    "delete": {
+      "title": "Eliminar usuario",
+      "message": "¿Seguro que quieres eliminar a {{name}}?\nEsta acción no se puede deshacer.",
+      "confirm": "Eliminar"
+    },
+    "form": {
+      "newTitle": "Nuevo usuario",
+      "editTitle": "Editar usuario",
+      "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
+      "phoneHint": "Obligatorio para jugadores",
+      "rolesError": "No pudimos cargar los roles."
+    }
+  },
   "login": {
     "title": "Iniciar sesión",
     "subtitle": "Ingresa tus credenciales para continuar.",

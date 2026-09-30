@@ -1,0 +1,101 @@
+<h2 mat-dialog-title>
+  {{ (user ? "users.form.editTitle" : "users.form.newTitle") | transloco }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-1 !pt-2 min-w-[320px]">
+    @if (!user) {
+      <p class="text-secondary m-0 mb-2">
+        {{ "users.form.invitationNotice" | transloco }}
+      </p>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "users.fields.firstName" | transloco }}</mat-label>
+      <input [formField]="userForm.first_name" autocomplete="off" matInput />
+      @if (userForm.first_name().errors().length) {
+        <mat-error>{{
+          errorText(
+            userForm.first_name().errors(),
+            userForm.first_name().value()
+          )
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "users.fields.lastName" | transloco }}</mat-label>
+      <input [formField]="userForm.last_name" autocomplete="off" matInput />
+      @if (userForm.last_name().errors().length) {
+        <mat-error>{{
+          errorText(userForm.last_name().errors(), userForm.last_name().value())
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "users.fields.email" | transloco }}</mat-label>
+      <input
+        [formField]="userForm.email"
+        autocomplete="off"
+        matInput
+        type="email"
+      />
+      @if (userForm.email().errors().length) {
+        <mat-error>{{
+          errorText(userForm.email().errors(), userForm.email().value())
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "users.fields.phone" | transloco }}</mat-label>
+      <input
+        [formField]="userForm.phone"
+        autocomplete="off"
+        matInput
+        inputmode="numeric"
+        type="tel"
+      />
+      @if (userForm.phone().errors().length) {
+        <mat-error>{{
+          errorText(userForm.phone().errors(), userForm.phone().value())
+        }}</mat-error>
+      } @else {
+        <mat-hint>{{ "users.form.phoneHint" | transloco }}</mat-hint>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "users.fields.roles" | transloco }}</mat-label>
+      <mat-select [formField]="userForm.roles" multiple>
+        @for (role of roles.value(); track role.id) {
+          <mat-option [value]="role.id">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+      @if (userForm.roles().errors().length) {
+        <mat-error>{{
+          errorText(userForm.roles().errors(), userForm.roles().value())
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (roles.error()) {
+      <p class="text-sm text-warn m-0">
+        {{ "users.form.rolesError" | transloco }}
+        <button (click)="roles.reload()" mat-button type="button">
+          {{ "common.retry" | transloco }}
+        </button>
+      </p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button [disabled]="saving()" color="primary" mat-flat-button type="submit">
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

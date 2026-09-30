@@ -1,0 +1,239 @@
+<app-secondary-toolbar [current]="'users.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    <div class="flex flex-wrap items-start gap-4 mb-4">
+      <mat-form-field class="w-72" subscriptSizing="dynamic">
+        <mat-label>{{ "users.search" | transloco }}</mat-label>
+        <mat-icon matPrefix svgIcon="mat:search" />
+        <input
+          [formField]="filtersForm.search"
+          autocomplete="off"
+          matInput
+          type="search"
+        />
+      </mat-form-field>
+
+      <mat-form-field class="w-48" subscriptSizing="dynamic">
+        <mat-label>{{ "users.fields.roles" | transloco }}</mat-label>
+        <mat-select [formField]="filtersForm.roleId">
+          <mat-option value="">{{
+            "users.filters.allRoles" | transloco
+          }}</mat-option>
+          @for (role of roles.value(); track role.id) {
+            <mat-option [value]="role.id">{{ role.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="w-48" subscriptSizing="dynamic">
+        <mat-label>{{ "users.fields.status" | transloco }}</mat-label>
+        <mat-select [formField]="filtersForm.status">
+          <mat-option value="">{{
+            "users.filters.allStatuses" | transloco
+          }}</mat-option>
+          <mat-option value="pending">{{
+            "users.status.pending" | transloco
+          }}</mat-option>
+          <mat-option value="active">{{
+            "users.status.active" | transloco
+          }}</mat-option>
+          <mat-option value="inactive">{{
+            "users.status.inactive" | transloco
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <span class="flex-1"></span>
+
+      <button
+        (click)="openForm()"
+        color="primary"
+        mat-flat-button
+        type="button"
+      >
+        <mat-icon svgIcon="mat:add" />
+        {{ "users.new" | transloco }}
+      </button>
+    </div>
+
+    <div class="bg-foreground rounded shadow overflow-hidden">
+      <mat-progress-bar
+        [class.invisible]="!resource.isLoading()"
+        mode="indeterminate"
+      />
+
+      <div class="overflow-x-auto">
+        <table
+          (matSortChange)="sort($event)"
+          [dataSource]="rows()"
+          class="w-full"
+          mat-table
+          matSort
+          matSortActive="created_at"
+          matSortDirection="desc"
+        >
+          <ng-container matColumnDef="first_name">
+            <th *matHeaderCellDef mat-header-cell mat-sort-header>
+              {{ "users.fields.firstName" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell class="font-medium">
+              {{ user.first_name }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="last_name">
+            <th *matHeaderCellDef mat-header-cell mat-sort-header>
+              {{ "users.fields.lastName" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>{{ user.last_name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="email">
+            <th *matHeaderCellDef mat-header-cell>
+              {{ "users.fields.email" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>{{ user.email }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="phone">
+            <th *matHeaderCellDef mat-header-cell>
+              {{ "users.fields.phone" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>{{ user.phone ?? "—" }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="roles">
+            <th *matHeaderCellDef mat-header-cell>
+              {{ "users.fields.roles" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>
+              <div class="flex flex-wrap gap-1 py-1">
+                @for (role of user.roles; track role.id) {
+                  <span
+                    class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-primary-600/10 text-primary-800 dark:text-primary-300"
+                    >{{ role.name }}</span
+                  >
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th *matHeaderCellDef mat-header-cell>
+              {{ "users.fields.status" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>
+              <app-user-status-chip [status]="user.status" />
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="created_at">
+            <th *matHeaderCellDef mat-header-cell mat-sort-header>
+              {{ "users.fields.createdAt" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>
+              {{ user.created_at | appDateFormatRelative }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th *matHeaderCellDef mat-header-cell>
+              <span class="sr-only">{{
+                "users.fields.actions" | transloco
+              }}</span>
+            </th>
+            <td *matCellDef="let user" mat-cell class="whitespace-nowrap">
+              <button
+                (click)="openForm(user)"
+                [attr.aria-label]="'users.actions.edit' | transloco"
+                [matTooltip]="'users.actions.edit' | transloco"
+                mat-icon-button
+                type="button"
+              >
+                <mat-icon color="primary" svgIcon="mat:edit" />
+              </button>
+              <button
+                (click)="toggleActive(user)"
+                [attr.aria-label]="
+                  (user.is_active
+                    ? 'users.actions.deactivate'
+                    : 'users.actions.activate'
+                  ) | transloco
+                "
+                [matTooltip]="
+                  (user.is_active
+                    ? 'users.actions.deactivate'
+                    : 'users.actions.activate'
+                  ) | transloco
+                "
+                mat-icon-button
+                type="button"
+              >
+                <mat-icon
+                  [class]="
+                    user.is_active
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-500 dark:text-gray-400'
+                  "
+                  [svgIcon]="
+                    user.is_active ? 'mat:toggle_on' : 'mat:toggle_off'
+                  "
+                />
+              </button>
+              @if (user.status === "pending") {
+                <button
+                  (click)="resendInvitation(user)"
+                  [attr.aria-label]="
+                    'users.actions.resendInvitation' | transloco
+                  "
+                  [matTooltip]="'users.actions.resendInvitation' | transloco"
+                  mat-icon-button
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:forward_to_inbox" />
+                </button>
+              }
+              <button
+                (click)="remove(user)"
+                [attr.aria-label]="'users.actions.delete' | transloco"
+                [matTooltip]="'users.actions.delete' | transloco"
+                mat-icon-button
+                type="button"
+              >
+                <mat-icon color="warn" svgIcon="mat:delete" />
+              </button>
+            </td>
+          </ng-container>
+
+          <tr *matHeaderRowDef="columns" mat-header-row></tr>
+          <tr *matRowDef="let row; columns: columns" mat-row></tr>
+        </table>
+      </div>
+
+      @if (resource.error()) {
+        <div class="py-10 px-6 text-center" role="alert">
+          <p class="text-secondary mb-4">{{ "users.error" | transloco }}</p>
+          <button (click)="resource.reload()" mat-stroked-button type="button">
+            {{ "common.retry" | transloco }}
+          </button>
+        </div>
+      } @else if (!resource.isLoading() && rows().length === 0) {
+        <p class="py-10 px-6 text-center text-secondary">
+          {{ "users.empty" | transloco }}
+        </p>
+      }
+
+      <mat-paginator
+        (page)="changePage($event)"
+        [length]="total()"
+        [pageIndex]="paging().page"
+        [pageSizeOptions]="[5, 10, 25]"
+        [pageSize]="paging().pageSize"
+        showFirstLastButtons
+      />
+    </div>
+  </app-page-layout-content>
+</app-page-layout>
