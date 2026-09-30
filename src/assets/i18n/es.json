@@ -4,7 +4,8 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "retry": "Reintentar",
-    "back": "Volver"
+    "back": "Volver",
+    "loading": "Cargando"
   },
   "validation": {
     "required": "Este campo es obligatorio",

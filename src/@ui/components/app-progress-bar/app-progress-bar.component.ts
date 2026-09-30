@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  input,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import {
@@ -31,6 +32,9 @@ import { LoadingBarRouterModule } from "@ngx-loading-bar/router";
   ],
 })
 export class AppProgressBarComponent {
+  /** Accessible name for the progress bar (it has no visible text) */
+  readonly label = input("Loading");
+
   loader = inject(LoadingBarService);
 
   readonly value = toSignal(

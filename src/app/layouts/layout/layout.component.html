@@ -1,5 +1,5 @@
 <app-base-layout>
-  <app-progress-bar />
+  <app-progress-bar [label]="'common.loading' | transloco" />
   <mat-sidenav-container class="app-layout-sidenav-container">
     <mat-sidenav
       (closedStart)="onSidenavClosed()"

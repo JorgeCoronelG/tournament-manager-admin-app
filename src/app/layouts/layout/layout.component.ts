@@ -14,6 +14,7 @@ import { MatDialogModule } from "@angular/material/dialog";
 import { BaseLayoutComponent } from "../base-layout/base-layout.component";
 import { MatDrawerMode, MatSidenavModule } from "@angular/material/sidenav";
 import { AppProgressBarComponent } from "@ui/components/app-progress-bar/app-progress-bar.component";
+import { TranslocoPipe } from "@jsverse/transloco";
 
 @Component({
   selector: "app-layout",
@@ -29,6 +30,7 @@ import { AppProgressBarComponent } from "@ui/components/app-progress-bar/app-pro
     MatSidenavModule,
     RouterOutlet,
     AppProgressBarComponent,
+    TranslocoPipe,
   ],
 })
 export class LayoutComponent {

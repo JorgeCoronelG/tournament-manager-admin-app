@@ -26,10 +26,10 @@ test.describe("dashboard and customers", () => {
     const range = page.locator(".mat-mdc-paginator-range-label");
 
     await expect(rows).toHaveCount(10);
-    await expect(range).toContainText("of");
+    await expect(range).toContainText("de");
 
     await page.getByRole("searchbox").fill("García");
-    await expect(range).toHaveText(/1 – \d of \d/);
+    await expect(range).toHaveText(/1 – \d de \d/);
     await expect(rows.first()).toContainText("García");
 
     await page.getByRole("searchbox").fill("zzzzzz");
@@ -54,7 +54,7 @@ test.describe("dashboard and customers", () => {
     await page.getByRole("button", { name: "Nombre" }).click();
     await expect(rows.first().locator("a")).not.toHaveText(firstBefore ?? "");
 
-    await page.getByRole("button", { name: "Next page" }).click();
+    await page.getByRole("button", { name: "Página siguiente" }).click();
     await expect(range).toContainText("11 –");
   });
 
