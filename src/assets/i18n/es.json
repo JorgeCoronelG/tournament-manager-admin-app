@@ -121,5 +121,14 @@
   "sidenav": {
     "collapse": "Contraer barra lateral",
     "expand": "Expandir barra lateral"
+  },
+  "paginator": {
+    "itemsPerPage": "Elementos por página:",
+    "nextPage": "Página siguiente",
+    "previousPage": "Página anterior",
+    "firstPage": "Primera página",
+    "lastPage": "Última página",
+    "range": "{{startIndex}} – {{endIndex}} de {{length}}",
+    "rangeEmpty": "0 de {{length}}"
   }
 }

@@ -20,7 +20,9 @@ import {
   withInMemoryScrolling,
 } from "@angular/router";
 import { provideNativeDateAdapter } from "@angular/material/core";
+import { MatPaginatorIntl } from "@angular/material/paginator";
 import { provideIcons } from "./core/icons/icons.provider";
+import { AppPaginatorIntl } from "./core/i18n/app-paginator-intl";
 import { provideI18n } from "./core/i18n/i18n.provider";
 import { AppErrorHandler } from "./core/http/app-error-handler";
 import { authTokenInterceptor } from "./core/http/auth-token.interceptor";
@@ -48,6 +50,7 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     { provide: TitleStrategy, useExisting: TranslatedTitleStrategy },
+    { provide: MatPaginatorIntl, useClass: AppPaginatorIntl },
     provideHttpClient(
       withInterceptors([authTokenInterceptor, errorInterceptor]),
       withInterceptorsFromDi(),
