@@ -6,14 +6,14 @@ export interface AppUser {
   name: string;
   role: string;
   roles: readonly Role[];
-  avatarUrl: string;
+  avatarUrl: string | null;
 }
 
 const ANONYMOUS_USER: AppUser = {
   name: "Guest",
   role: "",
   roles: [],
-  avatarUrl: "assets/img/avatars/default.jpg",
+  avatarUrl: null,
 };
 
 /**

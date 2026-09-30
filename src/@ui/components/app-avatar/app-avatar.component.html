@@ -1,0 +1,7 @@
+@if (showImage()) {
+  <img (error)="onError()" [src]="src()" alt="" class="app-avatar__image" />
+} @else {
+  <span class="app-avatar__fallback">
+    <mat-icon svgIcon="mat:person" />
+  </span>
+}

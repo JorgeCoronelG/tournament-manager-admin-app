@@ -5,6 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatRippleModule } from "@angular/material/core";
+import { AppAvatarComponent } from "@ui/components/app-avatar/app-avatar.component";
 import { AppPopoverRef } from "@ui/components/app-popover/app-popover-ref";
 import { AuthApi } from "../../../core/auth/auth.api";
 import { AuthTokenService } from "../../../core/auth/auth-token.service";
@@ -19,7 +20,7 @@ import { ChangePasswordDialogComponent } from "../../../features/change-password
   templateUrl: "./user-menu.component.html",
   styleUrls: ["./user-menu.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, MatIconModule, MatRippleModule],
+  imports: [AppAvatarComponent, TranslocoPipe, MatIconModule, MatRippleModule],
 })
 export class UserMenuComponent {
   private readonly popoverRef = inject(AppPopoverRef);

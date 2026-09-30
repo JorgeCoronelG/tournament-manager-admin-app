@@ -17,6 +17,6 @@ describe("toAppUser", () => {
     expect(user.name).toBe("Ada Lovelace");
     expect(user.roles).toEqual(["superadmin"]);
     expect(user.role).toBe("Super Administrador, Desconocido");
-    expect(user.avatarUrl).toBe("assets/img/avatars/default.jpg");
+    expect(user.avatarUrl).toBeNull();
   });
 });

@@ -15,6 +15,7 @@ import { AppPopoverService } from "@ui/components/app-popover/app-popover.servic
 import { UserMenuComponent } from "../user-menu/user-menu.component";
 import { CurrentUserService } from "../../../core/user/current-user.service";
 import { SidenavItemComponent } from "./sidenav-item/sidenav-item.component";
+import { AppAvatarComponent } from "@ui/components/app-avatar/app-avatar.component";
 import { AppScrollbarComponent } from "@ui/components/app-scrollbar/app-scrollbar.component";
 import { MatRippleModule } from "@angular/material/core";
 import { MatIconModule } from "@angular/material/icon";
@@ -30,6 +31,7 @@ import { MatButtonModule } from "@angular/material/button";
     MatButtonModule,
     MatIconModule,
     MatRippleModule,
+    AppAvatarComponent,
     AppScrollbarComponent,
     SidenavItemComponent,
   ],

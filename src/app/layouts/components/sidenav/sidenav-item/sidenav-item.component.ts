@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OnInit,
   effect,
   inject,
   input,
@@ -43,7 +44,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
     MatIconModule,
   ],
 })
-export class SidenavItemComponent {
+export class SidenavItemComponent implements OnInit {
   private router = inject(Router);
   private navigationService = inject(NavigationService);
   private readonly destroyRef = inject(DestroyRef);
@@ -60,6 +61,22 @@ export class SidenavItemComponent {
   readonly levelClass = () => `item-level-${this.level()}`;
 
   constructor() {
+    effect(() => {
+      if (this.isDropdown(this.item())) {
+        untracked(() => this.onRouteChange());
+      }
+    });
+  }
+
+  /**
+   * `openChange$` is a `Subject` shared by every sidenav item and
+   * `triggerOpenChange()` emits into it synchronously. Subscribing here
+   * (rather than in the constructor) guarantees `item` is already set by the
+   * time this instance can react to it — otherwise a sibling item changing
+   * while this one is still being constructed reads `item()` before Angular
+   * assigns it and throws NG0950.
+   */
+  ngOnInit(): void {
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -74,12 +91,6 @@ export class SidenavItemComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((item) => this.onOpenChange(item));
-
-    effect(() => {
-      if (this.isDropdown(this.item())) {
-        untracked(() => this.onRouteChange());
-      }
-    });
   }
 
   toggleOpen() {
