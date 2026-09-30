@@ -21,7 +21,9 @@
   "nav": {
     "main": "Principal",
     "dashboard": "Panel",
+    "users": "Usuarios",
     "customers": "Clientes",
+    "manage": "Gestión",
     "home": "Inicio"
   },
   "dashboard": {

@@ -17,15 +17,17 @@ async function mockSession(page: Page): Promise<void> {
     localStorage.setItem("app.auth.token", "e2e-fake-token");
   });
 
-  // Empty name/surnames/photo_url keep the "Guest" look the screenshots were baselined with
+  // Empty names/photo_url/role name keep the "Guest" look the screenshots were baselined with;
+  // the superadmin role is what shows the whole menu
   await page.route("http://localhost:8000/api/user", (route) =>
     route.fulfill({
       json: {
         id: 1,
-        name: "",
-        surnames: "",
+        first_name: "",
+        last_name: "",
         email: "e2e@example.com",
         photo_url: "",
+        roles: [{ id: 1, code: "superadmin", name: "" }],
       },
     }),
   );

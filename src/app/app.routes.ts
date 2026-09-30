@@ -3,6 +3,7 @@ import { AppRoutes } from "@ui/interfaces/app-route.interface";
 import { customersRoutes } from "./features/customers/customers.routes";
 import { environment } from "../environments/environment";
 import { authGuard } from "./core/auth/auth.guard";
+import { capabilityGuard } from "./core/auth/capability.guard";
 import { guestGuard } from "./core/auth/guest.guard";
 
 export const appRoutes: AppRoutes = [
@@ -39,6 +40,7 @@ export const appRoutes: AppRoutes = [
       },
       {
         path: "customers",
+        canActivate: [capabilityGuard("customers.manage")],
         children: customersRoutes,
       },
       ...(environment.features.styleguide

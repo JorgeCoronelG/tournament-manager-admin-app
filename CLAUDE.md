@@ -34,7 +34,7 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 - Templates: `@if` / `@for` (con `track`) / `@switch` / `@let`. Nada de `*ngIf`, `*ngFor` ni `ngClass`/`ngStyle`; usa `[class]`/`[style]`.
 - Sin `any` (usa `unknown` o genéricos): es error de ESLint.
 - Los elementos interactivos son `<button type="button">` o `<a>`. No pongas `(click)` en un `div`/`span`: es error de ESLint (accesibilidad). Un fondo que solo captura clics lleva `role="presentation"`.
-- Nuevas páginas: carga lazy (`loadComponent`) dentro de los `children` del layout en `app.routes.ts` y entrada en `navigation-loader.service.ts`. Los `path` de las rutas van en español (ej. `recuperar-contrasena`), sin tildes ni `ñ`.
+- Nuevas páginas: carga lazy (`loadComponent`) dentro de los `children` del layout en `app.routes.ts` y entrada en `navigation-loader.service.ts`. Si la página no es para todos los usuarios, declara su `capability` en la entrada del menú (definida en `core/auth/role-capabilities.ts`) y protege la ruta con `capabilityGuard(...)`; el backend igual debe autorizar el endpoint. Los `path` de las rutas van en español (ej. `recuperar-contrasena`), sin tildes ni `ñ`.
 - Providers de inicialización: `provideEnvironmentInitializer()`. `ENVIRONMENT_INITIALIZER` está deprecado.
 - Formato lo decide Prettier (`.prettierrc.json`); no lo discutas ni lo formatees a mano. No edites archivos generados.
 

@@ -44,6 +44,7 @@ describe("AuthSessionService", () => {
         last_name: "Lovelace",
         email: "ada@example.com",
         photo_url: "",
+        roles: [{ id: 1, code: "superadmin", name: "Super Administrador" }],
       }),
     );
 
