@@ -7,7 +7,14 @@ test.describe("sidenav", () => {
   }) => {
     await gotoApp(page);
     await page.getByRole("button", { name: "Contraer barra lateral" }).click();
+    await expect(page.locator(".app-sidenav.collapsed")).toBeVisible();
+
+    // A collapsed sidenav stays open while it is hovered, and the real
+    // `mouseleave` is sometimes lost after the click (the pointer is gone, the
+    // sidenav stays open). This test is about the scrollbar, not the hover, so
+    // close it deterministically.
     await page.mouse.move(900, 400);
+    await page.locator(".app-sidenav").dispatchEvent("mouseleave");
 
     const container = page.locator(".mat-drawer-inner-container");
     await expect
