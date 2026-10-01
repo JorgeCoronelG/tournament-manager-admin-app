@@ -29,6 +29,31 @@ docker compose --profile dev  up --build   # http://localhost:4200 (hot reload)
 docker compose --profile prod up --build   # http://localhost:8080 (nginx)
 ```
 
+Detener y limpiar (con `--profile` igual que al levantar):
+
+```bash
+docker compose ps                                  # contenedores del proyecto en ejecución
+docker compose --profile dev down                  # detiene y elimina los contenedores y la red (usa prod si levantaste prod)
+docker compose --profile dev down -v               # además elimina los volúmenes (el node_modules del contenedor)
+docker compose --profile dev down --rmi local      # además elimina las imágenes que construyó el proyecto
+docker compose -f docker-compose.e2e.yml down -v   # lo mismo para el stack de e2e (el script ya lo hace al terminar)
+```
+
+Con `Ctrl+C` en la terminal donde corre `up` se detienen los contenedores, pero no se eliminan.
+
+Limpieza general de Docker (afecta a **todo** Docker, no solo a este proyecto; revisa antes lo que se va a borrar):
+
+```bash
+docker ps -a                  # contenedores (también los detenidos)
+docker images                 # imágenes
+docker container prune        # elimina los contenedores detenidos
+docker image prune            # elimina las imágenes sin etiqueta (<none>)
+docker image prune -a         # elimina todas las imágenes que ningún contenedor usa
+docker volume prune           # elimina los volúmenes que ningún contenedor usa
+docker builder prune          # elimina la caché de build
+docker system prune -a --volumes   # todo lo anterior junto
+```
+
 ## Scripts
 
 | Comando                    | Descripción                                            |
