@@ -1,0 +1,63 @@
+<mat-form-field [subscriptSizing]="subscriptSizing()" class="w-full">
+  <mat-label>{{ label() }}</mat-label>
+  <input
+    (blur)="touch.emit()"
+    (input)="type($event)"
+    [disabled]="disabled()"
+    [errorStateMatcher]="matcher"
+    [matAutocomplete]="auto"
+    [value]="text()"
+    autocomplete="off"
+    matInput
+    type="text"
+  />
+  @if (text() && !disabled()) {
+    <button
+      (click)="clear()"
+      [attr.aria-label]="'leagues.admin.clear' | transloco"
+      matIconSuffix
+      mat-icon-button
+      type="button"
+    >
+      <mat-icon svgIcon="mat:close" />
+    </button>
+  }
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    (optionSelected)="choose($event.option.value)"
+    [displayWith]="displayUser"
+  >
+    @for (user of users(); track user.id) {
+      <mat-option [disabled]="user.status === 'inactive'" [value]="user">
+        <span class="flex items-center justify-between gap-3">
+          <span class="flex flex-col leading-tight">
+            <span class="font-medium"
+              >{{ user.first_name }} {{ user.last_name }}</span
+            >
+            <span class="text-xs text-secondary">{{ user.email }}</span>
+          </span>
+          <app-user-status-chip [status]="user.status" />
+        </span>
+      </mat-option>
+    }
+  </mat-autocomplete>
+  @if (showError()) {
+    <mat-error>{{ errorText() }}</mat-error>
+  }
+</mat-form-field>
+
+@if (unavailable()) {
+  <p class="text-sm text-warn m-0" role="alert">
+    {{ "leagues.admin.loadError" | transloco }}
+    <button (click)="retry()" mat-button type="button">
+      {{ "common.retry" | transloco }}
+    </button>
+  </p>
+} @else if (noResults()) {
+  <p class="text-sm text-secondary m-0" role="status">
+    {{ "leagues.admin.noResults" | transloco }}
+    <a class="underline" routerLink="/dashboard/usuarios">{{
+      "leagues.admin.createLink" | transloco
+    }}</a>
+  </p>
+}

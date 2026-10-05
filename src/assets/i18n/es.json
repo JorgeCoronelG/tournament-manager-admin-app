@@ -31,7 +31,8 @@
     "dashboard": "Panel",
     "users": "Usuarios",
     "manage": "Gestión",
-    "home": "Inicio"
+    "home": "Inicio",
+    "leagues": "Ligas"
   },
   "dashboard": {
     "title": "Panel",
@@ -89,6 +90,43 @@
       "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
       "phoneHint": "Obligatorio para jugadores",
       "rolesError": "No pudimos cargar los roles."
+    }
+  },
+  "leagues": {
+    "title": "Ligas",
+    "new": "Nueva liga",
+    "search": "Buscar ligas o encargados",
+    "created": "Liga creada",
+    "updated": "Liga actualizada",
+    "deleted": "Liga eliminada",
+    "error": "No pudimos cargar las ligas.",
+    "fields": {
+      "name": "Nombre",
+      "admin": "Encargado",
+      "createdAt": "Alta",
+      "actions": "Acciones"
+    },
+    "filters": {
+      "admin": "Filtrar por encargado"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "delete": {
+      "title": "Eliminar liga",
+      "message": "¿Seguro que quieres eliminar la liga {{name}}?\nEsta acción no se puede deshacer.",
+      "confirm": "Eliminar"
+    },
+    "form": {
+      "newTitle": "Nueva liga",
+      "editTitle": "Editar liga"
+    },
+    "admin": {
+      "clear": "Limpiar encargado",
+      "loadError": "No pudimos cargar los encargados.",
+      "noResults": "No hay encargados que coincidan.",
+      "createLink": "Crear un encargado en Usuarios"
     }
   },
   "login": {

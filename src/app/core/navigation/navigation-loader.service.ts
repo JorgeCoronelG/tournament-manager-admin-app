@@ -33,6 +33,19 @@ const NAVIGATION: NavigationItem[] = [
           },
         ],
       },
+      {
+        type: "dropdown",
+        label: "nav.leagues",
+        icon: "mat:sports_soccer",
+        capability: "leagues.manage",
+        children: [
+          {
+            type: "link",
+            label: "nav.manage",
+            route: "/dashboard/ligas",
+          },
+        ],
+      },
     ],
   },
 ];

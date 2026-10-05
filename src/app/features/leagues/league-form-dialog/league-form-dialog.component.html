@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>
+  {{
+    (league ? "leagues.form.editTitle" : "leagues.form.newTitle") | transloco
+  }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-1 !pt-2 min-w-[320px]">
+    <mat-form-field>
+      <mat-label>{{ "leagues.fields.name" | transloco }}</mat-label>
+      <input [formField]="leagueForm.name" autocomplete="off" matInput />
+      @if (leagueForm.name().errors().length) {
+        <mat-error>{{ errorText(leagueForm.name().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <app-league-admin-select
+      [formField]="leagueForm.admin_user_id"
+      [label]="'leagues.fields.admin' | transloco"
+      [selected]="league?.admin ?? null"
+    />
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="leagueForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>
