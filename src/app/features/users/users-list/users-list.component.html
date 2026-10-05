@@ -60,7 +60,7 @@
     </div>
 
     <div
-      class="bg-foreground rounded shadow overflow-hidden flex min-h-0 flex-1 flex-col"
+      class="bg-foreground rounded shadow overflow-hidden flex min-h-0 flex-col"
     >
       <mat-progress-bar
         class="shrink-0"
@@ -68,7 +68,7 @@
         mode="indeterminate"
       />
 
-      <div class="overflow-auto min-h-64 flex-1">
+      <div class="overflow-auto min-h-0">
         <table
           (matSortChange)="sort($event)"
           [dataSource]="rows()"
