@@ -1,7 +1,7 @@
 import { HttpClient, HttpContext, httpResource } from "@angular/common/http";
-import { computed, inject, Service, Signal } from "@angular/core";
+import { inject, Service, Signal } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../../core/http/error.interceptor";
-import { PaginatedResponse } from "../../core/http/paginated-response.model";
+import { paginatedResource } from "../../core/http/paginated-resource";
 import { SettingsService } from "../../core/settings/settings.service";
 import { NewUser, UpdatedUser, User, UserRole, UsersQuery } from "./user.model";
 
@@ -30,26 +30,15 @@ export class UsersApi {
 
   /** A page of users. Empty filters are not sent; the total is `meta.total`. */
   list(query: Signal<UsersQuery>) {
-    const resource = httpResource<PaginatedResponse<User>>(() => {
-      const { page, pageSize, search, roleId, status, sort } = query();
-
-      return {
-        url: this.url("/users"),
-        params: {
-          page: page + 1,
-          per_page: pageSize,
-          ...(search ? { search } : {}),
-          ...(roleId !== "" ? { role_id: roleId } : {}),
-          ...(status ? { status } : {}),
-          ...(sort ? { sort } : {}),
-        },
-      };
-    });
-
-    const rows = computed(() => resource.value()?.data);
-    const total = computed(() => resource.value()?.meta.total ?? 0);
-
-    return { resource, rows, total };
+    return paginatedResource<User, UsersQuery>(
+      () => this.url("/users"),
+      query,
+      ({ search, roleId, status }) => ({
+        ...(search ? { search } : {}),
+        ...(roleId !== "" ? { role_id: roleId } : {}),
+        ...(status ? { status } : {}),
+      }),
+    );
   }
 
   create(user: NewUser) {

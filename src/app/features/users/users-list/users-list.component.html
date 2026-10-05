@@ -72,8 +72,8 @@
           class="w-full"
           mat-table
           matSort
-          matSortActive="created_at"
-          matSortDirection="desc"
+          [matSortActive]="sortState().active"
+          [matSortDirection]="sortState().direction"
         >
           <ng-container matColumnDef="first_name">
             <th *matHeaderCellDef mat-header-cell mat-sort-header>

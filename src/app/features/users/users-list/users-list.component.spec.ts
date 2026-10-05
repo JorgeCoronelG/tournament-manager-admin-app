@@ -12,7 +12,7 @@ import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog.service";
 import { User, UsersQuery } from "../user.model";
 import { UsersApi } from "../users.api";
-import { toSortParam, UsersListComponent } from "./users-list.component";
+import { UsersListComponent } from "./users-list.component";
 
 const user = (id: number, status: User["status"] = "active"): User => ({
   id,
@@ -179,16 +179,6 @@ describe("UsersListComponent", () => {
     list.sort({ active: "first_name", direction: "asc" });
     TestBed.tick();
     expect(query()).toMatchObject({ page: 0, sort: "first_name" });
-  });
-
-  it("builds the sort param", () => {
-    expect(toSortParam({ active: "last_name", direction: "desc" })).toBe(
-      "-last_name",
-    );
-    expect(toSortParam({ active: "last_name", direction: "asc" })).toBe(
-      "last_name",
-    );
-    expect(toSortParam({ active: "last_name", direction: "" })).toBe("");
   });
 
   it("only offers to resend the invitation to pending users", () => {

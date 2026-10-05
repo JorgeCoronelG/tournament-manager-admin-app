@@ -1,3 +1,5 @@
+import { PageQuery } from "../../core/http/paginated-resource";
+
 export type UserStatus = "pending" | "active" | "inactive";
 
 export interface UserRole {
@@ -37,13 +39,10 @@ export type UpdatedUser = NewUser & { is_active: boolean };
 
 export type UserSortField = "first_name" | "last_name" | "created_at";
 
-export interface UsersQuery {
-  /** Zero-based page index (MatPaginator); the API's `page` starts at 1 */
-  page: number;
-  pageSize: number;
+export interface UsersFilters {
   search: string;
   roleId: number | "";
   status: UserStatus | "";
-  /** Comma-separated fields, `-` prefix for descending. Empty: API default. */
-  sort: string;
 }
+
+export type UsersQuery = UsersFilters & PageQuery;
