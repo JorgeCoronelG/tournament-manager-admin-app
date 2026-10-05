@@ -9,6 +9,7 @@ import { appConfigs } from "@ui/config/app-configs";
 import { provideApp } from "@ui/app.provider";
 import { provideTestI18n } from "../../../../testing/i18n";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
+import { ConfirmDialogService } from "../../../shared/confirm-dialog.service";
 import { User, UsersQuery } from "../user.model";
 import { UsersApi } from "../users.api";
 import { toSortParam, UsersListComponent } from "./users-list.component";
@@ -36,6 +37,7 @@ describe("UsersListComponent", () => {
   const notifySuccess = vi.fn();
   const notifyFailure = vi.fn();
   const open = vi.fn();
+  const confirm = vi.fn();
 
   let rows: WritableSignal<User[] | undefined>;
   let loading: WritableSignal<boolean>;
@@ -70,6 +72,7 @@ describe("UsersListComponent", () => {
           },
         },
         { provide: MatDialog, useValue: { open } },
+        { provide: ConfirmDialogService, useValue: { confirm } },
         {
           provide: SnackbarService,
           useValue: { notifySuccess, notifyFailure },
@@ -92,6 +95,7 @@ describe("UsersListComponent", () => {
       notifySuccess,
       notifyFailure,
       open,
+      confirm,
     ]) {
       fn.mockReset();
     }
@@ -220,12 +224,16 @@ describe("UsersListComponent", () => {
   it("deletes only after the user confirms", () => {
     const { componentInstance: list } = setup();
 
-    open.mockReturnValue({ afterClosed: () => of(undefined) });
+    confirm.mockReturnValue(of(false));
     list.remove(user(1));
     expect(remove).not.toHaveBeenCalled();
 
-    open.mockReturnValue({ afterClosed: () => of(true) });
+    confirm.mockReturnValue(of(true));
     list.remove(user(1));
+    expect(confirm).toHaveBeenCalledWith({
+      key: "users.delete",
+      params: { name: "Ana1 Pérez" },
+    });
     expect(remove).toHaveBeenCalledWith(1);
     expect(reload).toHaveBeenCalled();
   });

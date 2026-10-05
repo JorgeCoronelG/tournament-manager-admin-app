@@ -26,10 +26,7 @@ import { AppPageLayoutComponent } from "@ui/components/app-page-layout/app-page-
 import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolbar/app-secondary-toolbar.component";
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import {
-  ConfirmDialogComponent,
-  ConfirmDialogData,
-} from "../../../shared/confirm-dialog.component";
+import { ConfirmDialogService } from "../../../shared/confirm-dialog.service";
 import { UserFormDialogComponent } from "../user-form-dialog/user-form-dialog.component";
 import { UserStatusChipComponent } from "../user-status-chip/user-status-chip.component";
 import { User, UsersQuery } from "../user.model";
@@ -74,6 +71,7 @@ export function toSortParam(sort: Sort): string {
 })
 export class UsersListComponent {
   private readonly api = inject(UsersApi);
+  private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
@@ -179,23 +177,11 @@ export class UsersListComponent {
   }
 
   remove(user: User): void {
-    this.dialog
-      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(
-        ConfirmDialogComponent,
-        {
-          // Focus the dialog itself, not its first button: nothing looks selected,
-          // and the focus trap and Escape still work
-          autoFocus: "dialog",
-          data: {
-            title: this.transloco.translate("users.delete.title"),
-            message: this.transloco.translate("users.delete.message", {
-              name: `${user.first_name} ${user.last_name}`,
-            }),
-            confirmLabel: this.transloco.translate("users.delete.confirm"),
-          },
-        },
-      )
-      .afterClosed()
+    this.confirmDialog
+      .confirm({
+        key: "users.delete",
+        params: { name: `${user.first_name} ${user.last_name}` },
+      })
       .subscribe((confirmed) => {
         if (confirmed) {
           this.run(this.api.remove(user.id), "users.deleted");

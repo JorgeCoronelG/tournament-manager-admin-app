@@ -69,6 +69,7 @@ Toda tabla nueva sigue la estructura de `features/users/users-list`: la página 
 
 - API: `SettingsService.api("/ruta")` compone la URL; `apiUrl` sale de `src/environments/*` y `config.json` lo sobrescribe en runtime. Lecturas con `httpResource`, escrituras con `HttpClient`. `errorInterceptor` muestra el snackbar (se evita con `SKIP_ERROR_NOTIFICATION`).
 - Notificaciones tras una acción: `SnackbarService.notifySuccess("clave.i18n")` y `notifyFailure(error)` (mensaje del backend o genérico por estado, con el botón «Aceptar»). No armes `snackbar.success/error` + `failureMessage` + `common.ok` a mano.
+- Confirmar una acción destructiva: `ConfirmDialogService.confirm({ key: "users.delete", params })` (`shared/`), con las claves `<key>.title`, `<key>.message` y `<key>.confirm` en `es.json`; devuelve un `Observable<boolean>`. No abras `ConfirmDialogComponent` a mano.
 - i18n con Transloco: textos en `src/assets/i18n/{en,es}.json`, pipe `| transloco`; las etiquetas de navegación y los `title` de las rutas son claves. Todo texto visible nuevo debe estar en ambos idiomas.
 
 ## Docker y seguridad
