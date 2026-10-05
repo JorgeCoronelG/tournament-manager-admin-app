@@ -131,12 +131,19 @@ describe("UsersListComponent", () => {
     expect(reload).toHaveBeenCalled();
   });
 
-  it("shows the empty state", () => {
+  it("tells an empty table from one emptied by the filters", () => {
     rows.set([]);
     const fixture = setup();
 
     expect(fixture.nativeElement.textContent).toContain(
-      "Ningún usuario coincide",
+      "Aún no hay registros.",
+    );
+
+    fixture.componentInstance.filtersForm.status().value.set("pending");
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      "Ningún resultado coincide con tu búsqueda.",
     );
   });
 

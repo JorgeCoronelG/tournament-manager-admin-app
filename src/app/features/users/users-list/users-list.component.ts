@@ -98,6 +98,13 @@ export class UsersListComponent {
     debounce(filter.search, 300);
   });
 
+  /** Tells an empty table (no users yet) from one emptied by the filters */
+  readonly hasFilters = computed(() => {
+    const { search, roleId, status } = this.filters();
+
+    return search !== "" || roleId !== "" || status !== "";
+  });
+
   readonly sortState = signal<Sort>({
     active: "created_at",
     direction: "desc",

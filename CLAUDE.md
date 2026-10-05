@@ -57,6 +57,7 @@ Toda tabla nueva sigue la estructura de `features/users/users-list`: la página 
 - Contenedor directo de la `<table>`: `class="app-table-scroll"`.
 - Dentro de la tarjeta van, como hijos directos, la barra de progreso, el contenedor `app-table-scroll`, los mensajes de error/vacío y el `mat-paginator`.
 - Los filtros o botones van fuera de la tarjeta, como hijos de `app-page-layout-content`.
+- Mensaje de tabla vacía: `table.empty` (sin filtros) o `table.emptyFiltered` (con búsqueda o filtros activos), compartidos en `es.json`; no crees una clave `empty` por tabla.
 - Cabecera fija: `<tr *matHeaderRowDef="columns; sticky: true" mat-header-row>`.
 - Por debajo de 28rem de alto, la página vuelve a hacer scroll normal (piso definido en `_layout.scss`).
 

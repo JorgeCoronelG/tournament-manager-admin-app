@@ -7,6 +7,10 @@
     "back": "Volver",
     "loading": "Cargando"
   },
+  "table": {
+    "empty": "Aún no hay registros.",
+    "emptyFiltered": "Ningún resultado coincide con tu búsqueda."
+  },
   "validation": {
     "required": "Este campo es obligatorio",
     "email": "Ingresa un correo válido",
@@ -47,7 +51,6 @@
     "deactivated": "Usuario desactivado",
     "deleted": "Usuario eliminado",
     "invitationSent": "Invitación reenviada",
-    "empty": "Ningún usuario coincide con tu búsqueda.",
     "error": "No pudimos cargar los usuarios.",
     "fields": {
       "firstName": "Nombre",

@@ -222,7 +222,9 @@
         </div>
       } @else if (!resource.isLoading() && rows().length === 0) {
         <p class="py-10 px-6 text-center text-secondary">
-          {{ "users.empty" | transloco }}
+          {{
+            (hasFilters() ? "table.emptyFiltered" : "table.empty") | transloco
+          }}
         </p>
       }
 
