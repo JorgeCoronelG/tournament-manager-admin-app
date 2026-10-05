@@ -19,6 +19,7 @@ describe("UserFormDialogComponent", () => {
   const update = vi.fn();
   const close = vi.fn();
   const error = vi.fn();
+  const notifyFailure = vi.fn();
 
   function setup(data: User | null = null) {
     TestBed.configureTestingModule({
@@ -38,7 +39,7 @@ describe("UserFormDialogComponent", () => {
         },
         { provide: MatDialogRef, useValue: { close } },
         { provide: MAT_DIALOG_DATA, useValue: data },
-        { provide: SnackbarService, useValue: { error } },
+        { provide: SnackbarService, useValue: { error, notifyFailure } },
       ],
     });
 
@@ -61,6 +62,7 @@ describe("UserFormDialogComponent", () => {
     update.mockReset().mockReturnValue(of({ id: 1 }));
     close.mockReset();
     error.mockReset();
+    notifyFailure.mockReset();
   });
 
   it("does not submit an empty form", async () => {
@@ -218,7 +220,7 @@ describe("UserFormDialogComponent", () => {
 
     await component.save();
 
-    expect(error).toHaveBeenCalled();
+    expect(notifyFailure).toHaveBeenCalled();
     expect(close).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,6 @@ import {
 } from "@angular/common/http";
 import { inject } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { TranslocoService } from "@jsverse/transloco";
 import { catchError, throwError } from "rxjs";
 import { SnackbarService } from "../snackbar/snackbar.service";
 import { ValidationErrorsDialogComponent } from "./validation-errors-dialog/validation-errors-dialog.component";
@@ -19,22 +18,6 @@ import { ValidationErrorsDialogComponent } from "./validation-errors-dialog/vali
 export const SKIP_ERROR_NOTIFICATION = new HttpContextToken<boolean>(
   () => false,
 );
-
-export function errorMessageKey(error: HttpErrorResponse): string {
-  if (error.status === 0) {
-    return "errors.network";
-  }
-
-  if (error.status === 401 || error.status === 403) {
-    return "errors.forbidden";
-  }
-
-  if (error.status === 404) {
-    return "errors.notFound";
-  }
-
-  return error.status >= 500 ? "errors.server" : "errors.generic";
-}
 
 /**
  * Laravel's 422 responses put `{ [field]: string[] }` in `error.error`. Returns
@@ -66,17 +49,6 @@ export function validationErrors(error: HttpErrorResponse): string[] | null {
   return messages.length ? messages : null;
 }
 
-/** The plain-text `error` the backend sends on business errors (e.g. "Código inválido o expirado.") */
-export function backendMessage(error: HttpErrorResponse): string | null {
-  const body: unknown = error.error;
-  const message =
-    body && typeof body === "object"
-      ? (body as { error?: unknown }).error
-      : null;
-
-  return typeof message === "string" && message ? message : null;
-}
-
 /**
  * Shows the backend's validation errors in a dialog, or its business message
  * (falling back to a generic one for the status) in a snackbar
@@ -84,7 +56,6 @@ export function backendMessage(error: HttpErrorResponse): string | null {
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   const snackbar = inject(SnackbarService);
   const dialog = inject(MatDialog);
-  const transloco = inject(TranslocoService);
 
   return next(request).pipe(
     catchError((error: unknown) => {
@@ -97,11 +68,7 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
         if (messages) {
           dialog.open(ValidationErrorsDialogComponent, { data: messages });
         } else {
-          snackbar.error(
-            backendMessage(error) ??
-              transloco.translate(errorMessageKey(error)),
-            transloco.translate("common.ok"),
-          );
+          snackbar.notifyFailure(error);
         }
       }
 

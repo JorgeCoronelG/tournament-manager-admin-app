@@ -33,8 +33,8 @@ describe("UsersListComponent", () => {
   const remove = vi.fn();
   const resendInvitation = vi.fn();
   const reload = vi.fn();
-  const success = vi.fn();
-  const error = vi.fn();
+  const notifySuccess = vi.fn();
+  const notifyFailure = vi.fn();
   const open = vi.fn();
 
   let rows: WritableSignal<User[] | undefined>;
@@ -70,7 +70,10 @@ describe("UsersListComponent", () => {
           },
         },
         { provide: MatDialog, useValue: { open } },
-        { provide: SnackbarService, useValue: { success, error } },
+        {
+          provide: SnackbarService,
+          useValue: { notifySuccess, notifyFailure },
+        },
       ],
     });
 
@@ -86,8 +89,8 @@ describe("UsersListComponent", () => {
       remove,
       resendInvitation,
       reload,
-      success,
-      error,
+      notifySuccess,
+      notifyFailure,
       open,
     ]) {
       fn.mockReset();
@@ -202,7 +205,7 @@ describe("UsersListComponent", () => {
 
     expect(setStatus).toHaveBeenCalledWith(1, false);
     expect(reload).toHaveBeenCalled();
-    expect(success).toHaveBeenCalledWith("Usuario desactivado", "Aceptar");
+    expect(notifySuccess).toHaveBeenCalledWith("users.deactivated");
   });
 
   it("resends the invitation", () => {
@@ -211,7 +214,7 @@ describe("UsersListComponent", () => {
     list.resendInvitation(user(2, "pending"));
 
     expect(resendInvitation).toHaveBeenCalledWith(2);
-    expect(success).toHaveBeenCalledWith("Invitación reenviada", "Aceptar");
+    expect(notifySuccess).toHaveBeenCalledWith("users.invitationSent");
   });
 
   it("deletes only after the user confirms", () => {
@@ -233,8 +236,8 @@ describe("UsersListComponent", () => {
 
     list.toggleActive(user(1));
 
-    expect(error).toHaveBeenCalled();
-    expect(success).not.toHaveBeenCalled();
+    expect(notifyFailure).toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
   });
 
   it("reloads after saving in the form dialog", () => {
@@ -244,6 +247,6 @@ describe("UsersListComponent", () => {
     list.openForm();
 
     expect(reload).toHaveBeenCalled();
-    expect(success).toHaveBeenCalled();
+    expect(notifySuccess).toHaveBeenCalledWith("users.created");
   });
 });

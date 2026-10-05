@@ -28,7 +28,7 @@ import {
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import { failureMessage, fieldErrors } from "../../../core/http/api-errors";
+import { fieldErrors } from "../../../core/http/api-errors";
 import { User } from "../user.model";
 import { UsersApi } from "../users.api";
 
@@ -168,10 +168,7 @@ export class UserFormDialogComponent {
         const errors = fieldErrors(error);
 
         if (!errors) {
-          this.snackbar.error(
-            failureMessage(error, (key) => this.transloco.translate(key)),
-            this.transloco.translate("common.ok"),
-          );
+          this.snackbar.notifyFailure(error);
 
           return undefined;
         }

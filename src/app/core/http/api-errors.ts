@@ -1,5 +1,32 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { backendMessage, errorMessageKey } from "./error.interceptor";
+
+/** Translation key of the generic message for a failed request, by status */
+export function errorMessageKey(error: HttpErrorResponse): string {
+  if (error.status === 0) {
+    return "errors.network";
+  }
+
+  if (error.status === 401 || error.status === 403) {
+    return "errors.forbidden";
+  }
+
+  if (error.status === 404) {
+    return "errors.notFound";
+  }
+
+  return error.status >= 500 ? "errors.server" : "errors.generic";
+}
+
+/** The plain-text `error` the backend sends on business errors (e.g. "Código inválido o expirado.") */
+export function backendMessage(error: HttpErrorResponse): string | null {
+  const body: unknown = error.error;
+  const message =
+    body && typeof body === "object"
+      ? (body as { error?: unknown }).error
+      : null;
+
+  return typeof message === "string" && message ? message : null;
+}
 
 /** `{ field: [messages] }` from a 422 (`{ code, error: {...} }`), or null for any other error */
 export function fieldErrors(

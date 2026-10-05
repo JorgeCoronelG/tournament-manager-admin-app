@@ -10,26 +10,25 @@ import {
   provideHttpClientTesting,
 } from "@angular/common/http/testing";
 import { MatDialog } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { TestBed } from "@angular/core/testing";
 import { provideTestI18n } from "../../../testing/i18n";
-import { SnackbarService } from "../snackbar/snackbar.service";
+import { backendMessage, errorMessageKey } from "./api-errors";
 import {
   errorInterceptor,
-  errorMessageKey,
   SKIP_ERROR_NOTIFICATION,
   validationErrors,
-  backendMessage,
 } from "./error.interceptor";
 import { ValidationErrorsDialogComponent } from "./validation-errors-dialog/validation-errors-dialog.component";
 
 describe("errorInterceptor", () => {
   let http: HttpClient;
   let controller: HttpTestingController;
-  let error: ReturnType<typeof vi.fn>;
+  let openFromComponent: ReturnType<typeof vi.fn>;
   let open: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    error = vi.fn();
+    openFromComponent = vi.fn();
     open = vi.fn();
 
     TestBed.configureTestingModule({
@@ -37,7 +36,7 @@ describe("errorInterceptor", () => {
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
         provideTestI18n(),
-        { provide: SnackbarService, useValue: { error } },
+        { provide: MatSnackBar, useValue: { openFromComponent } },
         { provide: MatDialog, useValue: { open } },
       ],
     });
@@ -48,16 +47,23 @@ describe("errorInterceptor", () => {
 
   afterEach(() => controller.verify());
 
+  /** The error snackbar the interceptor opened, as its message and action */
+  function shown() {
+    return openFromComponent.mock.calls.map(([, config]) => [
+      config.data.message,
+      config.data.action,
+    ]);
+  }
+
   it("shows a translated snackbar and rethrows the error", () => {
     const onError = vi.fn();
 
     http.get("/x").subscribe({ error: onError });
     controller.expectOne("/x").flush("", { status: 500, statusText: "Error" });
 
-    expect(error).toHaveBeenCalledWith(
-      "El servidor tuvo un problema. Inténtalo más tarde.",
-      "Aceptar",
-    );
+    expect(shown()).toEqual([
+      ["El servidor tuvo un problema. Inténtalo más tarde.", "Aceptar"],
+    ]);
     expect(onError).toHaveBeenCalledOnce();
   });
 
@@ -69,14 +75,14 @@ describe("errorInterceptor", () => {
       .subscribe({ error: () => undefined });
     controller.expectOne("/x").flush("", { status: 500, statusText: "Error" });
 
-    expect(error).not.toHaveBeenCalled();
+    expect(openFromComponent).not.toHaveBeenCalled();
   });
 
   it("does not interfere with successful responses", () => {
     http.get("/x").subscribe();
     controller.expectOne("/x").flush({});
 
-    expect(error).not.toHaveBeenCalled();
+    expect(openFromComponent).not.toHaveBeenCalled();
   });
 
   it("maps status codes to message keys", () => {
@@ -111,7 +117,7 @@ describe("errorInterceptor", () => {
         "El nombre es muy corto.",
       ],
     });
-    expect(error).not.toHaveBeenCalled();
+    expect(openFromComponent).not.toHaveBeenCalled();
   });
 
   it("shows the message in a snackbar on a 422 without field errors", () => {
@@ -124,10 +130,7 @@ describe("errorInterceptor", () => {
       );
 
     expect(open).not.toHaveBeenCalled();
-    expect(error).toHaveBeenCalledWith(
-      "Código inválido o expirado.",
-      "Aceptar",
-    );
+    expect(shown()).toEqual([["Código inválido o expirado.", "Aceptar"]]);
   });
 
   it("shows the backend's business message when there is one", () => {
@@ -139,10 +142,7 @@ describe("errorInterceptor", () => {
         { status: 401, statusText: "Unauthorized" },
       );
 
-    expect(error).toHaveBeenCalledWith(
-      "Contraseña actual incorrecta.",
-      "Aceptar",
-    );
+    expect(shown()).toEqual([["Contraseña actual incorrecta.", "Aceptar"]]);
     expect(backendMessage(new HttpErrorResponse({ status: 500 }))).toBeNull();
   });
 

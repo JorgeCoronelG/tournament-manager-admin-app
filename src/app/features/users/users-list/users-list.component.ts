@@ -26,7 +26,6 @@ import { AppPageLayoutComponent } from "@ui/components/app-page-layout/app-page-
 import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolbar/app-secondary-toolbar.component";
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import { failureMessage } from "../../../core/http/api-errors";
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -163,7 +162,7 @@ export class UsersListComponent {
       .subscribe((saved) => {
         if (saved) {
           this.resource.reload();
-          this.notify(user ? "users.updated" : "users.created");
+          this.snackbar.notifySuccess(user ? "users.updated" : "users.created");
         }
       });
   }
@@ -208,20 +207,9 @@ export class UsersListComponent {
     request.subscribe({
       next: () => {
         this.resource.reload();
-        this.notify(successKey);
+        this.snackbar.notifySuccess(successKey);
       },
-      error: (error: unknown) =>
-        this.snackbar.error(
-          failureMessage(error, (key) => this.transloco.translate(key)),
-          this.transloco.translate("common.ok"),
-        ),
+      error: (error: unknown) => this.snackbar.notifyFailure(error),
     });
-  }
-
-  private notify(key: string): void {
-    this.snackbar.success(
-      this.transloco.translate(key),
-      this.transloco.translate("common.ok"),
-    );
   }
 }
