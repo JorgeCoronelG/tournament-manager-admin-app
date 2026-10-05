@@ -159,7 +159,7 @@ describe("UserFormDialogComponent", () => {
       roles: [1],
     });
     expect(close).toHaveBeenCalledWith({ id: 1 });
-    expect(component.saving()).toBe(false);
+    expect(component.userForm().submitting()).toBe(false);
   });
 
   it("edits an existing user keeping its active flag", async () => {
@@ -208,7 +208,7 @@ describe("UserFormDialogComponent", () => {
         .errors()
         .map((e) => e.message),
     ).toEqual(["El correo ya existe."]);
-    expect(component.saving()).toBe(false);
+    expect(component.userForm().submitting()).toBe(false);
   });
 
   it("shows other failures in a snackbar", async () => {

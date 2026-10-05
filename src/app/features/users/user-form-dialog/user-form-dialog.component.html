@@ -94,7 +94,12 @@
     <button mat-button mat-dialog-close type="button">
       {{ "common.cancel" | transloco }}
     </button>
-    <button [disabled]="saving()" color="primary" mat-flat-button type="submit">
+    <button
+      [disabled]="userForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
       {{ "common.save" | transloco }}
     </button>
   </mat-dialog-actions>

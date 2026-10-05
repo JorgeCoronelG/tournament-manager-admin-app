@@ -5,7 +5,6 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { firstValueFrom } from "rxjs";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MAT_DIALOG_DATA,
@@ -23,12 +22,10 @@ import {
   minLength,
   pattern,
   required,
-  submit,
   ValidationError,
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
-import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import { fieldErrors } from "../../../core/http/api-errors";
+import { FormSubmitService } from "../../../shared/form-submit.service";
 import { User } from "../user.model";
 import { UsersApi } from "../users.api";
 
@@ -43,8 +40,6 @@ interface UserFormModel {
 const NAME_MIN = 3;
 const NAME_MAX = 100;
 const PHONE_PATTERN = /^\d{10}$/;
-
-const FIELDS = ["first_name", "last_name", "email", "phone", "roles"] as const;
 
 /** Creates a user, or edits the one passed as dialog data. Closes with the saved user. */
 @Component({
@@ -65,7 +60,7 @@ export class UserFormDialogComponent {
   private readonly api = inject(UsersApi);
   private readonly dialogRef =
     inject<MatDialogRef<UserFormDialogComponent, User>>(MatDialogRef);
-  private readonly snackbar = inject(SnackbarService);
+  private readonly formSubmit = inject(FormSubmitService);
   private readonly transloco = inject(TranslocoService);
 
   /** The user being edited; null when creating */
@@ -110,8 +105,6 @@ export class UserFormDialogComponent {
     });
   });
 
-  readonly saving = signal(false);
-
   /** Server messages win over the generic text of the failed rule */
   errorText(errors: readonly ValidationError[], value: unknown): string {
     const message = errors.find((error) => error.message)?.message;
@@ -145,53 +138,20 @@ export class UserFormDialogComponent {
   }
 
   save(): Promise<boolean> {
-    return submit(this.userForm, async () => {
-      this.saving.set(true);
-
-      try {
+    return this.formSubmit.submit(this.userForm, {
+      errors: "form",
+      send: () => {
         const { phone, ...rest } = this.model();
         const body = { ...rest, phone: phone.trim() || null };
 
-        this.dialogRef.close(
-          await firstValueFrom(
-            this.user
-              ? this.api.update(this.user.id, {
-                  ...body,
-                  is_active: this.user.is_active,
-                })
-              : this.api.create(body),
-          ),
-        );
-
-        return undefined;
-      } catch (error) {
-        const errors = fieldErrors(error);
-
-        if (!errors) {
-          this.snackbar.notifyFailure(error);
-
-          return undefined;
-        }
-
-        const mapped = FIELDS.filter((field) => errors[field]).map((field) => ({
-          kind: "server",
-          message: errors[field].join(" "),
-          fieldTree: this.userForm[field],
-        }));
-
-        // Anything the form has no field for is still shown
-        const rest = Object.entries(errors)
-          .filter(([field]) => !(FIELDS as readonly string[]).includes(field))
-          .flatMap(([, messages]) => messages);
-
-        if (rest.length) {
-          this.snackbar.error(rest.join(" "));
-        }
-
-        return mapped;
-      } finally {
-        this.saving.set(false);
-      }
+        return this.user
+          ? this.api.update(this.user.id, {
+              ...body,
+              is_active: this.user.is_active,
+            })
+          : this.api.create(body);
+      },
+      onSuccess: (saved) => this.dialogRef.close(saved),
     });
   }
 }
