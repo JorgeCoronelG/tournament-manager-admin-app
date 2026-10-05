@@ -2,9 +2,9 @@
   <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
 </app-secondary-toolbar>
 
-<app-page-layout>
-  <app-page-layout-content>
-    <div class="flex flex-wrap items-start gap-4 mb-4">
+<app-page-layout class="flex! min-h-0 flex-1 flex-col">
+  <app-page-layout-content class="flex! min-h-0 flex-1 flex-col">
+    <div class="flex shrink-0 flex-wrap items-start gap-4 mb-4">
       <mat-form-field class="w-72" subscriptSizing="dynamic">
         <mat-label>{{ "users.search" | transloco }}</mat-label>
         <mat-icon matPrefix svgIcon="mat:search" />
@@ -59,13 +59,16 @@
       </button>
     </div>
 
-    <div class="bg-foreground rounded shadow overflow-hidden">
+    <div
+      class="bg-foreground rounded shadow overflow-hidden flex min-h-0 flex-1 flex-col"
+    >
       <mat-progress-bar
+        class="shrink-0"
         [class.invisible]="!resource.isLoading()"
         mode="indeterminate"
       />
 
-      <div class="overflow-x-auto">
+      <div class="overflow-auto min-h-64 flex-1">
         <table
           (matSortChange)="sort($event)"
           [dataSource]="rows()"
@@ -208,7 +211,7 @@
             </td>
           </ng-container>
 
-          <tr *matHeaderRowDef="columns" mat-header-row></tr>
+          <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
           <tr *matRowDef="let row; columns: columns" mat-row></tr>
         </table>
       </div>
@@ -227,6 +230,7 @@
       }
 
       <mat-paginator
+        class="shrink-0"
         (page)="changePage($event)"
         [length]="total()"
         [pageIndex]="paging().page"

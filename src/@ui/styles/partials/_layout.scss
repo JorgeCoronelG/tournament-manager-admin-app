@@ -105,3 +105,24 @@
     );
   }
 }
+
+// Opt-in: a page whose host has `.app-page-fill` takes exactly the space left
+// by the toolbar and footer instead of growing with its content, so it can
+// scroll an inner area (e.g. a table). Below the min-height the page scrolls
+// as usual.
+.app-layout-sidenav-content:has(.app-page-fill) {
+  display: flex;
+  flex-direction: column;
+
+  .app-toolbar,
+  .app-footer {
+    flex: none;
+  }
+
+  .app-layout-content {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-height: 28rem;
+  }
+}
