@@ -51,7 +51,7 @@ export function toSortParam(sort: Sort): string {
   selector: "app-users-list",
   templateUrl: "./users-list.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: "app-page-fill flex min-h-0 flex-1 flex-col" },
+  host: { class: "app-page-fill" },
   imports: [
     AppBreadcrumbsComponent,
     AppDateFormatRelativePipe,

@@ -106,10 +106,16 @@
   }
 }
 
-// Opt-in: a page whose host has `.app-page-fill` takes exactly the space left
-// by the toolbar and footer instead of growing with its content, so it can
-// scroll an inner area (e.g. a table). Below the min-height the page scrolls
-// as usual.
+// Pages that fill the viewport (e.g. a list with a table). Recipe:
+//
+//   host                      class "app-page-fill"
+//   card that holds the table .app-table-card  (+ the look: bg-foreground rounded shadow)
+//   element that scrolls      .app-table-scroll  (wraps the <table>)
+//
+// The page takes exactly the space left by the toolbar and footer; the card
+// is as tall as its content and, once it reaches the edge, the table scrolls
+// inside it while the filters above and the paginator below stay in view.
+// Below the min-height the page scrolls as usual.
 .app-layout-sidenav-content:has(.app-page-fill) {
   display: flex;
   flex-direction: column;
@@ -124,5 +130,49 @@
     flex: 1 1 0;
     flex-direction: column;
     min-height: 28rem;
+  }
+}
+
+.app-page-fill {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+
+  // These two set `display: block` with the same specificity as a utility
+  // class, hence the selector here instead of `flex!` in every template
+  .app-page-layout,
+  .app-page-layout-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  // Filters, headers, etc. keep their size; only the card shrinks
+  .app-page-layout-content > * {
+    flex-shrink: 0;
+  }
+
+  .app-page-layout-content > .app-table-card {
+    flex-shrink: 1;
+  }
+}
+
+.app-table-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  // Progress bar, paginator, empty/error messages
+  > * {
+    flex-shrink: 0;
+  }
+
+  > .app-table-scroll {
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: auto;
   }
 }

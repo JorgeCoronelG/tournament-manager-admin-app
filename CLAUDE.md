@@ -48,6 +48,18 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 - Los plugins de Tailwind usan `plugin` de `@ui/tailwind/utils/plugin` (no `tailwindcss/plugin` directo) y no pueden usar `e()`.
 - Los estilos globales y de Material viven en `@ui/styles`; los de un componente, junto al componente.
 
+## Páginas de listado con tabla
+
+Toda tabla nueva sigue la estructura de `features/users/users-list`: la página ocupa el alto de la pantalla, la tarjeta de la tabla mide lo que mide su contenido y, al llegar al borde, la tabla hace scroll por dentro mientras los filtros y el paginador siguen a la vista. Las clases viven en `@ui/styles/partials/_layout.scss`; no repliques flex/`min-h-0` a mano.
+
+- Host del componente de la página: `host: { class: "app-page-fill" }`.
+- Tarjeta que contiene la tabla: `class="app-table-card bg-foreground rounded shadow"`.
+- Contenedor directo de la `<table>`: `class="app-table-scroll"`.
+- Dentro de la tarjeta van, como hijos directos, la barra de progreso, el contenedor `app-table-scroll`, los mensajes de error/vacío y el `mat-paginator`.
+- Los filtros o botones van fuera de la tarjeta, como hijos de `app-page-layout-content`.
+- Cabecera fija: `<tr *matHeaderRowDef="columns; sticky: true" mat-header-row>`.
+- Por debajo de 28rem de alto, la página vuelve a hacer scroll normal (piso definido en `_layout.scss`).
+
 ## Verificar cambios de UI
 
 `npm run e2e:docker` levanta `ng serve` + Playwright en Docker y corre: flujos (preferencias, sidenav, 404), accesibilidad (axe, claro y oscuro) y regresión visual (`e2e/__screenshots__`). Tras un cambio visual **intencional** regenera con `sh scripts/e2e-docker.sh --update-snapshots=all` y revisa las imágenes en el diff (sin `=all`, Playwright solo reescribe las que superan la tolerancia). La versión de `@playwright/test` (en `e2e/package.json`) debe coincidir con la imagen de `docker-compose.e2e.yml`.
