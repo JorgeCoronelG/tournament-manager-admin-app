@@ -66,7 +66,7 @@ Toda tabla nueva sigue la estructura de `features/users/users-list`: la página 
 
 ## Verificar cambios de UI
 
-`npm run e2e:docker` levanta `ng serve` + Playwright en Docker y corre: flujos (preferencias, sidenav, 404), accesibilidad (axe, claro y oscuro) y regresión visual (`e2e/__screenshots__`). Tras un cambio visual **intencional** regenera con `sh scripts/e2e-docker.sh --update-snapshots=all` y revisa las imágenes en el diff (sin `=all`, Playwright solo reescribe las que superan la tolerancia). La versión de `@playwright/test` (en `e2e/package.json`) debe coincidir con la imagen de `docker-compose.e2e.yml`.
+`npm run e2e:docker` levanta `ng serve` + Playwright en Docker y corre: flujos (usuarios, preferencias, sidenav, 404), accesibilidad (axe, claro y oscuro) y regresión visual (`e2e/__screenshots__`). No hay backend en el stack: las pruebas simulan sus endpoints con `mockUsersApi` y `makeUsers` (`e2e/support.ts`); haz lo mismo con los de cada módulo nuevo. Tras un cambio visual **intencional** regenera con `sh scripts/e2e-docker.sh --update-snapshots=all` y revisa las imágenes en el diff (sin `=all`, Playwright solo reescribe las que superan la tolerancia). La versión de `@playwright/test` (en `e2e/package.json`) debe coincidir con la imagen de `docker-compose.e2e.yml`.
 
 ## Datos, i18n y entornos
 

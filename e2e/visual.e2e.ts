@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { freezeTime, gotoApp } from "./support";
+import { freezeTime, gotoApp, makeUsers, mockUsersApi } from "./support";
 
 /**
  * Visual regression. Update the baselines with `npm run e2e:docker -- --update-snapshots`
@@ -16,6 +16,22 @@ test.describe("visual regression", () => {
     await expect(page.getByText("Torneos")).toBeVisible();
 
     await expect(page).toHaveScreenshot("dashboard.png");
+  });
+
+  test("users", async ({ page }) => {
+    await mockUsersApi(page, { users: makeUsers(12) });
+    await gotoApp(page, "/dashboard/usuarios");
+    await expect(page.locator("tr[mat-row]")).toHaveCount(5);
+
+    await expect(page).toHaveScreenshot("users.png");
+  });
+
+  test("users, empty", async ({ page }) => {
+    await mockUsersApi(page, { users: [] });
+    await gotoApp(page, "/dashboard/usuarios");
+    await expect(page.getByText("Aún no hay registros.")).toBeVisible();
+
+    await expect(page).toHaveScreenshot("users-empty.png");
   });
 
   for (const [scheme, theme] of [
