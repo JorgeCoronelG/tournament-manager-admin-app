@@ -5,7 +5,6 @@ import { freezeTime, gotoApp } from "./support";
 const pages = [
   { name: "login", path: "/" },
   { name: "dashboard", path: "/dashboard" },
-  { name: "customers", path: "/dashboard/customers" },
   { name: "not found", path: "/dashboard/nowhere" },
 ];
 
@@ -34,7 +33,7 @@ test.describe("accessibility (axe)", () => {
     });
   }
 
-  test("customers in dark mode has no detectable violations", async ({
+  test("dashboard in dark mode has no detectable violations", async ({
     page,
   }) => {
     await page.addInitScript(() =>
@@ -54,7 +53,7 @@ test.describe("accessibility (axe)", () => {
         }),
       ),
     );
-    await gotoApp(page, "/dashboard/customers");
+    await gotoApp(page, "/dashboard");
     await page.waitForLoadState("networkidle");
     await expect(page.locator("body")).toHaveClass(/\bdark\b/);
 

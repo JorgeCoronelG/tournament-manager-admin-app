@@ -5,7 +5,7 @@ Base para dashboards con **Angular 22**, **Angular Material 3** y **Tailwind CSS
 - Signals, `OnPush` y detección de cambios **zoneless** (sin `zone.js`); Signal Forms.
 - Seis layouts (vertical/horizontal), modo claro/oscuro, temas de color y preferencias que se guardan en el navegador.
 - i18n (inglés/español) con Transloco, entornos y configuración en runtime, capa HTTP con manejo de errores.
-- Feature de ejemplo (dashboard y clientes) con carga lazy sobre una API mock.
+- Feature de ejemplo (usuarios) con carga lazy: lista con filtros, orden y paginación, y formulario.
 - Docker (nginx sin privilegios, cabeceras de seguridad, healthcheck), ESLint, Prettier, Vitest, Playwright (e2e, regresión visual y accesibilidad), CI y Dependabot.
 
 > Aún no incluye **autenticación**: `CurrentUserService` es el punto donde conectarla.
@@ -18,11 +18,10 @@ Node `^22.22.3`, `^24.15.0` o superior, o solo Docker.
 
 ```bash
 npm ci
-npm run api      # API mock en http://localhost:3000 (otra terminal)
 npm start        # http://localhost:4200
 ```
 
-Con Docker (incluye la API mock):
+Con Docker:
 
 ```bash
 docker compose --profile dev  up --build   # http://localhost:4200 (hot reload)
@@ -59,7 +58,6 @@ docker system prune -a --volumes   # todo lo anterior junto
 | Comando                    | Descripción                                            |
 | -------------------------- | ------------------------------------------------------ |
 | `npm start`                | Servidor de desarrollo                                 |
-| `npm run api`              | API mock (`mock/db.json`, json-server)                 |
 | `npm run build`            | Build de producción (`dist/base-angular-dashboard`)    |
 | `npm test`                 | Tests unitarios (Vitest)                               |
 | `npm run e2e:docker`       | e2e + regresión visual + accesibilidad, todo en Docker |
@@ -77,12 +75,12 @@ src/
 │   └── app.provider.ts
 ├── app/          # La aplicación
 │   ├── core/        # settings, http, i18n, navegación, usuario, auth, snackbar
-│   ├── features/    # dashboard, customers, not-found, styleguide (solo desarrollo)
+│   ├── features/    # dashboard, users, login, not-found, styleguide (solo desarrollo)
 │   ├── layouts/     # layout, toolbar, sidenav, footer, user-menu
 │   ├── app.config.ts  app.routes.ts
 ├── environments/ # development (por defecto), production y testing
 └── assets/i18n/  # es.json
-e2e/  mock/  nginx/  scripts/
+e2e/  nginx/  scripts/
 ```
 
 Alias `@ui/*` → `src/@ui/*`; prefijo de selectores `app-`.
@@ -90,11 +88,11 @@ Alias `@ui/*` → `src/@ui/*`; prefijo de selectores `app-`.
 ## Cómo agregar una página
 
 1. Componente standalone `OnPush` en `src/app/features/<feature>/`.
-2. Ruta lazy en `src/app/app.routes.ts` (o un archivo de rutas por feature, como `customers.routes.ts`). El `title` de la ruta es una clave de traducción.
+2. Ruta lazy en `src/app/app.routes.ts` (o un archivo de rutas por feature, como `users.routes.ts`). El `title` de la ruta es una clave de traducción.
 3. Entrada en `src/app/core/navigation/navigation-loader.service.ts` (la etiqueta también es una clave).
 4. Textos en `src/assets/i18n/es.json`.
 
-`features/customers` muestra el patrón completo: `httpResource`, filtros y formulario con Signal Forms, tabla con orden y paginación, estados de carga/error/vacío y tests.
+`features/users` muestra el patrón completo: `httpResource`, filtros y formulario con Signal Forms, tabla con orden, paginación y scroll propio, estados de carga/error/vacío y tests.
 
 ## Configuración por entorno
 
@@ -145,4 +143,4 @@ La imagen de producción (`nginxinc/nginx-unprivileged`, puerto **8080**, imáge
 node scripts/init.mjs mi-app "Mi App"   # nombre técnico y nombre visible
 ```
 
-Renombra `package.json`, `angular.json`, `Dockerfile`, CI, README, título, sidenav y footer. Después reemplaza el logo, quita lo que no uses del ejemplo (`features/customers`, `mock/`) y agrega la autenticación.
+Renombra `package.json`, `angular.json`, `Dockerfile`, CI, README, título, sidenav y footer. Después reemplaza el logo,quita lo que no uses del ejemplo y agrega la autenticación.

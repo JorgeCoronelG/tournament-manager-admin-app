@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the Playwright suite against the dev server and mock API from
+# Runs the Playwright suite against the dev server from
 # docker-compose.e2e.yml, in the same image CI uses (so screenshots match).
 #
 #   scripts/e2e-docker.sh                        run the tests

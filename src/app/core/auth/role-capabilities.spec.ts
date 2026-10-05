@@ -12,7 +12,6 @@ describe("capabilitiesFor", () => {
     expect(capabilities.has("tournaments.manage")).toBe(true);
     expect(capabilities.has("users.manage")).toBe(false);
     expect(capabilities.has("leagues.manage")).toBe(false);
-    expect(capabilities.has("customers.manage")).toBe(false);
   });
 
   it("gives the roles used from the mobile app no panel capabilities", () => {

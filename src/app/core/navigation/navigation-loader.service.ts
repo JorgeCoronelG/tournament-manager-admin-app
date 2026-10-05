@@ -33,19 +33,6 @@ const NAVIGATION: NavigationItem[] = [
           },
         ],
       },
-      {
-        type: "dropdown",
-        label: "nav.customers",
-        icon: "mat:people",
-        capability: "customers.manage",
-        children: [
-          {
-            type: "link",
-            label: "nav.manage",
-            route: "/dashboard/customers",
-          },
-        ],
-      },
     ],
   },
 ];

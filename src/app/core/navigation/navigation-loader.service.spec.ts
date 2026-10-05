@@ -24,13 +24,11 @@ describe("NavigationLoaderService", () => {
     return TestBed.inject(NavigationLoaderService);
   }
 
-  it("shows the superadmin the dashboard, users and customers", () => {
+  it("shows the superadmin the dashboard, and users", () => {
     expect(labels(signInAs("superadmin").items())).toEqual([
       "nav.main",
       "nav.dashboard",
       "nav.users",
-      "nav.manage",
-      "nav.customers",
       "nav.manage",
     ]);
   });

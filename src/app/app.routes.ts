@@ -1,6 +1,5 @@
 import { LayoutComponent } from "./layouts/layout/layout.component";
 import { AppRoutes } from "@ui/interfaces/app-route.interface";
-import { customersRoutes } from "./features/customers/customers.routes";
 import { usersRoutes } from "./features/users/users.routes";
 import { environment } from "../environments/environment";
 import { authGuard } from "./core/auth/auth.guard";
@@ -52,11 +51,6 @@ export const appRoutes: AppRoutes = [
         path: "usuarios",
         canActivate: [capabilityGuard("users.manage")],
         children: usersRoutes,
-      },
-      {
-        path: "customers",
-        canActivate: [capabilityGuard("customers.manage")],
-        children: customersRoutes,
       },
       ...(environment.features.styleguide
         ? [

@@ -5,8 +5,8 @@ import { TranslocoService } from "@jsverse/transloco";
 import { AppConfigService } from "@ui/config/app-config.service";
 
 /**
- * Route `title`s are translation keys: `title: "customers.title"` renders as
- * "Customers · <app name>" in the browser tab.
+ * Route `title`s are translation keys: `title: "users.title"` renders as
+ * "Users · <app name>" in the browser tab.
  */
 @Injectable({ providedIn: "root" })
 export class TranslatedTitleStrategy extends TitleStrategy {

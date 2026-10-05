@@ -11,7 +11,7 @@ describe("SettingsService", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("uses the build-time environment by default", () => {
-    expect(service.api("/customers")).toBe("http://api.test/customers");
+    expect(service.api("/users")).toBe("http://api.test/users");
     expect(service.authApi("/login")).toBe("http://auth.api.test/login");
   });
 

@@ -26,46 +26,15 @@
     "main": "Principal",
     "dashboard": "Panel",
     "users": "Usuarios",
-    "customers": "Clientes",
     "manage": "Gestión",
     "home": "Inicio"
   },
   "dashboard": {
     "title": "Panel",
-    "recent": "Clientes recientes",
-    "viewAll": "Ver todos",
     "stats": {
-      "total": "Clientes totales",
-      "active": "Clientes activos",
-      "inactive": "Clientes inactivos"
-    }
-  },
-  "customers": {
-    "title": "Clientes",
-    "new": "Nuevo cliente",
-    "search": "Buscar clientes",
-    "created": "Cliente creado",
-    "empty": "Ningún cliente coincide con tu búsqueda.",
-    "error": "No pudimos cargar los clientes.",
-    "fields": {
-      "name": "Nombre",
-      "email": "Correo",
-      "company": "Empresa",
-      "country": "País",
-      "status": "Estado",
-      "createdAt": "Creado"
-    },
-    "status": {
-      "all": "Todos",
-      "active": "Activo",
-      "inactive": "Inactivo"
-    },
-    "form": {
-      "title": "Nuevo cliente"
-    },
-    "detail": {
-      "title": "Cliente",
-      "notFound": "Este cliente no existe."
+      "tournaments": "Torneos",
+      "matches": "Partidos",
+      "players": "Jugadores"
     }
   },
   "users": {

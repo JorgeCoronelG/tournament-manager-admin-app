@@ -5,10 +5,8 @@ import { defineConfig, devices } from "@playwright/test";
  *
  *   npm run e2e:docker    everything in Docker, in the same image CI uses. Use this
  *                         one: the screenshots in e2e/__screenshots__ are rendered there.
- *   npm run e2e           only the tests (`cd e2e && npm ci` first), against `npm start` + `npm run api` that you
- *                         started yourself (needs Playwright browsers installed).
- *
- * The app runs with `ng serve` against the mock API, exactly as in development.
+ *   npm run e2e           only the tests (`cd e2e && npm ci` first), against the
+ *                         `npm start` that you started yourself (needs Playwright browsers installed).
  */
 export default defineConfig({
   testDir: ".",

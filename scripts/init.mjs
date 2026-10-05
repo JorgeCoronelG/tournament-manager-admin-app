@@ -87,6 +87,6 @@ console.log(
 if (!dryRun && touched > 0) {
   console.log(
     "\nNext: review `git diff`, replace src/assets/img/logo/logo.svg and src/favicon.svg,\n" +
-      "and remove the parts of the example (customers, mock/db.json) you do not need.",
+      "and remove the parts of the example you do not need.",
   );
 }

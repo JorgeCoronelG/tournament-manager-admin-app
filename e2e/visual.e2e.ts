@@ -13,16 +13,9 @@ test.describe("visual regression", () => {
 
   test("dashboard", async ({ page }) => {
     await gotoApp(page);
-    await expect(page.getByText("Clientes recientes")).toBeVisible();
+    await expect(page.getByText("Torneos")).toBeVisible();
 
     await expect(page).toHaveScreenshot("dashboard.png");
-  });
-
-  test("customers", async ({ page }) => {
-    await gotoApp(page, "/dashboard/customers");
-    await expect(page.locator("tr[mat-row]")).toHaveCount(10);
-
-    await expect(page).toHaveScreenshot("customers.png");
   });
 
   for (const [scheme, theme] of [

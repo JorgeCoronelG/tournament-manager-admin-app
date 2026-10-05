@@ -50,19 +50,18 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 
 ## Verificar cambios de UI
 
-`npm run e2e:docker` levanta `ng serve` + la API mock + Playwright en Docker y corre: flujos (clientes, preferencias, 404), accesibilidad (axe, claro y oscuro) y regresión visual (`e2e/__screenshots__`). Tras un cambio visual **intencional** regenera con `sh scripts/e2e-docker.sh --update-snapshots=all` y revisa las imágenes en el diff (sin `=all`, Playwright solo reescribe las que superan la tolerancia). La versión de `@playwright/test` (en `e2e/package.json`) debe coincidir con la imagen de `docker-compose.e2e.yml`.
+`npm run e2e:docker` levanta `ng serve` + Playwright en Docker y corre: flujos (preferencias, sidenav, 404), accesibilidad (axe, claro y oscuro) y regresión visual (`e2e/__screenshots__`). Tras un cambio visual **intencional** regenera con `sh scripts/e2e-docker.sh --update-snapshots=all` y revisa las imágenes en el diff (sin `=all`, Playwright solo reescribe las que superan la tolerancia). La versión de `@playwright/test` (en `e2e/package.json`) debe coincidir con la imagen de `docker-compose.e2e.yml`.
 
 ## Datos, i18n y entornos
 
 - API: `SettingsService.api("/ruta")` compone la URL; `apiUrl` sale de `src/environments/*` y `config.json` lo sobrescribe en runtime. Lecturas con `httpResource`, escrituras con `HttpClient`. `errorInterceptor` muestra el snackbar (se evita con `SKIP_ERROR_NOTIFICATION`).
 - i18n con Transloco: textos en `src/assets/i18n/{en,es}.json`, pipe `| transloco`; las etiquetas de navegación y los `title` de las rutas son claves. Todo texto visible nuevo debe estar en ambos idiomas.
-- API mock: `npm run api` (o el servicio `api` de compose) sirve `mock/db.json`.
 
 ## Docker y seguridad
 
-- La imagen `prod` es `nginx-unprivileged` en el puerto 8080. Al arrancar genera `/config.json` (`apiUrl`) y la CSP (`connect-src`) desde la variable `API_URL` (`nginx/40-runtime-config.sh`); la plantilla de cabeceras es `nginx/security-headers.inc.template`. `nginx/` y `mock/` están excluidos de Prettier a propósito.
+- La imagen `prod` es `nginx-unprivileged` en el puerto 8080. Al arrancar genera `/config.json` (`apiUrl`) y la CSP (`connect-src`) desde la variable `API_URL` (`nginx/40-runtime-config.sh`); la plantilla de cabeceras es `nginx/security-headers.inc.template`. `nginx/` está excluido de Prettier a propósito.
 - El build de producción tiene `inlineCritical: false` a propósito: el CSS crítico inline necesita un `onload` inline que la CSP bloquea.
 
 ## Fuera de alcance (por ahora)
 
-Aún no hay autenticación (hay entornos, capa HTTP y una feature de ejemplo con API mock). No la agregues sin que se pida, y no subas Angular a una mayor nueva sin una migración planificada (Dependabot ignora las mayores).
+Aún no hay autenticación (hay entornos, capa HTTP y una feature de ejemplo). No la agregues sin que se pida, y no subas Angular a una mayor nueva sin una migración planificada (Dependabot ignora las mayores).

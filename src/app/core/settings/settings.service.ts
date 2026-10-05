@@ -47,7 +47,7 @@ export class SettingsService {
     }
   }
 
-  /** Builds an API URL from a path such as `/customers` */
+  /** Builds an API URL from a path such as `/users` */
   api(path: string): string {
     return `${this._apiUrl()}${path}`;
   }

@@ -2,7 +2,6 @@ import { Role } from "./role.model";
 
 export const CAPABILITIES = [
   "users.manage",
-  "customers.manage",
   "leagues.manage",
   "tournaments.manage",
   "teams.manage",
