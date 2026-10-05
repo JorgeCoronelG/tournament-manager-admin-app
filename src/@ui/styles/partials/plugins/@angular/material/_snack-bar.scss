@@ -8,6 +8,13 @@
       button-color: rgb(var(--app-status-on-#{$role}))
     )
   );
+  @include mat.button-overrides(
+    (
+      text-label-text-color: rgb(var(--app-status-on-#{$role})),
+      text-state-layer-color: transparent,
+      text-ripple-color: transparent
+    )
+  );
 }
 
 body {
