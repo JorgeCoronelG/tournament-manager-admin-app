@@ -25,8 +25,8 @@ import { AppPageLayoutComponent } from "@ui/components/app-page-layout/app-page-
 import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolbar/app-secondary-toolbar.component";
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import { ConfirmDialogService } from "../../../shared/confirm-dialog.service";
-import { listState } from "../../../shared/list-state";
+import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
+import { listState } from "../../../shared/list-state/list-state";
 import { UserFormDialogComponent } from "../user-form-dialog/user-form-dialog.component";
 import { UserStatusChipComponent } from "../user-status-chip/user-status-chip.component";
 import { User, UsersFilters } from "../user.model";

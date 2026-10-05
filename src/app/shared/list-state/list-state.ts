@@ -1,6 +1,9 @@
 import { computed, linkedSignal, Signal, signal } from "@angular/core";
 import { Sort } from "@angular/material/sort";
-import { PageQuery, PaginatedResource } from "../core/http/paginated-resource";
+import {
+  PageQuery,
+  PaginatedResource,
+} from "../../core/http/paginated-resource";
 
 /** MatSort state to the API's `sort` value (`-` prefix for descending) */
 export function toSortParam(sort: Sort): string {

@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
 import { of } from "rxjs";
-import { provideTestI18n } from "../../testing/i18n";
+import { provideTestI18n } from "../../../testing/i18n";
 import { ConfirmDialogComponent } from "./confirm-dialog.component";
 import { ConfirmDialogService } from "./confirm-dialog.service";
 

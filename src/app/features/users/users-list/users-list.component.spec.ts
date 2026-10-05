@@ -9,7 +9,7 @@ import { appConfigs } from "@ui/config/app-configs";
 import { provideApp } from "@ui/app.provider";
 import { provideTestI18n } from "../../../../testing/i18n";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import { ConfirmDialogService } from "../../../shared/confirm-dialog.service";
+import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { User, UsersQuery } from "../user.model";
 import { UsersApi } from "../users.api";
 import { UsersListComponent } from "./users-list.component";

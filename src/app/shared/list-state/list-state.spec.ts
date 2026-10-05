@@ -1,6 +1,9 @@
 import { signal, WritableSignal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { PageQuery, PaginatedResource } from "../core/http/paginated-resource";
+import {
+  PageQuery,
+  PaginatedResource,
+} from "../../core/http/paginated-resource";
 import { listState, toSortParam } from "./list-state";
 
 interface Filters {

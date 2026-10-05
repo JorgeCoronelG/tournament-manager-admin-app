@@ -31,7 +31,7 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 - Estado derivado de observables: `toSignal()`. Evita `| async` en templates nuevos.
 - **La app es zoneless** (no existe `zone.js`). Un valor que cambie fuera de un evento del template (timers, callbacks, promesas) tiene que ser un `signal` o la vista no se actualizará. No uses `ChangeDetectorRef.markForCheck()` como parche.
 - Formularios nuevos: Signal Forms (`form()` de `@angular/forms/signals` y `[formField]`), no `FormGroup`/`ngModel`.
-- Enviar un formulario (Signal Forms): `FormSubmitService.submit(form, { send, onSuccess, errors })` (`shared/form-submit.service.ts`). Solo envía si es válido y mantiene `form().submitting()` (úsalo para deshabilitar el botón; no crees un `saving` aparte). Con `errors: "form"` (peticiones con `SKIP_ERROR_NOTIFICATION`) los errores 422 se ponen en sus campos y el resto en un snackbar; por defecto el interceptor ya avisó al usuario.
+- Enviar un formulario (Signal Forms): `FormSubmitService.submit(form, { send, onSuccess, errors })` (`shared/form-submit/form-submit.service.ts`). Solo envía si es válido y mantiene `form().submitting()` (úsalo para deshabilitar el botón; no crees un `saving` aparte). Con `errors: "form"` (peticiones con `SKIP_ERROR_NOTIFICATION`) los errores 422 se ponen en sus campos y el resto en un snackbar; por defecto el interceptor ya avisó al usuario.
 - Templates: `@if` / `@for` (con `track`) / `@switch` / `@let`. Nada de `*ngIf`, `*ngFor` ni `ngClass`/`ngStyle`; usa `[class]`/`[style]`.
 - Sin `any` (usa `unknown` o genéricos): es error de ESLint.
 - Los elementos interactivos son `<button type="button">` o `<a>`. No pongas `(click)` en un `div`/`span`: es error de ESLint (accesibilidad). Un fondo que solo captura clics lleva `role="presentation"`.
@@ -58,7 +58,7 @@ Toda tabla nueva sigue la estructura de `features/users/users-list`: la página 
 - Contenedor directo de la `<table>`: `class="app-table-scroll"`.
 - Dentro de la tarjeta van, como hijos directos, la barra de progreso, el contenedor `app-table-scroll`, los mensajes de error/vacío y el `mat-paginator`.
 - Los filtros o botones van fuera de la tarjeta, como hijos de `app-page-layout-content`.
-- Estado de la lista: `listState({ filters, defaultSort, load })` (`shared/list-state.ts`) en un campo del componente. Da `rows`, `total`, `resource`, `paging`, `sortState`, `hasFilters`, `sort` y `changePage` (cambiar un filtro o el orden vuelve a la página 1). Los filtros son un `signal` con `""` como valor vacío, y el formulario de filtros (`form(...)`, con su `debounce`) se crea en el componente.
+- Estado de la lista: `listState({ filters, defaultSort, load })` (`shared/list-state/list-state.ts`) en un campo del componente. Da `rows`, `total`, `resource`, `paging`, `sortState`, `hasFilters`, `sort` y `changePage` (cambiar un filtro o el orden vuelve a la página 1). Los filtros son un `signal` con `""` como valor vacío, y el formulario de filtros (`form(...)`, con su `debounce`) se crea en el componente.
 - Petición de la lista: `paginatedResource<T, Q>(url, query, filterParams)` (`core/http/paginated-resource.ts`) en la clase de API; `filterParams` mapea los filtros a los params del backend. La query es `Filtros & PageQuery`.
 - Mensaje de tabla vacía: `table.empty` (sin filtros) o `table.emptyFiltered` (con búsqueda o filtros activos), compartidos en `es.json`; no crees una clave `empty` por tabla.
 - Cabecera fija: `<tr *matHeaderRowDef="columns; sticky: true" mat-header-row>`.
@@ -72,7 +72,7 @@ Toda tabla nueva sigue la estructura de `features/users/users-list`: la página 
 
 - API: `SettingsService.api("/ruta")` compone la URL; `apiUrl` sale de `src/environments/*` y `config.json` lo sobrescribe en runtime. Lecturas con `httpResource`, escrituras con `HttpClient`. `errorInterceptor` muestra el snackbar (se evita con `SKIP_ERROR_NOTIFICATION`).
 - Notificaciones tras una acción: `SnackbarService.notifySuccess("clave.i18n")` y `notifyFailure(error)` (mensaje del backend o genérico por estado, con el botón «Aceptar»). No armes `snackbar.success/error` + `failureMessage` + `common.ok` a mano.
-- Confirmar una acción destructiva: `ConfirmDialogService.confirm({ key: "users.delete", params })` (`shared/`), con las claves `<key>.title`, `<key>.message` y `<key>.confirm` en `es.json`; devuelve un `Observable<boolean>`. No abras `ConfirmDialogComponent` a mano.
+- Confirmar una acción destructiva: `ConfirmDialogService.confirm({ key: "users.delete", params })` (`shared/confirm-dialog/`), con las claves `<key>.title`, `<key>.message` y `<key>.confirm` en `es.json`; devuelve un `Observable<boolean>`. No abras `ConfirmDialogComponent` a mano.
 - i18n con Transloco: textos en `src/assets/i18n/{en,es}.json`, pipe `| transloco`; las etiquetas de navegación y los `title` de las rutas son claves. Todo texto visible nuevo debe estar en ambos idiomas.
 
 ## Docker y seguridad

@@ -25,7 +25,7 @@ import {
   ValidationError,
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
-import { FormSubmitService } from "../../../shared/form-submit.service";
+import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { User } from "../user.model";
 import { UsersApi } from "../users.api";
 

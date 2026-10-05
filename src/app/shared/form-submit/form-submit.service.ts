@@ -1,8 +1,8 @@
 import { inject, Service } from "@angular/core";
 import { FieldTree, submit } from "@angular/forms/signals";
 import { firstValueFrom, Observable } from "rxjs";
-import { fieldErrors } from "../core/http/api-errors";
-import { SnackbarService } from "../core/snackbar/snackbar.service";
+import { fieldErrors } from "../../core/http/api-errors";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 
 export interface FormSubmitOptions<R> {
   /** The request that sends the form's values; read them here, at submit time */

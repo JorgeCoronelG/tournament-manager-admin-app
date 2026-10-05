@@ -3,7 +3,7 @@ import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { form, required } from "@angular/forms/signals";
 import { of, throwError } from "rxjs";
-import { SnackbarService } from "../core/snackbar/snackbar.service";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { FormSubmitService } from "./form-submit.service";
 
 describe("FormSubmitService", () => {
