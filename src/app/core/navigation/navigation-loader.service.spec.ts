@@ -15,6 +15,7 @@ function labels(items: NavigationItem[]): string[] {
 describe("NavigationLoaderService", () => {
   function signInAs(...roles: Role[]): NavigationLoaderService {
     TestBed.inject(CurrentUserService).setUser({
+      id: 1,
       name: "Ada",
       role: "",
       roles,

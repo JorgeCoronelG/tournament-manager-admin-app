@@ -3,6 +3,7 @@ import { Role } from "./role.model";
 export const CAPABILITIES = [
   "users.manage",
   "leagues.manage",
+  "leagues.select",
   "tournaments.manage",
   "teams.manage",
   "players.manage",
@@ -19,6 +20,7 @@ export type Capability = (typeof CAPABILITIES)[number];
 export const ROLE_CAPABILITIES: Record<Role, readonly Capability[]> = {
   superadmin: CAPABILITIES,
   league_admin: [
+    "leagues.select",
     "tournaments.manage",
     "teams.manage",
     "players.manage",

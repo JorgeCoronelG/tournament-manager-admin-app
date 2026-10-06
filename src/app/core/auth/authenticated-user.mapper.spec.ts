@@ -14,6 +14,7 @@ describe("toAppUser", () => {
       ],
     });
 
+    expect(user.id).toBe(1);
     expect(user.name).toBe("Ada Lovelace");
     expect(user.roles).toEqual(["superadmin"]);
     expect(user.role).toBe("Super Administrador, Desconocido");

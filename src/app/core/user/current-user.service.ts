@@ -3,6 +3,7 @@ import { capabilitiesFor, Capability } from "../auth/role-capabilities";
 import { Role } from "../auth/role.model";
 
 export interface AppUser {
+  id: number;
   name: string;
   role: string;
   roles: readonly Role[];
@@ -10,6 +11,7 @@ export interface AppUser {
 }
 
 const ANONYMOUS_USER: AppUser = {
+  id: 0,
   name: "Guest",
   role: "",
   roles: [],

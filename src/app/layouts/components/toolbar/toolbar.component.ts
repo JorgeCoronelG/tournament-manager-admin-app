@@ -11,6 +11,7 @@ import { AppColorScheme } from "@ui/config/app-config.interface";
 import { NavigationService } from "../../../core/navigation/navigation.service";
 import { AppPopoverService } from "@ui/components/app-popover/app-popover.service";
 import { NavigationComponent } from "../navigation/navigation.component";
+import { LeagueSelectorComponent } from "./league-selector/league-selector.component";
 import { ToolbarUserComponent } from "./toolbar-user/toolbar-user.component";
 import { NavigationItemComponent } from "../navigation/navigation-item/navigation-item.component";
 import { RouterLink } from "@angular/router";
@@ -34,6 +35,7 @@ import { routeDataSignal } from "@ui/utils/route-data-signal";
     MatTooltipModule,
     RouterLink,
     NavigationItemComponent,
+    LeagueSelectorComponent,
     ToolbarUserComponent,
     NavigationComponent,
   ],

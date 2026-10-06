@@ -38,6 +38,7 @@ describe("appRoutes", () => {
     function canEnter(role: Role) {
       TestBed.configureTestingModule({ providers: [provideRouter([])] });
       TestBed.inject(CurrentUserService).setUser({
+        id: 1,
         name: "Ada",
         role: "",
         roles: [role],

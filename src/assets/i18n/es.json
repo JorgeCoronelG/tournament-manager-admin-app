@@ -203,5 +203,17 @@
     "lastPage": "Última página",
     "range": "{{startIndex}} – {{endIndex}} de {{length}}",
     "rangeEmpty": "0 de {{length}}"
+  },
+  "leagueSelector": {
+    "loading": "Cargando ligas",
+    "error": "No pudimos cargar tus ligas.",
+    "noneAdmin": "Aún no tienes ligas asignadas, contacta al administrador",
+    "noneSuperadmin": "Aún no hay ligas. Crea una en Ligas",
+    "required": "Selecciona una liga para continuar.",
+    "choose": "Selecciona una liga",
+    "clear": "Limpiar liga",
+    "change": "Liga activa: {{name}}. Cambiar de liga",
+    "current": "Liga activa: {{name}}",
+    "search": "Buscar liga"
   }
 }

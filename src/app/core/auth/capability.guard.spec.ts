@@ -21,6 +21,7 @@ describe("capabilityGuard", () => {
 
   function signInAs(roles: Array<"superadmin" | "league_admin">) {
     TestBed.inject(CurrentUserService).setUser({
+      id: 1,
       name: "Ada",
       role: "",
       roles,

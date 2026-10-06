@@ -27,6 +27,7 @@ import { provideI18n } from "./core/i18n/i18n.provider";
 import { AppErrorHandler } from "./core/http/app-error-handler";
 import { authTokenInterceptor } from "./core/http/auth-token.interceptor";
 import { errorInterceptor } from "./core/http/error.interceptor";
+import { leagueContextInterceptor } from "./core/league-context/league-context.interceptor";
 import { TranslatedTitleStrategy } from "./core/router/translated-title.strategy";
 import { SettingsService } from "./core/settings/settings.service";
 import { provideApp } from "@ui/app.provider";
@@ -52,7 +53,11 @@ export const appConfig: ApplicationConfig = {
     { provide: TitleStrategy, useExisting: TranslatedTitleStrategy },
     { provide: MatPaginatorIntl, useClass: AppPaginatorIntl },
     provideHttpClient(
-      withInterceptors([authTokenInterceptor, errorInterceptor]),
+      withInterceptors([
+        authTokenInterceptor,
+        leagueContextInterceptor,
+        errorInterceptor,
+      ]),
       withInterceptorsFromDi(),
     ),
     provideLoadingBarInterceptor(),

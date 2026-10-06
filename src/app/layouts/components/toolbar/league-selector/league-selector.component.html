@@ -1,0 +1,119 @@
+@if (visible()) {
+  @if (isLoading() && leagues().length === 0) {
+    <span
+      class="flex items-center gap-2 px-2 text-sm text-secondary"
+      role="status"
+    >
+      <mat-spinner diameter="18" />
+      <span class="hidden sm:inline">{{
+        "leagueSelector.loading" | transloco
+      }}</span>
+    </span>
+  } @else if (error()) {
+    <span class="flex items-center gap-1 text-sm text-warn" role="alert">
+      <span class="hidden sm:inline">{{
+        "leagueSelector.error" | transloco
+      }}</span>
+      <button
+        (click)="reload()"
+        [attr.aria-label]="'common.retry' | transloco"
+        mat-icon-button
+        type="button"
+      >
+        <mat-icon svgIcon="mat:refresh" />
+      </button>
+    </span>
+  } @else if (leagues().length === 0) {
+    @if (canManageLeagues()) {
+      <a
+        [attr.title]="'leagueSelector.noneSuperadmin' | transloco"
+        class="block truncate px-2 text-sm underline max-w-40 sm:max-w-xs"
+        routerLink="/dashboard/ligas"
+        >{{ "leagueSelector.noneSuperadmin" | transloco }}</a
+      >
+    } @else {
+      <span
+        [attr.title]="'leagueSelector.noneAdmin' | transloco"
+        class="block truncate px-2 text-sm text-secondary max-w-40 sm:max-w-xs"
+        role="status"
+        >{{ "leagueSelector.noneAdmin" | transloco }}</span
+      >
+    }
+  } @else if (leagues().length === 1 && active()) {
+    <span
+      class="flex items-center gap-2 px-2 text-sm font-medium min-w-0"
+      [attr.aria-label]="
+        'leagueSelector.current' | transloco: { name: active()?.name }
+      "
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:sports_soccer" />
+      <span class="truncate max-w-32 sm:max-w-xs">{{ active()?.name }}</span>
+    </span>
+  } @else {
+    <div class="flex items-center gap-1 min-w-0">
+      @if (active()) {
+        <button
+          (click)="clear()"
+          [attr.aria-label]="'leagueSelector.clear' | transloco"
+          [matTooltip]="'leagueSelector.clear' | transloco"
+          mat-icon-button
+          type="button"
+        >
+          <mat-icon svgIcon="mat:close" />
+        </button>
+      }
+      <button
+        [attr.aria-label]="
+          (active() ? 'leagueSelector.change' : 'leagueSelector.choose')
+            | transloco: { name: active()?.name }
+        "
+        [matMenuTriggerFor]="menu"
+        class="max-w-full"
+        mat-stroked-button
+        type="button"
+      >
+        <mat-icon svgIcon="mat:sports_soccer" />
+        <span class="truncate max-w-28 sm:max-w-xs">{{
+          active()?.name ?? ("leagueSelector.choose" | transloco)
+        }}</span>
+        <mat-icon iconPositionEnd svgIcon="mat:arrow_drop_down" />
+      </button>
+
+      <mat-menu #menu="matMenu">
+        @if (searchable()) {
+          <div class="px-3 pb-2 pt-1">
+            <input
+              (click)="keepKeys($event)"
+              (input)="search($event)"
+              (keydown)="keepKeys($event)"
+              [attr.aria-label]="'leagueSelector.search' | transloco"
+              [placeholder]="'leagueSelector.search' | transloco"
+              [value]="query()"
+              class="w-full rounded border bg-transparent px-2 py-1 text-sm"
+              type="search"
+            />
+          </div>
+        }
+        @for (league of filtered(); track league.id) {
+          <button
+            (click)="select(league.id)"
+            [attr.aria-current]="league.id === active()?.id ? 'true' : null"
+            mat-menu-item
+            type="button"
+          >
+            @if (league.id === active()?.id) {
+              <mat-icon svgIcon="mat:check" />
+            } @else {
+              <span aria-hidden="true" class="inline-block w-6 shrink-0"></span>
+            }
+            <span>{{ league.name }}</span>
+          </button>
+        } @empty {
+          <p class="px-4 py-2 m-0 text-sm text-secondary">
+            {{ "table.emptyFiltered" | transloco }}
+          </p>
+        }
+      </mat-menu>
+    </div>
+  }
+}

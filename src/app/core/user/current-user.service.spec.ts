@@ -7,6 +7,7 @@ describe("CurrentUserService", () => {
     expect(service.user().name).toBe("Guest");
 
     service.setUser({
+      id: 1,
       name: "Ada",
       role: "Admin",
       roles: [],
@@ -20,7 +21,7 @@ describe("CurrentUserService", () => {
 
   it("grants the union of the capabilities of all the user's roles", () => {
     const service = TestBed.inject(CurrentUserService);
-    const user = { name: "Ada", role: "", avatarUrl: "a.png" };
+    const user = { id: 1, name: "Ada", role: "", avatarUrl: "a.png" };
 
     expect(service.can("tournaments.manage")).toBe(false);
 

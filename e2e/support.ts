@@ -33,10 +33,31 @@ async function mockSession(page: Page): Promise<void> {
   );
 }
 
+/** The toolbar loads the leagues of the user; with one, it is selected by itself */
+async function mockMyLeagues(page: Page): Promise<void> {
+  await page.route(/\/my-leagues(\?.*)?$/, (route) =>
+    route.fulfill({
+      json: {
+        data: [{ id: 1, name: "Liga de prueba" }],
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: 1,
+          from: 1,
+          lastPage: 1,
+          perPage: 100,
+          to: 1,
+          total: 1,
+        },
+      },
+    }),
+  );
+}
+
 /** Waits for the splash screen to disappear and, for pages inside the layout, for it to be ready */
 export async function gotoApp(page: Page, path = "/dashboard"): Promise<void> {
   if (path.startsWith("/dashboard")) {
     await mockSession(page);
+    await mockMyLeagues(page);
   }
 
   await page.goto(path);

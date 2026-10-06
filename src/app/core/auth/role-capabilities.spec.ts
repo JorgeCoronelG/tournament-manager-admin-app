@@ -6,6 +6,14 @@ describe("capabilitiesFor", () => {
     expect(capabilitiesFor(["superadmin"]).has("leagues.manage")).toBe(true);
   });
 
+  it("lets the superadmin and the league admin pick the active league", () => {
+    expect(capabilitiesFor(["superadmin"]).has("leagues.select")).toBe(true);
+    expect(capabilitiesFor(["league_admin"]).has("leagues.select")).toBe(true);
+    expect(
+      capabilitiesFor(["referee", "manager", "player"]).has("leagues.select"),
+    ).toBe(false);
+  });
+
   it("keeps the league admin out of users and leagues", () => {
     const capabilities = capabilitiesFor(["league_admin"]);
 
