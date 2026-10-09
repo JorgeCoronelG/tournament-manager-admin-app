@@ -13,6 +13,7 @@ describe("ForgotPasswordComponent", () => {
   const success = vi.fn();
   const info = vi.fn();
   const error = vi.fn();
+  const notifyFailure = vi.fn();
   let navigateByUrl: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -21,13 +22,17 @@ describe("ForgotPasswordComponent", () => {
     success.mockReset();
     info.mockReset();
     error.mockReset();
+    notifyFailure.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
         provideTestI18n(),
         provideRouter([]),
         { provide: AuthApi, useValue: { forgotPassword, resetPassword } },
-        { provide: SnackbarService, useValue: { success, info, error } },
+        {
+          provide: SnackbarService,
+          useValue: { success, info, error, notifyFailure },
+        },
       ],
     });
 
@@ -155,5 +160,26 @@ describe("ForgotPasswordComponent", () => {
 
     expect(success).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
+    expect(notifyFailure).toHaveBeenCalledWith(
+      expect.any(HttpErrorResponse),
+      false,
+    );
+  });
+
+  it("shows a failed code request without the OK button", async () => {
+    forgotPassword.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 429 })),
+    );
+
+    const fixture = TestBed.createComponent(ForgotPasswordComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.requestForm.email().value.set("ada@example.com");
+    await fixture.componentInstance.requestCode();
+
+    expect(notifyFailure).toHaveBeenCalledWith(
+      expect.any(HttpErrorResponse),
+      false,
+    );
+    expect(fixture.componentInstance.step()).toBe("request");
   });
 });

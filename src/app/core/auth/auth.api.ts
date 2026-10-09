@@ -36,11 +36,15 @@ export class AuthApi {
     });
   }
 
-  /** Always resolves with a generic message: it never reveals whether the email exists */
+  /**
+   * Always resolves with a generic message: it never reveals whether the email
+   * exists. The caller shows the errors (e.g. too many attempts).
+   */
   forgotPassword(email: string) {
     return this.http.post<{ message: string }>(
       this.settings.authApi("/forgot-password"),
       { email },
+      { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
     );
   }
 
@@ -58,6 +62,7 @@ export class AuthApi {
         password,
         password_confirmation: passwordConfirmation,
       },
+      { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
     );
   }
 

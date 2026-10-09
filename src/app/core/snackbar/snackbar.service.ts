@@ -39,11 +39,14 @@ export class SnackbarService {
     this.success(this.transloco.translate(key), this.okLabel());
   }
 
-  /** A failed request: the backend's own message, or a generic one for its status */
-  notifyFailure(error: unknown): void {
+  /**
+   * A failed request: the backend's own message, or a generic one for its
+   * status. Pass `withAction = false` for a message that just fades out.
+   */
+  notifyFailure(error: unknown, withAction = true): void {
     this.error(
       failureMessage(error, (key) => this.transloco.translate(key)),
-      this.okLabel(),
+      withAction ? this.okLabel() : undefined,
     );
   }
 

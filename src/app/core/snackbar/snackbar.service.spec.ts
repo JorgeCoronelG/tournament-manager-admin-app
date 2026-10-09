@@ -48,6 +48,15 @@ describe("SnackbarService", () => {
     });
   });
 
+  it("can show a failure without the action button", () => {
+    TestBed.inject(SnackbarService).notifyFailure(
+      new HttpErrorResponse({ status: 429 }),
+      false,
+    );
+
+    expect(shown().action).toBeUndefined();
+  });
+
   it("falls back to a generic message by status, or a general one", () => {
     const service = TestBed.inject(SnackbarService);
 
