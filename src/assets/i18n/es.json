@@ -164,8 +164,9 @@
     "subtitle": "Elige una contraseña para terminar de activar tu cuenta.",
     "manualSubtitle": "Ingresa tu correo y el código de verificación que te enviamos, y elige una contraseña.",
     "submit": "Activar cuenta",
-    "done": "Cuenta activada. Ya puedes iniciar sesión.",
-    "askNewInvitation": "Pide una nueva invitación al administrador."
+    "done": "Tu cuenta está activa. Si eres administrador, inicia sesión; si eres árbitro o jugador, usa la app móvil.",
+    "askNewInvitation": "Pide una nueva invitación al administrador.",
+    "goToLogin": "Ir al inicio de sesión"
   },
   "changePassword": {
     "title": "Cambiar contraseña",

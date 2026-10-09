@@ -8,7 +8,7 @@ import {
   signal,
 } from "@angular/core";
 import { firstValueFrom } from "rxjs";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 import {
   form,
   FormField,
@@ -24,7 +24,6 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { ActivateAccountModel } from "../../core/auth/activate-account.model";
 import { AuthApi } from "../../core/auth/auth.api";
-import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { failureMessage } from "../../core/http/api-errors";
 
 const CODE_PATTERN = /^\d{6}$/;
@@ -50,9 +49,7 @@ function orEmpty(value: string | undefined): string {
   ],
 })
 export class ActivateAccountComponent {
-  private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
-  private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
   // Query params (bound by withComponentInputBinding, which passes undefined when one is missing)
@@ -60,6 +57,8 @@ export class ActivateAccountComponent {
   readonly code = input("", { transform: orEmpty });
 
   readonly submitting = signal(false);
+  /** The account is active. The response has no roles, so the page cannot tell where to send them. */
+  readonly activated = signal(false);
   /** The code was rejected (invalid or expired) */
   readonly rejected = signal<string | null>(null);
 
@@ -101,7 +100,7 @@ export class ActivateAccountComponent {
 
       try {
         const { email, code, password, passwordConfirmation } = this.model();
-        const response = await firstValueFrom(
+        await firstValueFrom(
           this.authApi.activateAccount(
             email.trim(),
             code.trim(),
@@ -110,10 +109,7 @@ export class ActivateAccountComponent {
           ),
         );
 
-        this.snackbar.success(
-          response.message || this.transloco.translate("activateAccount.done"),
-        );
-        await this.router.navigateByUrl("/");
+        this.activated.set(true);
       } catch (error) {
         this.rejected.set(
           failureMessage(error, (key) => this.transloco.translate(key)),

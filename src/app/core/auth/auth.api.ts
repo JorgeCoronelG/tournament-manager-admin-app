@@ -3,17 +3,24 @@ import { inject, Service } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../http/error.interceptor";
 import { SettingsService } from "../settings/settings.service";
 import { AuthenticatedUser, LoginResponse } from "./login-response.model";
+import { LoginRequest } from "./login.model";
 
 @Service()
 export class AuthApi {
   private readonly http = inject(HttpClient);
   private readonly settings = inject(SettingsService);
 
-  /** Errors are handled by the caller (invalid credentials, validation), not the generic snackbar */
+  /**
+   * Identifies this app as the web panel (the only place `client` is set).
+   * Errors are handled by the caller (invalid credentials, access not allowed,
+   * validation), not the generic snackbar.
+   */
   login(email: string, password: string) {
+    const body: LoginRequest = { email, password, client: "web" };
+
     return this.http.post<LoginResponse>(
       this.settings.authApi("/login"),
-      { email, password },
+      body,
       { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
     );
   }

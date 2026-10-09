@@ -1,16 +1,13 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { TestBed } from "@angular/core/testing";
-import { provideRouter, Router } from "@angular/router";
+import { provideRouter } from "@angular/router";
 import { of, throwError } from "rxjs";
 import { provideTestI18n } from "../../../testing/i18n";
 import { AuthApi } from "../../core/auth/auth.api";
-import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { ActivateAccountComponent } from "./activate-account.component";
 
 describe("ActivateAccountComponent", () => {
   const activateAccount = vi.fn();
-  const success = vi.fn();
-  let navigateByUrl: ReturnType<typeof vi.spyOn>;
 
   function setup(inputs: { email?: string; code?: string } = {}) {
     TestBed.configureTestingModule({
@@ -18,12 +15,8 @@ describe("ActivateAccountComponent", () => {
         provideTestI18n(),
         provideRouter([]),
         { provide: AuthApi, useValue: { activateAccount } },
-        { provide: SnackbarService, useValue: { success } },
       ],
     });
-    navigateByUrl = vi
-      .spyOn(TestBed.inject(Router), "navigateByUrl")
-      .mockResolvedValue(true);
 
     const fixture = TestBed.createComponent(ActivateAccountComponent);
     fixture.componentRef.setInput("email", inputs.email ?? "ana@example.com");
@@ -45,10 +38,9 @@ describe("ActivateAccountComponent", () => {
 
   beforeEach(() => {
     activateAccount.mockReset();
-    success.mockReset();
   });
 
-  it("activates the account with the link's email and code, then goes to the login", async () => {
+  it("activates the account with the link's email and code and shows a generic message with a link to the login", async () => {
     activateAccount.mockReturnValue(of({ message: "Cuenta activada." }));
     const fixture = setup();
     fill(fixture, "password123", "password123");
@@ -61,8 +53,16 @@ describe("ActivateAccountComponent", () => {
       "password123",
       "password123",
     );
-    expect(success).toHaveBeenCalledWith("Cuenta activada.");
-    expect(navigateByUrl).toHaveBeenCalledWith("/");
+    fixture.detectChanges();
+
+    const page: HTMLElement = fixture.nativeElement;
+    expect(page.textContent).toContain(
+      "Tu cuenta está activa. Si eres administrador, inicia sesión; si eres árbitro o jugador, usa la app móvil.",
+    );
+    expect(page.querySelector("form")).toBeNull();
+    expect(page.querySelector("a[href='/']")?.textContent).toContain(
+      "Ir al inicio de sesión",
+    );
   });
 
   it("shows the error and asks for a new invitation when the code is rejected", async () => {
@@ -81,7 +81,7 @@ describe("ActivateAccountComponent", () => {
     await fixture.componentInstance.activate();
     fixture.detectChanges();
 
-    expect(navigateByUrl).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.activated()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain(
       "Código inválido o expirado.",
     );
@@ -146,7 +146,6 @@ describe("ActivateAccountComponent", () => {
         provideTestI18n(),
         provideRouter([]),
         { provide: AuthApi, useValue: { activateAccount } },
-        { provide: SnackbarService, useValue: { success } },
       ],
     });
     const fixture = TestBed.createComponent(ActivateAccountComponent);

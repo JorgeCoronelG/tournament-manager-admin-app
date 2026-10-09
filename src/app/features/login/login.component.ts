@@ -22,6 +22,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { backendMessage } from "../../core/http/api-errors";
 import { AuthApi } from "../../core/auth/auth.api";
 import { AuthTokenService } from "../../core/auth/auth-token.service";
 import { toAppUser } from "../../core/auth/authenticated-user.mapper";
@@ -30,7 +31,6 @@ import {
   readRememberedEmail,
   writeRememberedEmail,
 } from "../../core/auth/remembered-email.storage";
-import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { CurrentUserService } from "../../core/user/current-user.service";
 
 @Component({
@@ -55,7 +55,6 @@ export class LoginComponent {
   private readonly authApi = inject(AuthApi);
   private readonly authToken = inject(AuthTokenService);
   private readonly currentUser = inject(CurrentUserService);
-  private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
   private readonly rememberedEmail = readRememberedEmail();
@@ -74,6 +73,8 @@ export class LoginComponent {
 
   readonly passwordVisible = signal(false);
   readonly submitting = signal(false);
+  /** Why the sign-in failed, shown as an alert in the form */
+  readonly failure = signal<string | null>(null);
 
   togglePasswordVisibility(): void {
     this.passwordVisible.update((visible) => !visible);
@@ -82,6 +83,7 @@ export class LoginComponent {
   login(): Promise<boolean> {
     return submit(this.loginForm, async () => {
       this.submitting.set(true);
+      this.failure.set(null);
 
       try {
         const { email, password, rememberMe } = this.model();
@@ -96,17 +98,33 @@ export class LoginComponent {
 
         await this.router.navigateByUrl("/dashboard");
       } catch (error) {
-        const key =
-          error instanceof HttpErrorResponse && error.status === 401
-            ? "login.invalidCredentials"
-            : "login.error";
-
-        this.snackbar.error(this.transloco.translate(key));
+        this.failure.set(this.failureMessage(error));
       } finally {
         this.submitting.set(false);
       }
 
       return undefined;
     });
+  }
+
+  /**
+   * 401 is wrong credentials. Any other answer with a message from the server
+   * (e.g. a 403: access not allowed, or a disabled account) is shown as it comes,
+   * never guessed from the status.
+   */
+  private failureMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 401) {
+        return this.transloco.translate("login.invalidCredentials");
+      }
+
+      const message = backendMessage(error);
+
+      if (message) {
+        return message;
+      }
+    }
+
+    return this.transloco.translate("login.error");
   }
 }
