@@ -76,9 +76,14 @@
     <mat-form-field>
       <mat-label>{{ "tournaments.fields.startDate" | transloco }}</mat-label>
       <input
+        (beforeinput)="$event.preventDefault()"
+        (click)="picker.open()"
+        (keydown.enter)="picker.open()"
+        aria-readonly="true"
         [formField]="tournamentForm.start_date"
         [matDatepicker]="picker"
         autocomplete="off"
+        class="cursor-pointer"
         matInput
       />
       <mat-datepicker-toggle [for]="picker" matIconSuffix />

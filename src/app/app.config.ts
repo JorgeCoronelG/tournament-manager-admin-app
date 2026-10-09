@@ -19,9 +19,15 @@ import {
   withComponentInputBinding,
   withInMemoryScrolling,
 } from "@angular/router";
-import { provideNativeDateAdapter } from "@angular/material/core";
+import {
+  MAT_DATE_LOCALE,
+  MatDateFormats,
+  provideNativeDateAdapter,
+} from "@angular/material/core";
+import { MatDatepickerIntl } from "@angular/material/datepicker";
 import { MatPaginatorIntl } from "@angular/material/paginator";
 import { provideIcons } from "./core/icons/icons.provider";
+import { AppDatepickerIntl } from "./core/i18n/app-datepicker-intl";
 import { AppPaginatorIntl } from "./core/i18n/app-paginator-intl";
 import { provideI18n } from "./core/i18n/i18n.provider";
 import { AppErrorHandler } from "./core/http/app-error-handler";
@@ -34,13 +40,26 @@ import { provideApp } from "@ui/app.provider";
 import { provideNavigation } from "./core/navigation/navigation.provider";
 import { appConfigs } from "@ui/config/app-configs";
 
+/** Same as the native adapter's defaults, but the input shows two-digit day and month (dd/mm/yyyy) */
+const APP_DATE_FORMATS: MatDateFormats = {
+  parse: { dateInput: null },
+  display: {
+    dateInput: { day: "2-digit", month: "2-digit", year: "numeric" },
+    monthYearLabel: { year: "numeric", month: "short" },
+    dateA11yLabel: { year: "numeric", month: "long", day: "numeric" },
+    monthYearA11yLabel: { year: "numeric", month: "long" },
+  },
+};
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
     { provide: ErrorHandler, useClass: AppErrorHandler },
     provideAppInitializer(() => inject(SettingsService).load()),
-    provideNativeDateAdapter(),
+    provideNativeDateAdapter(APP_DATE_FORMATS),
+    { provide: MAT_DATE_LOCALE, useValue: "es-MX" },
+    { provide: MatDatepickerIntl, useClass: AppDatepickerIntl },
     provideRouter(
       appRoutes,
       // TODO: Add preloading withPreloading(),

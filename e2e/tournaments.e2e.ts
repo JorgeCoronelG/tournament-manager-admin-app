@@ -114,7 +114,22 @@ test.describe("tournaments", () => {
     await page.getByRole("option", { name: "Mixto" }).click();
     await dialog.getByLabel("Edad mínima").fill("40");
     await dialog.getByLabel("Edad máxima").fill("30");
-    await dialog.getByLabel("Fecha de inicio").fill("3/5/2026");
+    // Read only: the date comes from the calendar (in Spanish), opened by clicking the field
+    const date = dialog.getByLabel("Fecha de inicio");
+    await date.click();
+    await expect(
+      page.getByRole("button", { name: "20 de septiembre de 2026" }),
+    ).toBeVisible();
+    await page
+      .locator(".mat-calendar-body-cell")
+      .getByText("20", { exact: true })
+      .click();
+    await expect(date).toHaveValue("20/09/2026");
+
+    // Typing or erasing does nothing
+    await date.press("Backspace");
+    await date.pressSequentially("1");
+    await expect(date).toHaveValue("20/09/2026");
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(
       dialog.getByText("La edad máxima no puede ser menor que la mínima"),
@@ -129,7 +144,7 @@ test.describe("tournaments", () => {
         gender: "mixed",
         min_age: 40,
         max_age: 45,
-        start_date: "2026-03-05",
+        start_date: "2026-09-20",
       },
     ]);
   });

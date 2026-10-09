@@ -285,5 +285,18 @@
       "ageRange": "La edad máxima no puede ser menor que la mínima",
       "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre."
     }
+  },
+  "datepicker": {
+    "calendar": "Calendario",
+    "open": "Abrir calendario",
+    "close": "Cerrar calendario",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "prevYear": "Año anterior",
+    "nextYear": "Año siguiente",
+    "prevMultiYear": "24 años anteriores",
+    "nextMultiYear": "24 años siguientes",
+    "switchToMonth": "Elegir mes y día",
+    "switchToYear": "Elegir año y mes"
   }
 }
