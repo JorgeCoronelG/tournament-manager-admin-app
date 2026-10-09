@@ -27,9 +27,9 @@ test.describe("login", () => {
     await page.getByLabel("Contraseña", { exact: true }).fill("secret123");
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
 
-    await expect(page.getByRole("alert")).toHaveText(
-      "Tu cuenta no tiene acceso al panel de administración.",
-    );
+    await expect(
+      page.getByText("Tu cuenta no tiene acceso al panel de administración."),
+    ).toBeVisible();
     expect(body).toEqual({
       email: "arbitro@example.com",
       password: "secret123",

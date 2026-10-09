@@ -23,6 +23,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { backendMessage } from "../../core/http/api-errors";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { AuthApi } from "../../core/auth/auth.api";
 import { AuthTokenService } from "../../core/auth/auth-token.service";
 import { toAppUser } from "../../core/auth/authenticated-user.mapper";
@@ -55,6 +56,7 @@ export class LoginComponent {
   private readonly authApi = inject(AuthApi);
   private readonly authToken = inject(AuthTokenService);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
   private readonly rememberedEmail = readRememberedEmail();
@@ -73,8 +75,6 @@ export class LoginComponent {
 
   readonly passwordVisible = signal(false);
   readonly submitting = signal(false);
-  /** Why the sign-in failed, shown as an alert in the form */
-  readonly failure = signal<string | null>(null);
 
   togglePasswordVisibility(): void {
     this.passwordVisible.update((visible) => !visible);
@@ -83,7 +83,6 @@ export class LoginComponent {
   login(): Promise<boolean> {
     return submit(this.loginForm, async () => {
       this.submitting.set(true);
-      this.failure.set(null);
 
       try {
         const { email, password, rememberMe } = this.model();
@@ -98,7 +97,7 @@ export class LoginComponent {
 
         await this.router.navigateByUrl("/dashboard");
       } catch (error) {
-        this.failure.set(this.failureMessage(error));
+        this.report(error);
       } finally {
         this.submitting.set(false);
       }
@@ -108,23 +107,20 @@ export class LoginComponent {
   }
 
   /**
-   * 401 is wrong credentials. Any other answer with a message from the server
-   * (e.g. a 403: access not allowed, or a disabled account) is shown as it comes,
-   * never guessed from the status.
+   * Wrong credentials (401) have their own text. Any other answer with a message
+   * from the server (e.g. a 403: access not allowed, or a disabled account) is
+   * shown as it comes, never guessed from the status.
    */
-  private failureMessage(error: unknown): string {
+  private report(error: unknown): void {
+    let message = this.transloco.translate("login.error");
+
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 401) {
-        return this.transloco.translate("login.invalidCredentials");
-      }
-
-      const message = backendMessage(error);
-
-      if (message) {
-        return message;
-      }
+      message =
+        error.status === 401
+          ? this.transloco.translate("login.invalidCredentials")
+          : (backendMessage(error) ?? message);
     }
 
-    return this.transloco.translate("login.error");
+    this.snackbar.error(message);
   }
 }

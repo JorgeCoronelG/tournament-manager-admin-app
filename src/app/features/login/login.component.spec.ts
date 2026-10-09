@@ -4,6 +4,7 @@ import { provideRouter, Router } from "@angular/router";
 import { of, throwError } from "rxjs";
 import { provideTestI18n } from "../../../testing/i18n";
 import { AuthApi } from "../../core/auth/auth.api";
+import { SnackbarService } from "../../core/snackbar/snackbar.service";
 import { AuthTokenService } from "../../core/auth/auth-token.service";
 import { CurrentUserService } from "../../core/user/current-user.service";
 import { LoginComponent } from "./login.component";
@@ -11,11 +12,13 @@ import { LoginComponent } from "./login.component";
 describe("LoginComponent", () => {
   const login = vi.fn();
   const setToken = vi.fn();
+  const error = vi.fn();
   let navigateByUrl: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     login.mockReset();
     setToken.mockReset();
+    error.mockReset();
     localStorage.clear();
 
     TestBed.configureTestingModule({
@@ -24,6 +27,7 @@ describe("LoginComponent", () => {
         provideRouter([]),
         { provide: AuthApi, useValue: { login } },
         { provide: AuthTokenService, useValue: { setToken } },
+        { provide: SnackbarService, useValue: { error } },
       ],
     });
 
@@ -89,58 +93,40 @@ describe("LoginComponent", () => {
     return fixture;
   }
 
-  it("shows the server's message as an alert and keeps no session when access is not allowed (403)", async () => {
-    const fixture = await failWith(403, {
+  it("shows the server's message in a snackbar and keeps no session when access is not allowed (403)", async () => {
+    await failWith(403, {
       code: 403,
       error: "Tu cuenta no tiene acceso al panel de administración.",
     });
 
-    expect(
-      fixture.nativeElement.querySelector("[role=alert]").textContent,
-    ).toContain("Tu cuenta no tiene acceso al panel de administración.");
+    expect(error).toHaveBeenCalledWith(
+      "Tu cuenta no tiene acceso al panel de administración.",
+    );
     expect(setToken).not.toHaveBeenCalled();
     expect(TestBed.inject(CurrentUserService).user().id).toBe(0);
     expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
   it("uses the server's message as it comes for any 403, such as a disabled account", async () => {
-    const fixture = await failWith(403, {
-      code: 403,
-      error: "Tu cuenta está desactivada.",
-    });
+    await failWith(403, { code: 403, error: "La cuenta está desactivada." });
 
-    expect(
-      fixture.nativeElement.querySelector("[role=alert]").textContent,
-    ).toContain("Tu cuenta está desactivada.");
+    expect(error).toHaveBeenCalledWith("La cuenta está desactivada.");
   });
 
   it("falls back to a generic message when the server sends none", async () => {
-    const fixture = await failWith(500);
+    await failWith(500);
 
-    expect(
-      fixture.nativeElement.querySelector("[role=alert]").textContent,
-    ).toContain("No pudimos iniciar sesión. Inténtalo de nuevo.");
+    expect(error).toHaveBeenCalledWith(
+      "No pudimos iniciar sesión. Inténtalo de nuevo.",
+    );
   });
 
-  it("clears the alert when trying again", async () => {
-    const fixture = await failWith(401);
-    expect(fixture.nativeElement.querySelector("[role=alert]")).not.toBeNull();
-
-    login.mockReturnValue(new Promise(() => undefined) as never);
-    void fixture.componentInstance.login();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector("[role=alert]")).toBeNull();
-  });
-
-  it("shows an alert on invalid credentials", async () => {
-    const fixture = await failWith(401);
+  it("shows a snackbar on invalid credentials", async () => {
+    await failWith(401);
 
     expect(setToken).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
-    expect(
-      fixture.nativeElement.querySelector("[role=alert]").textContent,
-    ).toContain("Correo o contraseña incorrectos.");
+    expect(error).toHaveBeenCalledWith("Correo o contraseña incorrectos.");
   });
 
   it("remembers the email when rememberMe is checked", async () => {
