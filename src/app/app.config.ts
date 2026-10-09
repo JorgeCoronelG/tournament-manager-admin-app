@@ -33,6 +33,7 @@ import { provideI18n } from "./core/i18n/i18n.provider";
 import { AppErrorHandler } from "./core/http/app-error-handler";
 import { authTokenInterceptor } from "./core/http/auth-token.interceptor";
 import { errorInterceptor } from "./core/http/error.interceptor";
+import { sessionExpiredInterceptor } from "./core/http/session-expired.interceptor";
 import { leagueContextInterceptor } from "./core/league-context/league-context.interceptor";
 import { TranslatedTitleStrategy } from "./core/router/translated-title.strategy";
 import { SettingsService } from "./core/settings/settings.service";
@@ -75,6 +76,7 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([
         authTokenInterceptor,
         leagueContextInterceptor,
+        sessionExpiredInterceptor,
         errorInterceptor,
       ]),
       withInterceptorsFromDi(),

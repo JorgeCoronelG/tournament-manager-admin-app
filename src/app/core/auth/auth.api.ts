@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext } from "@angular/common/http";
 import { inject, Service } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../http/error.interceptor";
+import { KEEP_SESSION_ON_401 } from "../http/session-expired.interceptor";
 import { SettingsService } from "../settings/settings.service";
 import { AuthenticatedUser, LoginResponse } from "./login-response.model";
 import { LoginRequest } from "./login.model";
@@ -21,18 +22,28 @@ export class AuthApi {
     return this.http.post<LoginResponse>(
       this.settings.authApi("/login"),
       body,
-      { context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
+      {
+        context: new HttpContext()
+          .set(SKIP_ERROR_NOTIFICATION, true)
+          .set(KEEP_SESSION_ON_401, true),
+      },
     );
   }
 
   logout() {
-    return this.http.post<void>(this.settings.authApi("/logout"), {});
+    return this.http.post<void>(
+      this.settings.authApi("/logout"),
+      {},
+      { context: new HttpContext().set(KEEP_SESSION_ON_401, true) },
+    );
   }
 
-  /** Used by the guards to check whether the stored token is still valid */
+  /** Used by the guards to check whether the stored token is still valid (they end the session themselves) */
   me() {
     return this.http.get<AuthenticatedUser>(this.settings.authApi("/user"), {
-      context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+      context: new HttpContext()
+        .set(SKIP_ERROR_NOTIFICATION, true)
+        .set(KEEP_SESSION_ON_401, true),
     });
   }
 
@@ -100,6 +111,8 @@ export class AuthApi {
         password,
         password_confirmation: passwordConfirmation,
       },
+      // Their 401 means "wrong current password", not an ended session
+      { context: new HttpContext().set(KEEP_SESSION_ON_401, true) },
     );
   }
 }

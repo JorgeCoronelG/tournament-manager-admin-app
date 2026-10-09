@@ -29,11 +29,16 @@ export class AuthSessionService {
         return true;
       }),
       catchError(() => {
-        this.authToken.clear();
-        this.currentUser.clear();
+        this.end();
 
         return of(false);
       }),
     );
+  }
+
+  /** Forgets the session: the token and the user (and so the league they had chosen) */
+  end(): void {
+    this.authToken.clear();
+    this.currentUser.clear();
   }
 }
