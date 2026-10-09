@@ -101,8 +101,7 @@ export class ForgotPasswordComponent {
         this.step.set("reset");
         this.snackbar.info(response.message);
       } catch (error) {
-        // No "OK" button: the message fades out and the form stays as it is
-        this.snackbar.notifyFailure(error, false);
+        this.snackbar.notifyFailure(error);
       } finally {
         this.submitting.set(false);
       }
@@ -138,8 +137,7 @@ export class ForgotPasswordComponent {
         this.snackbar.success(response.message);
         await this.router.navigateByUrl("/");
       } catch (error) {
-        // No "OK" button: the message fades out and the form stays as it is
-        this.snackbar.notifyFailure(error, false);
+        this.snackbar.notifyFailure(error);
       } finally {
         this.submitting.set(false);
       }

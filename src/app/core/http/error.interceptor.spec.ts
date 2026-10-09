@@ -47,12 +47,11 @@ describe("errorInterceptor", () => {
 
   afterEach(() => controller.verify());
 
-  /** The error snackbar the interceptor opened, as its message and action */
+  /** The error snackbars the interceptor opened, by message */
   function shown() {
-    return openFromComponent.mock.calls.map(([, config]) => [
-      config.data.message,
-      config.data.action,
-    ]);
+    return openFromComponent.mock.calls.map(
+      ([, config]) => config.data.message,
+    );
   }
 
   it("shows a translated snackbar and rethrows the error", () => {
@@ -62,7 +61,7 @@ describe("errorInterceptor", () => {
     controller.expectOne("/x").flush("", { status: 500, statusText: "Error" });
 
     expect(shown()).toEqual([
-      ["El servidor tuvo un problema. Inténtalo más tarde.", "Aceptar"],
+      "El servidor tuvo un problema. Inténtalo más tarde.",
     ]);
     expect(onError).toHaveBeenCalledOnce();
   });
@@ -130,7 +129,7 @@ describe("errorInterceptor", () => {
       );
 
     expect(open).not.toHaveBeenCalled();
-    expect(shown()).toEqual([["Código inválido o expirado.", "Aceptar"]]);
+    expect(shown()).toEqual(["Código inválido o expirado."]);
   });
 
   it("shows the backend's business message when there is one", () => {
@@ -142,7 +141,7 @@ describe("errorInterceptor", () => {
         { status: 401, statusText: "Unauthorized" },
       );
 
-    expect(shown()).toEqual([["Contraseña actual incorrecta.", "Aceptar"]]);
+    expect(shown()).toEqual(["Contraseña actual incorrecta."]);
     expect(backendMessage(new HttpErrorResponse({ status: 500 }))).toBeNull();
   });
 

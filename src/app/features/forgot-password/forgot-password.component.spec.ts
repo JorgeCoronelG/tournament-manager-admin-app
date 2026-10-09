@@ -193,13 +193,10 @@ describe("ForgotPasswordComponent", () => {
 
     expect(success).not.toHaveBeenCalled();
     expect(navigateByUrl).not.toHaveBeenCalled();
-    expect(notifyFailure).toHaveBeenCalledWith(
-      expect.any(HttpErrorResponse),
-      false,
-    );
+    expect(notifyFailure).toHaveBeenCalledWith(expect.any(HttpErrorResponse));
   });
 
-  it("shows a failed code request without the OK button", async () => {
+  it("shows a failed code request in a snackbar", async () => {
     forgotPassword.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 429 })),
     );
@@ -209,10 +206,7 @@ describe("ForgotPasswordComponent", () => {
     fixture.componentInstance.requestForm.email().value.set("ada@example.com");
     await fixture.componentInstance.requestCode();
 
-    expect(notifyFailure).toHaveBeenCalledWith(
-      expect.any(HttpErrorResponse),
-      false,
-    );
+    expect(notifyFailure).toHaveBeenCalledWith(expect.any(HttpErrorResponse));
     expect(fixture.componentInstance.step()).toBe("request");
   });
 });

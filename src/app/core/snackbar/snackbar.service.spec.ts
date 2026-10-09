@@ -23,13 +23,12 @@ describe("SnackbarService", () => {
     });
   });
 
-  it("shows a translated success message with the OK action", () => {
+  it("shows a translated success message", () => {
     TestBed.inject(SnackbarService).notifySuccess("users.deactivated");
 
     expect(shown()).toEqual({
       message: "Usuario desactivado",
       variant: "success",
-      action: "Aceptar",
     });
   });
 
@@ -44,17 +43,13 @@ describe("SnackbarService", () => {
     expect(shown()).toEqual({
       message: "Contraseña actual incorrecta.",
       variant: "error",
-      action: "Aceptar",
     });
   });
 
-  it("can show a failure without the action button", () => {
-    TestBed.inject(SnackbarService).notifyFailure(
-      new HttpErrorResponse({ status: 429 }),
-      false,
-    );
+  it("never carries an action button", () => {
+    TestBed.inject(SnackbarService).success("Hecho");
 
-    expect(shown().action).toBeUndefined();
+    expect(shown()).not.toHaveProperty("action");
   });
 
   it("falls back to a generic message by status, or a general one", () => {

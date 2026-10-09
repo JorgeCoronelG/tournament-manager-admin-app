@@ -9,7 +9,8 @@ const DURATION_MS = 5000;
 
 /**
  * Shows system messages (mainly ones coming from the API) as a snackbar,
- * top-right, colored and with an icon that depends on the outcome. See
+ * top-right, colored and with an icon that depends on the outcome. It has no
+ * action button: it fades out by itself. See
  * `AppSnackbarComponent` and `@ui/styles/partials/plugins/@angular/material/_snack-bar.scss`
  * for the `app-snackbar--<variant>` colors.
  */
@@ -18,49 +19,35 @@ export class SnackbarService {
   private readonly snackBar = inject(MatSnackBar);
   private readonly transloco = inject(TranslocoService);
 
-  success(message: string, action?: string): void {
-    this.show(message, "success", action);
+  success(message: string): void {
+    this.show(message, "success");
   }
 
-  warning(message: string, action?: string): void {
-    this.show(message, "warning", action);
+  warning(message: string): void {
+    this.show(message, "warning");
   }
 
-  error(message: string, action?: string): void {
-    this.show(message, "error", action);
+  error(message: string): void {
+    this.show(message, "error");
   }
 
-  info(message: string, action?: string): void {
-    this.show(message, "info", action);
+  info(message: string): void {
+    this.show(message, "info");
   }
 
-  /** Success message from a translation key, with the "OK" action */
+  /** Success message from a translation key */
   notifySuccess(key: string): void {
-    this.success(this.transloco.translate(key), this.okLabel());
+    this.success(this.transloco.translate(key));
   }
 
-  /**
-   * A failed request: the backend's own message, or a generic one for its
-   * status. Pass `withAction = false` for a message that just fades out.
-   */
-  notifyFailure(error: unknown, withAction = true): void {
-    this.error(
-      failureMessage(error, (key) => this.transloco.translate(key)),
-      withAction ? this.okLabel() : undefined,
-    );
+  /** A failed request: the backend's own message, or a generic one for its status */
+  notifyFailure(error: unknown): void {
+    this.error(failureMessage(error, (key) => this.transloco.translate(key)));
   }
 
-  private okLabel(): string {
-    return this.transloco.translate("common.ok");
-  }
-
-  private show(
-    message: string,
-    variant: SnackbarVariant,
-    action?: string,
-  ): void {
+  private show(message: string, variant: SnackbarVariant): void {
     this.snackBar.openFromComponent(AppSnackbarComponent, {
-      data: { message, variant, action },
+      data: { message, variant },
       duration: DURATION_MS,
       horizontalPosition: "end",
       verticalPosition: "top",
