@@ -1,5 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { HttpErrorResponse } from "@angular/common/http";
+import { MatIconRegistry } from "@angular/material/icon";
+import { FakeMatIconRegistry } from "@angular/material/icon/testing";
 import { provideRouter, Router } from "@angular/router";
 import { of, throwError } from "rxjs";
 import { provideTestI18n } from "../../../testing/i18n";
@@ -28,6 +30,7 @@ describe("ForgotPasswordComponent", () => {
       providers: [
         provideTestI18n(),
         provideRouter([]),
+        { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
         { provide: AuthApi, useValue: { forgotPassword, resetPassword } },
         {
           provide: SnackbarService,
@@ -132,6 +135,36 @@ describe("ForgotPasswordComponent", () => {
       "Contraseña actualizada correctamente.",
     );
     expect(navigateByUrl).toHaveBeenCalledWith("/");
+  });
+
+  it("shows or hides each password on demand", async () => {
+    forgotPassword.mockReturnValue(of({ message: "Se envió un código." }));
+    const fixture = TestBed.createComponent(ForgotPasswordComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.requestForm.email().value.set("ada@example.com");
+    await fixture.componentInstance.requestCode();
+    fixture.detectChanges();
+
+    const inputs = () =>
+      Array.from(
+        fixture.nativeElement.querySelectorAll(
+          "input[autocomplete=new-password]",
+        ),
+      ).map((input) => (input as HTMLInputElement).type);
+    const buttons = fixture.nativeElement.querySelectorAll(
+      "button[matIconSuffix]",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    expect(inputs()).toEqual(["password", "password"]);
+
+    buttons[0].click();
+    fixture.detectChanges();
+    expect(inputs()).toEqual(["text", "password"]);
+
+    buttons[1].click();
+    buttons[0].click();
+    fixture.detectChanges();
+    expect(inputs()).toEqual(["password", "text"]);
   });
 
   it("does not navigate when the code is rejected", async () => {

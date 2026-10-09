@@ -18,8 +18,10 @@ import {
 } from "@angular/forms/signals";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe } from "@jsverse/transloco";
 import { AuthApi } from "../../core/auth/auth.api";
 import { ForgotPasswordModel } from "../../core/auth/forgot-password.model";
@@ -36,8 +38,10 @@ const CODE_PATTERN = /^\d{6}$/;
     FormField,
     MatButtonModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatProgressBarModule,
+    MatTooltipModule,
     RouterLink,
     TranslocoPipe,
   ],
@@ -49,6 +53,8 @@ export class ForgotPasswordComponent {
 
   readonly step = signal<"request" | "reset">("request");
   readonly submitting = signal(false);
+  readonly passwordVisible = signal(false);
+  readonly confirmationVisible = signal(false);
   readonly sentTo = signal("");
 
   private readonly requestModel = signal<ForgotPasswordModel>({ email: "" });
@@ -72,6 +78,14 @@ export class ForgotPasswordComponent {
       value() === valueOf(reset.password) ? undefined : { kind: "mismatch" },
     );
   });
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible.update((visible) => !visible);
+  }
+
+  toggleConfirmationVisibility(): void {
+    this.confirmationVisible.update((visible) => !visible);
+  }
 
   requestCode(): Promise<boolean> {
     return submit(this.requestForm, async () => {
