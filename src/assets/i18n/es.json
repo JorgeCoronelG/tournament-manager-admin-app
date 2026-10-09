@@ -63,7 +63,8 @@
       "roles": "Roles",
       "status": "Estado",
       "createdAt": "Alta",
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "userCode": "Clave"
     },
     "status": {
       "pending": "Pendiente",
@@ -79,7 +80,8 @@
       "activate": "Activar",
       "deactivate": "Desactivar",
       "resendInvitation": "Reenviar invitación",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "copyCode": "Copiar clave {{code}}"
     },
     "delete": {
       "title": "Eliminar usuario",
@@ -92,7 +94,8 @@
       "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
       "phoneHint": "Obligatorio para jugadores",
       "rolesError": "No pudimos cargar los roles."
-    }
+    },
+    "codeCopied": "Clave copiada"
   },
   "leagues": {
     "title": "Ligas",

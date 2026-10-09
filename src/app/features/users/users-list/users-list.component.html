@@ -91,6 +91,32 @@
             <td *matCellDef="let user" mat-cell>{{ user.last_name }}</td>
           </ng-container>
 
+          <ng-container matColumnDef="user_code">
+            <th *matHeaderCellDef mat-header-cell>
+              {{ "users.fields.userCode" | transloco }}
+            </th>
+            <td *matCellDef="let user" mat-cell>
+              <div class="flex items-center gap-1 whitespace-nowrap">
+                {{ user.user_code }}
+                <button
+                  (click)="copyCode(user)"
+                  [attr.aria-label]="
+                    'users.actions.copyCode'
+                      | transloco: { code: user.user_code }
+                  "
+                  [matTooltip]="
+                    'users.actions.copyCode'
+                      | transloco: { code: user.user_code }
+                  "
+                  mat-icon-button
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:content_copy" />
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="email">
             <th *matHeaderCellDef mat-header-cell>
               {{ "users.fields.email" | transloco }}

@@ -1,3 +1,4 @@
+import { Clipboard } from "@angular/cdk/clipboard";
 import { signal, WritableSignal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -38,6 +39,7 @@ describe("UsersListComponent", () => {
   const notifyFailure = vi.fn();
   const open = vi.fn();
   const confirm = vi.fn();
+  const copy = vi.fn();
 
   let rows: WritableSignal<User[] | undefined>;
   let loading: WritableSignal<boolean>;
@@ -71,6 +73,7 @@ describe("UsersListComponent", () => {
             },
           },
         },
+        { provide: Clipboard, useValue: { copy } },
         { provide: MatDialog, useValue: { open } },
         { provide: ConfirmDialogService, useValue: { confirm } },
         {
@@ -96,6 +99,7 @@ describe("UsersListComponent", () => {
       notifyFailure,
       open,
       confirm,
+      copy,
     ]) {
       fn.mockReset();
     }
@@ -114,6 +118,20 @@ describe("UsersListComponent", () => {
       2,
     );
     expect(fixture.nativeElement.textContent).toContain("Pendiente");
+  });
+
+  it("shows each user's code and copies it", () => {
+    copy.mockReturnValue(true);
+    const fixture = setup();
+
+    expect(
+      fixture.nativeElement.querySelector("tr[mat-row]").textContent,
+    ).toContain("U1");
+
+    fixture.componentInstance.copyCode(user(1));
+
+    expect(copy).toHaveBeenCalledWith("U1");
+    expect(notifySuccess).toHaveBeenCalledWith("users.codeCopied");
   });
 
   it("shows the loading bar", () => {

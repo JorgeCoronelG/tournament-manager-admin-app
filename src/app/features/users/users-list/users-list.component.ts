@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { Clipboard } from "@angular/cdk/clipboard";
 import { Observable } from "rxjs";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
@@ -60,6 +61,7 @@ import { UsersApi } from "../users.api";
 })
 export class UsersListComponent {
   private readonly api = inject(UsersApi);
+  private readonly clipboard = inject(Clipboard);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(SnackbarService);
@@ -68,6 +70,7 @@ export class UsersListComponent {
   readonly columns = [
     "first_name",
     "last_name",
+    "user_code",
     "email",
     "phone",
     "roles",
@@ -123,6 +126,12 @@ export class UsersListComponent {
           this.snackbar.notifySuccess(user ? "users.updated" : "users.created");
         }
       });
+  }
+
+  copyCode(user: User): void {
+    if (this.clipboard.copy(user.user_code)) {
+      this.snackbar.notifySuccess("users.codeCopied");
+    }
   }
 
   toggleActive(user: User): void {

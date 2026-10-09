@@ -104,7 +104,8 @@
             "tsConfig": "tsconfig.spec.json",
             "reporters": ["default"],
             "buildTarget": ":build:testing",
-            "runner": "vitest"
+            "runner": "vitest",
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
