@@ -19,6 +19,25 @@ describe("CurrentUserService", () => {
     expect(service.user().name).toBe("Guest");
   });
 
+  it("forgets the saved league when the session ends", () => {
+    const service = TestBed.inject(CurrentUserService);
+    service.setUser({
+      id: 1,
+      name: "Ada",
+      role: "",
+      roles: [],
+      avatarUrl: null,
+    });
+    localStorage.setItem("app.active-league.1", "4");
+    localStorage.setItem("app.active-league.2", "6");
+
+    service.clear();
+
+    expect(localStorage.getItem("app.active-league.1")).toBeNull();
+    expect(localStorage.getItem("app.active-league.2")).toBe("6");
+    localStorage.clear();
+  });
+
   it("grants the union of the capabilities of all the user's roles", () => {
     const service = TestBed.inject(CurrentUserService);
     const user = { id: 1, name: "Ada", role: "", avatarUrl: "a.png" };
