@@ -1,5 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { HttpErrorResponse } from "@angular/common/http";
+import { MatIconRegistry } from "@angular/material/icon";
+import { FakeMatIconRegistry } from "@angular/material/icon/testing";
 import { MatDialogRef } from "@angular/material/dialog";
 import { of, throwError } from "rxjs";
 import { provideTestI18n } from "../../../testing/i18n";
@@ -22,11 +24,38 @@ describe("ChangePasswordDialogComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         provideTestI18n(),
+        { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
         { provide: AuthApi, useValue: { changePassword } },
         { provide: MatDialogRef, useValue: { close } },
         { provide: SnackbarService, useValue: { success, error } },
       ],
     });
+  });
+
+  it("shows or hides each password on demand", () => {
+    const fixture = TestBed.createComponent(ChangePasswordDialogComponent);
+    fixture.detectChanges();
+
+    const types = () =>
+      Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll("input"),
+      ).map((input) => input.type);
+    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      "button[matIconSuffix]",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    expect(buttons).toHaveLength(3);
+    expect(types()).toEqual(["password", "password", "password"]);
+
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(types()).toEqual(["password", "text", "password"]);
+
+    buttons[0].click();
+    buttons[2].click();
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(types()).toEqual(["text", "password", "text"]);
   });
 
   it("does not submit an invalid form", async () => {

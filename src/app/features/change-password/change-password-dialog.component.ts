@@ -16,7 +16,9 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe } from "@jsverse/transloco";
 import { AuthApi } from "../../core/auth/auth.api";
 import { ChangePasswordModel } from "../../core/auth/change-password.model";
@@ -31,7 +33,9 @@ import { SnackbarService } from "../../core/snackbar/snackbar.service";
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
+    MatTooltipModule,
     TranslocoPipe,
   ],
 })
@@ -58,6 +62,17 @@ export class ChangePasswordDialogComponent {
   });
 
   readonly submitting = signal(false);
+
+  /** Which passwords are shown in plain text */
+  readonly visible = signal({
+    current: false,
+    password: false,
+    confirmation: false,
+  });
+
+  toggleVisibility(field: "current" | "password" | "confirmation"): void {
+    this.visible.update((state) => ({ ...state, [field]: !state[field] }));
+  }
 
   save(): Promise<boolean> {
     return submit(this.changePasswordForm, async () => {
