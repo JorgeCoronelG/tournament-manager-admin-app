@@ -1,6 +1,7 @@
 import { LayoutComponent } from "./layouts/layout/layout.component";
 import { AppRoutes } from "@ui/interfaces/app-route.interface";
 import { leaguesRoutes } from "./features/leagues/leagues.routes";
+import { refereesRoutes } from "./features/referees/referees.routes";
 import { tournamentsRoutes } from "./features/tournaments/tournaments.routes";
 import { usersRoutes } from "./features/users/users.routes";
 import { environment } from "../environments/environment";
@@ -63,6 +64,11 @@ export const appRoutes: AppRoutes = [
         path: "torneos",
         canActivate: [capabilityGuard("tournaments.manage")],
         children: tournamentsRoutes,
+      },
+      {
+        path: "arbitros",
+        canActivate: [capabilityGuard("referees.manage")],
+        children: refereesRoutes,
       },
       ...(environment.features.styleguide
         ? [

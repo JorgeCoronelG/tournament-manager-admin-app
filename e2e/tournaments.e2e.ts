@@ -61,6 +61,7 @@ test.describe("tournaments", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toContainText("no se puede revertir");
     await dialog.getByRole("button", { name: "Cancelar" }).click();
+    await expect(dialog).toBeHidden();
     expect(api.statusChanges).toEqual([]);
 
     await page

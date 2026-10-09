@@ -3,8 +3,10 @@ import { expect, test } from "@playwright/test";
 import {
   freezeTime,
   gotoApp,
+  makeReferees,
   makeTournaments,
   makeUsers,
+  mockRefereesApi,
   mockTournamentsApi,
   mockUsersApi,
 } from "./support";
@@ -14,6 +16,7 @@ const pages = [
   { name: "dashboard", path: "/dashboard" },
   { name: "users", path: "/dashboard/usuarios" },
   { name: "tournaments", path: "/dashboard/torneos" },
+  { name: "referees", path: "/dashboard/arbitros" },
   { name: "not found", path: "/dashboard/nowhere" },
 ];
 
@@ -22,6 +25,7 @@ test.describe("accessibility (axe)", () => {
     await freezeTime(page);
     await mockUsersApi(page, { users: makeUsers(12) });
     await mockTournamentsApi(page, { tournaments: makeTournaments(12) });
+    await mockRefereesApi(page, { referees: makeReferees(12) });
   });
 
   for (const { name, path } of pages) {

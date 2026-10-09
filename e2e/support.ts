@@ -367,3 +367,162 @@ export async function mockTournamentsApi(
 
   return api;
 }
+
+export interface MockReferee {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  user_code: string;
+  photo_url: string | null;
+  account_status: "pending" | "active" | "inactive";
+  status: "active" | "inactive";
+  created_at: string;
+}
+
+/** Deterministic referees of league 1, newest first by id */
+export function makeReferees(count: number): MockReferee[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    first_name: FIRST_NAMES[i % FIRST_NAMES.length],
+    last_name: LAST_NAMES[i % LAST_NAMES.length],
+    email: `arbitro${i + 1}@example.com`,
+    phone: i % 2 === 0 ? "5512345678" : null,
+    user_code: `ARB${String(i + 1).padStart(4, "0")}`,
+    photo_url: null,
+    account_status: i % 3 === 1 ? "pending" : "active",
+    status: i % 4 === 3 ? "inactive" : "active",
+    created_at: new Date(
+      FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+    ).toISOString(),
+  }));
+}
+
+export interface RefereesApiOptions {
+  referees?: MockReferee[];
+  /** What `POST /referees` answers (default: 201 with an empty body) */
+  create?: { status: number; body: unknown };
+  /** What `GET /referees/lookup` answers (default: 404) */
+  lookup?: { status: number; body?: unknown };
+}
+
+export interface RefereesApi {
+  /** Query strings of every `GET /referees` so far */
+  queries: URLSearchParams[];
+  /** Ids of the referees removed so far */
+  removed: number[];
+  /** `{ id, status }` of every `PATCH /status` so far */
+  statusChanges: { id: number; status: string }[];
+  /** Bodies of the `POST /referees` so far */
+  created: unknown[];
+  /** Bodies of the `POST /referees/attach` so far */
+  attached: unknown[];
+}
+
+/** Stubs `/leagues/1/referees`: search, filter, sort and pagination work like the real list */
+export async function mockRefereesApi(
+  page: Page,
+  { referees = [], create, lookup }: RefereesApiOptions = {},
+): Promise<RefereesApi> {
+  const state = [...referees];
+  const api: RefereesApi = {
+    queries: [],
+    removed: [],
+    statusChanges: [],
+    created: [],
+    attached: [],
+  };
+
+  await page.route(/\/referees\/lookup(\?.*)?$/, (route) =>
+    route.fulfill({
+      status: lookup?.status ?? 404,
+      json: lookup?.body ?? { code: 404, error: "No encontrado." },
+    }),
+  );
+
+  await page.route(/\/referees\/attach$/, (route) => {
+    api.attached.push(route.request().postDataJSON());
+
+    return route.fulfill({ status: 201, json: {} });
+  });
+
+  await page.route(/\/referees\/\d+\/status$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    const { status } = route.request().postDataJSON() as { status: string };
+    api.statusChanges.push({ id, status });
+    const found = state.find((r) => r.id === id);
+
+    if (found) {
+      found.status = status as MockReferee["status"];
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/referees\/\d+$/, (route) => {
+    if (route.request().method() === "DELETE") {
+      const id = Number(route.request().url().split("/").pop());
+      api.removed.push(id);
+      state.splice(0, state.length, ...state.filter((r) => r.id !== id));
+
+      return route.fulfill({ status: 204 });
+    }
+
+    return route.fulfill({ json: {} });
+  });
+
+  await page.route(/\/referees(\?.*)?$/, (route) => {
+    const request = route.request();
+
+    if (request.method() === "POST") {
+      api.created.push(request.postDataJSON());
+
+      return route.fulfill(
+        create
+          ? { status: create.status, json: create.body }
+          : { status: 201, json: {} },
+      );
+    }
+
+    const query = new URL(request.url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const sort = query.get("sort") ?? "-created_at";
+    const field = sort.replace(/^-/, "") as keyof MockReferee;
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+
+    const matching = state
+      .filter(
+        (r) =>
+          `${r.first_name} ${r.last_name} ${r.email}`
+            .toLowerCase()
+            .includes(search) &&
+          (!query.get("status") || r.status === query.get("status")),
+      )
+      .sort(
+        (a, b) => String(a[field]).localeCompare(String(b[field])) * direction,
+      );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}

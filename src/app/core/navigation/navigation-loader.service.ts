@@ -59,6 +59,19 @@ const NAVIGATION: NavigationItem[] = [
           },
         ],
       },
+      {
+        type: "dropdown",
+        label: "nav.referees",
+        icon: "mat:sports",
+        capability: "referees.manage",
+        children: [
+          {
+            type: "link",
+            label: "nav.manage",
+            route: "/dashboard/arbitros",
+          },
+        ],
+      },
     ],
   },
 ];

@@ -72,6 +72,44 @@ describe("appRoutes", () => {
     });
   });
 
+  it("protects the referees page with a capability guard inside the layout", () => {
+    const layout = appRoutes.find((r) => r.path === "dashboard");
+    const referees = layout?.children?.find((r) => r.path === "arbitros");
+
+    expect(referees?.canActivate).toHaveLength(1);
+  });
+
+  describe("referees route", () => {
+    function canEnter(role: Role) {
+      TestBed.configureTestingModule({ providers: [provideRouter([])] });
+      TestBed.inject(CurrentUserService).setUser({
+        id: 1,
+        name: "Ada",
+        role: "",
+        roles: [role],
+        avatarUrl: "a.png",
+      });
+
+      const layout = appRoutes.find((r) => r.path === "dashboard");
+      const guard = layout?.children?.find((r) => r.path === "arbitros")
+        ?.canActivate?.[0] as CanActivateFn;
+
+      return TestBed.runInInjectionContext(() =>
+        guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+      );
+    }
+
+    it("lets the superadmin and the league admin in", () => {
+      expect(canEnter("superadmin")).toBe(true);
+      TestBed.resetTestingModule();
+      expect(canEnter("league_admin")).toBe(true);
+    });
+
+    it("sends a player back to the dashboard", () => {
+      expect(canEnter("player")).toBeInstanceOf(UrlTree);
+    });
+  });
+
   describe("leagues route", () => {
     function canEnter(role: Role) {
       TestBed.configureTestingModule({ providers: [provideRouter([])] });

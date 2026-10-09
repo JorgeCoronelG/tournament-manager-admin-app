@@ -33,7 +33,8 @@
     "manage": "Gestión",
     "home": "Inicio",
     "leagues": "Ligas",
-    "tournaments": "Torneos"
+    "tournaments": "Torneos",
+    "referees": "Árbitros"
   },
   "dashboard": {
     "title": "Panel",
@@ -298,5 +299,75 @@
     "nextMultiYear": "24 años siguientes",
     "switchToMonth": "Elegir mes y día",
     "switchToYear": "Elegir año y mes"
+  },
+  "referees": {
+    "title": "Árbitros",
+    "search": "Buscar árbitros",
+    "created": "Árbitro agregado. Le enviamos un correo para activar su cuenta.",
+    "attached": "Árbitro agregado a la liga",
+    "updated": "Árbitro actualizado",
+    "activated": "Árbitro dado de alta en la liga",
+    "deactivated": "Árbitro dado de baja de la liga",
+    "removed": "Árbitro quitado de la liga",
+    "invitationSent": "Invitación reenviada",
+    "codeCopied": "Clave copiada",
+    "error": "No pudimos cargar los árbitros.",
+    "fields": {
+      "name": "Nombre",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "userCode": "Clave",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "accountStatus": "Cuenta",
+      "status": "En la liga",
+      "createdAt": "Alta",
+      "actions": "Acciones"
+    },
+    "leagueStatus": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "filters": {
+      "allStatuses": "Todos los estados"
+    },
+    "actions": {
+      "copyCode": "Copiar clave {{code}}",
+      "edit": "Editar",
+      "resendInvitation": "Reenviar invitación",
+      "activate": "Dar de alta en la liga",
+      "deactivate": "Dar de baja en la liga",
+      "remove": "Quitar de la liga"
+    },
+    "remove": {
+      "title": "Quitar árbitro",
+      "message": "¿Seguro que quieres quitar a {{name}} de la liga?\nSu cuenta seguirá existiendo y podrás volver a agregarlo con su clave.",
+      "confirm": "Quitar"
+    },
+    "form": {
+      "phoneHint": "Opcional, 10 dígitos"
+    },
+    "add": {
+      "button": "Agregar árbitro",
+      "title": "Agregar árbitro",
+      "newTab": "Árbitro nuevo",
+      "codeTab": "Ya tiene clave",
+      "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
+      "duplicate": "Ese correo o teléfono ya está registrado. Si es un árbitro, ¿ya tiene clave?",
+      "goToCode": "Agrégalo con ella",
+      "codeHelp": "Pídele su clave de árbitro a la persona y escríbela aquí.",
+      "search": "Buscar",
+      "attach": "Agregar a la liga",
+      "alreadyInLeague": "Ya está en esta liga.",
+      "lookup": {
+        "notFound": "No encontramos un árbitro con esa clave",
+        "tooMany": "Hiciste demasiadas búsquedas. Espera un momento e inténtalo de nuevo.",
+        "generic": "No pudimos buscar la clave. Inténtalo de nuevo."
+      }
+    },
+    "edit": {
+      "title": "Editar árbitro",
+      "rejected": "No se pudo guardar. Si el árbitro pertenece a otras ligas, solo él puede cambiar sus datos."
+    }
   }
 }

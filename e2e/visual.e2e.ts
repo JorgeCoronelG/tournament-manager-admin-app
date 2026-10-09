@@ -2,8 +2,10 @@ import { expect, test } from "@playwright/test";
 import {
   freezeTime,
   gotoApp,
+  makeReferees,
   makeTournaments,
   makeUsers,
+  mockRefereesApi,
   mockTournamentsApi,
   mockUsersApi,
 } from "./support";
@@ -39,6 +41,14 @@ test.describe("visual regression", () => {
     await expect(page.locator("tr[mat-row]")).toHaveCount(5);
 
     await expect(page).toHaveScreenshot("tournaments.png");
+  });
+
+  test("referees", async ({ page }) => {
+    await mockRefereesApi(page, { referees: makeReferees(12) });
+    await gotoApp(page, "/dashboard/arbitros");
+    await expect(page.locator("tr[mat-row]")).toHaveCount(5);
+
+    await expect(page).toHaveScreenshot("referees.png");
   });
 
   test("users, empty", async ({ page }) => {

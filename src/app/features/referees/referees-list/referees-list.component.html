@@ -1,0 +1,261 @@
+<app-secondary-toolbar [current]="'referees.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    @if (!leagueContext.activeLeague()) {
+      <app-league-required />
+    } @else {
+      <div class="flex flex-wrap items-start gap-4 mb-4">
+        <mat-form-field class="w-72" subscriptSizing="dynamic">
+          <mat-label>{{ "referees.search" | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="mat:search" />
+          <input
+            [formField]="filtersForm.search"
+            autocomplete="off"
+            matInput
+            type="search"
+          />
+        </mat-form-field>
+
+        <mat-form-field class="w-48" subscriptSizing="dynamic">
+          <mat-label>{{ "referees.fields.status" | transloco }}</mat-label>
+          <mat-select [formField]="filtersForm.status">
+            <mat-option value="">{{
+              "referees.filters.allStatuses" | transloco
+            }}</mat-option>
+            @for (status of statuses; track status) {
+              <mat-option [value]="status">{{
+                "referees.leagueStatus." + status | transloco
+              }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <span class="flex-1"></span>
+
+        <button
+          (click)="openAdd()"
+          color="primary"
+          mat-flat-button
+          type="button"
+        >
+          <mat-icon svgIcon="mat:add" />
+          {{ "referees.add.button" | transloco }}
+        </button>
+      </div>
+
+      <div class="app-table-card bg-foreground rounded shadow">
+        <mat-progress-bar
+          [class.invisible]="!resource.isLoading()"
+          mode="indeterminate"
+        />
+
+        <div class="app-table-scroll">
+          <table
+            (matSortChange)="sort($event)"
+            [dataSource]="rows()"
+            class="w-full"
+            mat-table
+            matSort
+            [matSortActive]="sortState().active"
+            [matSortDirection]="sortState().direction"
+          >
+            <ng-container matColumnDef="first_name">
+              <th *matHeaderCellDef mat-header-cell mat-sort-header>
+                {{ "referees.fields.name" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell class="font-medium">
+                <div class="flex items-center gap-3 py-1">
+                  <app-avatar
+                    [src]="referee.photo_url"
+                    class="w-8 h-8 rounded-full shrink-0"
+                  />
+                  {{ referee.first_name }} {{ referee.last_name }}
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="user_code">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "referees.fields.userCode" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell>
+                <div class="flex items-center gap-1 whitespace-nowrap">
+                  {{ referee.user_code }}
+                  <button
+                    (click)="copyCode(referee)"
+                    [attr.aria-label]="
+                      'referees.actions.copyCode'
+                        | transloco: { code: referee.user_code }
+                    "
+                    [matTooltip]="
+                      'referees.actions.copyCode'
+                        | transloco: { code: referee.user_code }
+                    "
+                    mat-icon-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:content_copy" />
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "referees.fields.email" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell class="whitespace-nowrap">
+                {{ referee.email }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="phone">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "referees.fields.phone" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell>
+                {{ referee.phone ?? "—" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="account_status">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "referees.fields.accountStatus" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell>
+                <app-user-status-chip [status]="referee.account_status" />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "referees.fields.status" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell>
+                <app-referee-status-chip [status]="referee.status" />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th *matHeaderCellDef mat-header-cell mat-sort-header>
+                {{ "referees.fields.createdAt" | transloco }}
+              </th>
+              <td *matCellDef="let referee" mat-cell class="whitespace-nowrap">
+                {{ referee.created_at | appDateFormatRelative }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions" stickyEnd>
+              <th *matHeaderCellDef mat-header-cell>
+                <span class="sr-only">{{
+                  "referees.fields.actions" | transloco
+                }}</span>
+              </th>
+              <td *matCellDef="let referee" mat-cell class="whitespace-nowrap">
+                @if (referee.account_status === "pending") {
+                  <button
+                    (click)="openEdit(referee)"
+                    [attr.aria-label]="'referees.actions.edit' | transloco"
+                    [matTooltip]="'referees.actions.edit' | transloco"
+                    mat-icon-button
+                    type="button"
+                  >
+                    <mat-icon color="primary" svgIcon="mat:edit" />
+                  </button>
+                  <button
+                    (click)="resendInvitation(referee)"
+                    [attr.aria-label]="
+                      'referees.actions.resendInvitation' | transloco
+                    "
+                    [matTooltip]="
+                      'referees.actions.resendInvitation' | transloco
+                    "
+                    mat-icon-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:forward_to_inbox" />
+                  </button>
+                }
+                <button
+                  (click)="toggleStatus(referee)"
+                  [attr.aria-label]="
+                    (referee.status === 'active'
+                      ? 'referees.actions.deactivate'
+                      : 'referees.actions.activate'
+                    ) | transloco
+                  "
+                  [matTooltip]="
+                    (referee.status === 'active'
+                      ? 'referees.actions.deactivate'
+                      : 'referees.actions.activate'
+                    ) | transloco
+                  "
+                  mat-icon-button
+                  type="button"
+                >
+                  <mat-icon
+                    [class]="
+                      referee.status === 'active'
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-gray-500 dark:text-gray-400'
+                    "
+                    [svgIcon]="
+                      referee.status === 'active'
+                        ? 'mat:toggle_on'
+                        : 'mat:toggle_off'
+                    "
+                  />
+                </button>
+                <button
+                  (click)="remove(referee)"
+                  [attr.aria-label]="'referees.actions.remove' | transloco"
+                  [matTooltip]="'referees.actions.remove' | transloco"
+                  mat-icon-button
+                  type="button"
+                >
+                  <mat-icon color="warn" svgIcon="mat:person_remove" />
+                </button>
+              </td>
+            </ng-container>
+
+            <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
+            <tr *matRowDef="let row; columns: columns" mat-row></tr>
+          </table>
+        </div>
+
+        @if (resource.error()) {
+          <div class="py-10 px-6 text-center" role="alert">
+            <p class="text-secondary mb-4">
+              {{ "referees.error" | transloco }}
+            </p>
+            <button
+              (click)="resource.reload()"
+              mat-stroked-button
+              type="button"
+            >
+              {{ "common.retry" | transloco }}
+            </button>
+          </div>
+        } @else if (!resource.isLoading() && rows().length === 0) {
+          <p class="py-10 px-6 text-center text-secondary">
+            {{
+              (hasFilters() ? "table.emptyFiltered" : "table.empty") | transloco
+            }}
+          </p>
+        }
+
+        <mat-paginator
+          (page)="changePage($event)"
+          [length]="total()"
+          [pageIndex]="paging().page"
+          [pageSizeOptions]="[5, 10, 25]"
+          [pageSize]="paging().pageSize"
+          showFirstLastButtons
+        />
+      </div>
+    }
+  </app-page-layout-content>
+</app-page-layout>

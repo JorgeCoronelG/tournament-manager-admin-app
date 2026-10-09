@@ -1,0 +1,84 @@
+<h2 mat-dialog-title>{{ "referees.edit.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-1 !pt-2 min-w-[320px]">
+    @if (rejected()) {
+      <p class="text-sm text-warn m-0 mb-2" role="alert">
+        {{ "referees.edit.rejected" | transloco }}
+      </p>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "referees.fields.firstName" | transloco }}</mat-label>
+      <input [formField]="refereeForm.first_name" autocomplete="off" matInput />
+      @if (refereeForm.first_name().errors().length) {
+        <mat-error>{{
+          errorText(
+            refereeForm.first_name().errors(),
+            refereeForm.first_name().value()
+          )
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "referees.fields.lastName" | transloco }}</mat-label>
+      <input [formField]="refereeForm.last_name" autocomplete="off" matInput />
+      @if (refereeForm.last_name().errors().length) {
+        <mat-error>{{
+          errorText(
+            refereeForm.last_name().errors(),
+            refereeForm.last_name().value()
+          )
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "referees.fields.email" | transloco }}</mat-label>
+      <input
+        [formField]="refereeForm.email"
+        autocomplete="off"
+        matInput
+        type="email"
+      />
+      @if (refereeForm.email().errors().length) {
+        <mat-error>{{
+          errorText(refereeForm.email().errors(), refereeForm.email().value())
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "referees.fields.phone" | transloco }}</mat-label>
+      <input
+        [formField]="refereeForm.phone"
+        autocomplete="off"
+        inputmode="numeric"
+        matInput
+        type="tel"
+      />
+      @if (refereeForm.phone().errors().length) {
+        <mat-error>{{
+          errorText(refereeForm.phone().errors(), refereeForm.phone().value())
+        }}</mat-error>
+      } @else {
+        <mat-hint>{{ "referees.form.phoneHint" | transloco }}</mat-hint>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="refereeForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

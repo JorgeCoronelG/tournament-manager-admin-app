@@ -1,0 +1,196 @@
+<h2 mat-dialog-title>{{ "referees.add.title" | transloco }}</h2>
+
+<mat-dialog-content class="!pt-2 min-w-[320px]">
+  <mat-tab-group
+    (selectedIndexChange)="tab.set($event)"
+    [selectedIndex]="tab()"
+    animationDuration="0ms"
+    mat-stretch-tabs="false"
+  >
+    <mat-tab [label]="'referees.add.newTab' | transloco">
+      <form
+        (submit)="$event.preventDefault(); saveNew()"
+        class="flex flex-col gap-1 pt-4"
+        id="new-referee-form"
+        novalidate
+      >
+        <p class="text-secondary m-0 mb-2">
+          {{ "referees.add.invitationNotice" | transloco }}
+        </p>
+
+        <mat-form-field>
+          <mat-label>{{ "referees.fields.firstName" | transloco }}</mat-label>
+          <input [formField]="newForm.first_name" autocomplete="off" matInput />
+          @if (newForm.first_name().errors().length) {
+            <mat-error>{{
+              errorText(
+                newForm.first_name().errors(),
+                newForm.first_name().value()
+              )
+            }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ "referees.fields.lastName" | transloco }}</mat-label>
+          <input [formField]="newForm.last_name" autocomplete="off" matInput />
+          @if (newForm.last_name().errors().length) {
+            <mat-error>{{
+              errorText(
+                newForm.last_name().errors(),
+                newForm.last_name().value()
+              )
+            }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ "referees.fields.email" | transloco }}</mat-label>
+          <input
+            [formField]="newForm.email"
+            autocomplete="off"
+            matInput
+            type="email"
+          />
+          @if (newForm.email().errors().length) {
+            <mat-error>{{
+              errorText(newForm.email().errors(), newForm.email().value())
+            }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ "referees.fields.phone" | transloco }}</mat-label>
+          <input
+            [formField]="newForm.phone"
+            autocomplete="off"
+            inputmode="numeric"
+            matInput
+            type="tel"
+          />
+          @if (newForm.phone().errors().length) {
+            <mat-error>{{
+              errorText(newForm.phone().errors(), newForm.phone().value())
+            }}</mat-error>
+          } @else {
+            <mat-hint>{{ "referees.form.phoneHint" | transloco }}</mat-hint>
+          }
+        </mat-form-field>
+
+        @if (duplicate()) {
+          <p class="text-sm m-0 mt-3" role="status">
+            {{ "referees.add.duplicate" | transloco }}
+            <button
+              (click)="goToCode()"
+              class="p-0 border-0 bg-transparent font-[inherit] underline cursor-pointer text-primary-600 dark:text-primary-300"
+              type="button"
+            >
+              {{ "referees.add.goToCode" | transloco }}
+            </button>
+          </p>
+        }
+      </form>
+    </mat-tab>
+
+    <mat-tab [label]="'referees.add.codeTab' | transloco">
+      <div class="flex flex-col gap-1 pt-4">
+        @if (cameFromDuplicate()) {
+          <p class="text-secondary m-0 mb-2">
+            {{ "referees.add.codeHelp" | transloco }}
+          </p>
+        }
+
+        <form
+          (submit)="$event.preventDefault(); search()"
+          class="flex items-start gap-2"
+          novalidate
+        >
+          <mat-form-field class="flex-1">
+            <mat-label>{{ "referees.fields.userCode" | transloco }}</mat-label>
+            <input
+              [formField]="codeForm.user_code"
+              autocomplete="off"
+              matInput
+            />
+            @if (codeForm.user_code().errors().length) {
+              <mat-error>{{
+                errorText(
+                  codeForm.user_code().errors(),
+                  codeForm.user_code().value()
+                )
+              }}</mat-error>
+            }
+          </mat-form-field>
+          <button
+            [disabled]="searching()"
+            class="mt-1"
+            mat-stroked-button
+            type="submit"
+          >
+            {{ "referees.add.search" | transloco }}
+          </button>
+        </form>
+
+        @if (searching()) {
+          <mat-progress-bar mode="indeterminate" />
+        }
+
+        @if (lookupError(); as error) {
+          <p class="text-sm text-warn m-0" role="alert">
+            {{ "referees.add.lookup." + error | transloco }}
+          </p>
+        }
+
+        @if (found(); as referee) {
+          <div
+            class="flex items-center gap-3 rounded border border-solid border-gray-500/30 p-3 mt-2"
+          >
+            <app-avatar
+              [src]="referee.photo_url"
+              class="w-12 h-12 rounded-full shrink-0"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="m-0 font-medium">
+                {{ referee.first_name }} {{ referee.last_name }}
+              </p>
+              @if (referee.already_in_league) {
+                <p class="m-0 text-sm text-secondary" role="status">
+                  {{ "referees.add.alreadyInLeague" | transloco }}
+                </p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">
+    {{ "common.cancel" | transloco }}
+  </button>
+  @if (tab() === 0) {
+    <button
+      [disabled]="newForm().submitting()"
+      color="primary"
+      form="new-referee-form"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  } @else {
+    <button
+      (click)="attach()"
+      [disabled]="
+        codeForm().submitting() || !found() || found()?.already_in_league
+      "
+      color="primary"
+      mat-flat-button
+      type="button"
+    >
+      {{ "referees.add.attach" | transloco }}
+    </button>
+  }
+</mat-dialog-actions>
