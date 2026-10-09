@@ -25,6 +25,8 @@ export interface ListStateOptions<F extends object, T> {
   /** The filters model; its empty values are `""` (or `null`/`[]`) */
   filters: Signal<F>;
   defaultSort: Sort;
+  /** Also sends the user back to the first page when this changes (e.g. the active league) */
+  resetOn?: Signal<unknown>;
   /** Initial page size (default 5) */
   pageSize?: number;
   /** Builds the request from the reactive query, e.g. `(query) => this.api.list(query)` */
@@ -40,13 +42,17 @@ export interface ListStateOptions<F extends object, T> {
 export function listState<F extends object, T>({
   filters,
   defaultSort,
+  resetOn,
   pageSize = 5,
   load,
 }: ListStateOptions<F, T>) {
   const sortState = signal<Sort>(defaultSort);
 
-  const paging = linkedSignal<[F, Sort], Pick<PageQuery, "page" | "pageSize">>({
-    source: () => [filters(), sortState()],
+  const paging = linkedSignal<
+    [F, Sort, unknown],
+    Pick<PageQuery, "page" | "pageSize">
+  >({
+    source: () => [filters(), sortState(), resetOn?.()],
     computation: (_, previous) => ({
       page: 0,
       pageSize: previous?.value.pageSize ?? pageSize,

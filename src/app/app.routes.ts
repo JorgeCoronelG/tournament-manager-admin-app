@@ -1,6 +1,7 @@
 import { LayoutComponent } from "./layouts/layout/layout.component";
 import { AppRoutes } from "@ui/interfaces/app-route.interface";
 import { leaguesRoutes } from "./features/leagues/leagues.routes";
+import { tournamentsRoutes } from "./features/tournaments/tournaments.routes";
 import { usersRoutes } from "./features/users/users.routes";
 import { environment } from "../environments/environment";
 import { authGuard } from "./core/auth/auth.guard";
@@ -57,6 +58,11 @@ export const appRoutes: AppRoutes = [
         path: "ligas",
         canActivate: [capabilityGuard("leagues.manage")],
         children: leaguesRoutes,
+      },
+      {
+        path: "torneos",
+        canActivate: [capabilityGuard("tournaments.manage")],
+        children: tournamentsRoutes,
       },
       ...(environment.features.styleguide
         ? [

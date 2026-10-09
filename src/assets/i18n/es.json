@@ -32,7 +32,8 @@
     "users": "Usuarios",
     "manage": "Gestión",
     "home": "Inicio",
-    "leagues": "Ligas"
+    "leagues": "Ligas",
+    "tournaments": "Torneos"
   },
   "dashboard": {
     "title": "Panel",
@@ -215,5 +216,74 @@
     "change": "Liga activa: {{name}}. Cambiar de liga",
     "current": "Liga activa: {{name}}",
     "search": "Buscar liga"
+  },
+  "tournaments": {
+    "title": "Torneos",
+    "new": "Nuevo torneo",
+    "search": "Buscar torneos",
+    "created": "Torneo creado",
+    "updated": "Torneo actualizado",
+    "deleted": "Torneo eliminado",
+    "started": "Torneo iniciado",
+    "finished": "Torneo finalizado",
+    "error": "No pudimos cargar los torneos.",
+    "fields": {
+      "name": "Nombre",
+      "gender": "Género",
+      "minAge": "Edad mínima",
+      "maxAge": "Edad máxima",
+      "age": "Edad",
+      "startDate": "Fecha de inicio",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "gender": {
+      "male": "Varonil",
+      "female": "Femenil",
+      "mixed": "Mixto"
+    },
+    "status": {
+      "planning": "Planeación",
+      "in_progress": "En curso",
+      "finished": "Finalizado"
+    },
+    "age": {
+      "from": "Desde {{min}}",
+      "to": "Hasta {{max}}",
+      "none": "Sin límite"
+    },
+    "filters": {
+      "allGenders": "Todos los géneros",
+      "allStatuses": "Todos los estados"
+    },
+    "actions": {
+      "edit": "Editar",
+      "start": "Iniciar torneo",
+      "finish": "Finalizar torneo",
+      "delete": "Eliminar"
+    },
+    "start": {
+      "title": "Iniciar torneo",
+      "message": "¿Seguro que quieres iniciar el torneo {{name}}?\nSolo podrás editar su nombre y esta acción no se puede revertir.",
+      "confirm": "Iniciar"
+    },
+    "finish": {
+      "title": "Finalizar torneo",
+      "message": "¿Seguro que quieres finalizar el torneo {{name}}?\nYa no podrás editarlo y esta acción no se puede revertir.",
+      "confirm": "Finalizar"
+    },
+    "delete": {
+      "title": "Eliminar torneo",
+      "message": "¿Seguro que quieres eliminar el torneo {{name}}?\nEsta acción no se puede deshacer.",
+      "confirm": "Eliminar"
+    },
+    "form": {
+      "newTitle": "Nuevo torneo",
+      "editTitle": "Editar torneo",
+      "optional": "Opcional",
+      "ageBounds": "Ingresa una edad entre {{min}} y {{max}}",
+      "ageRange": "La edad máxima no puede ser menor que la mínima",
+      "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre."
+    }
   }
 }

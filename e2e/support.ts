@@ -236,3 +236,134 @@ export async function mockUsersApi(
 
   return api;
 }
+
+export interface MockTournament {
+  id: number;
+  league_id: number;
+  name: string;
+  gender: "male" | "female" | "mixed";
+  min_age: number | null;
+  max_age: number | null;
+  start_date: string;
+  status: "planning" | "in_progress" | "finished";
+  created_at: string;
+}
+
+const GENDERS = ["male", "female", "mixed"] as const;
+const STATUSES = ["planning", "in_progress", "finished"] as const;
+
+/** Deterministic tournaments of league 1, newest first by id */
+export function makeTournaments(count: number): MockTournament[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    league_id: 1,
+    name: `Torneo ${String(i + 1).padStart(2, "0")}`,
+    gender: GENDERS[i % 3],
+    min_age: i % 4 === 0 ? 18 : null,
+    max_age: i % 4 === 0 ? 35 : null,
+    start_date: `2026-10-${String((i % 28) + 1).padStart(2, "0")}`,
+    status: STATUSES[i % 3],
+    created_at: new Date(
+      FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+    ).toISOString(),
+  }));
+}
+
+export interface TournamentsApi {
+  /** Query strings of every `GET /tournaments` so far */
+  queries: URLSearchParams[];
+  /** Ids of the tournaments deleted so far */
+  deleted: number[];
+  /** `{ id, status }` of every `PATCH /status` so far */
+  statusChanges: { id: number; status: string }[];
+  /** Bodies of the `POST /tournaments` so far */
+  created: unknown[];
+}
+
+/** Stubs `/leagues/1/tournaments`: filters, sort and pagination work like the real list */
+export async function mockTournamentsApi(
+  page: Page,
+  { tournaments = [] }: { tournaments?: MockTournament[] } = {},
+): Promise<TournamentsApi> {
+  const state = [...tournaments];
+  const api: TournamentsApi = {
+    queries: [],
+    deleted: [],
+    statusChanges: [],
+    created: [],
+  };
+
+  await page.route(/\/tournaments\/\d+\/status$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    const { status } = route.request().postDataJSON() as { status: string };
+    api.statusChanges.push({ id, status });
+    const found = state.find((t) => t.id === id);
+
+    if (found) {
+      found.status = status as MockTournament["status"];
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/tournaments\/\d+$/, (route) => {
+    if (route.request().method() === "DELETE") {
+      const id = Number(route.request().url().split("/").pop());
+      api.deleted.push(id);
+      state.splice(0, state.length, ...state.filter((t) => t.id !== id));
+
+      return route.fulfill({ status: 204 });
+    }
+
+    return route.fulfill({ json: {} });
+  });
+
+  await page.route(/\/tournaments(\?.*)?$/, (route) => {
+    const request = route.request();
+
+    if (request.method() === "POST") {
+      api.created.push(request.postDataJSON());
+
+      return route.fulfill({ status: 201, json: state[0] ?? {} });
+    }
+
+    const query = new URL(request.url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const sort = query.get("sort") ?? "-created_at";
+    const field = sort.replace(/^-/, "") as keyof MockTournament;
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+
+    const matching = state
+      .filter(
+        (t) =>
+          t.name.toLowerCase().includes(search) &&
+          (!query.get("gender") || t.gender === query.get("gender")) &&
+          (!query.get("status") || t.status === query.get("status")),
+      )
+      .sort(
+        (a, b) => String(a[field]).localeCompare(String(b[field])) * direction,
+      );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}

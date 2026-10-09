@@ -1,11 +1,19 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { freezeTime, gotoApp, makeUsers, mockUsersApi } from "./support";
+import {
+  freezeTime,
+  gotoApp,
+  makeTournaments,
+  makeUsers,
+  mockTournamentsApi,
+  mockUsersApi,
+} from "./support";
 
 const pages = [
   { name: "login", path: "/" },
   { name: "dashboard", path: "/dashboard" },
   { name: "users", path: "/dashboard/usuarios" },
+  { name: "tournaments", path: "/dashboard/torneos" },
   { name: "not found", path: "/dashboard/nowhere" },
 ];
 
@@ -13,6 +21,7 @@ test.describe("accessibility (axe)", () => {
   test.beforeEach(async ({ page }) => {
     await freezeTime(page);
     await mockUsersApi(page, { users: makeUsers(12) });
+    await mockTournamentsApi(page, { tournaments: makeTournaments(12) });
   });
 
   for (const { name, path } of pages) {

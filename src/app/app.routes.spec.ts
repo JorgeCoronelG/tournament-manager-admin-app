@@ -34,6 +34,44 @@ describe("appRoutes", () => {
     expect(leagues?.canActivate).toHaveLength(1);
   });
 
+  it("protects the tournaments page with a capability guard inside the layout", () => {
+    const layout = appRoutes.find((r) => r.path === "dashboard");
+    const tournaments = layout?.children?.find((r) => r.path === "torneos");
+
+    expect(tournaments?.canActivate).toHaveLength(1);
+  });
+
+  describe("tournaments route", () => {
+    function canEnter(role: Role) {
+      TestBed.configureTestingModule({ providers: [provideRouter([])] });
+      TestBed.inject(CurrentUserService).setUser({
+        id: 1,
+        name: "Ada",
+        role: "",
+        roles: [role],
+        avatarUrl: "a.png",
+      });
+
+      const layout = appRoutes.find((r) => r.path === "dashboard");
+      const guard = layout?.children?.find((r) => r.path === "torneos")
+        ?.canActivate?.[0] as CanActivateFn;
+
+      return TestBed.runInInjectionContext(() =>
+        guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+      );
+    }
+
+    it("lets the superadmin and the league admin in", () => {
+      expect(canEnter("superadmin")).toBe(true);
+      TestBed.resetTestingModule();
+      expect(canEnter("league_admin")).toBe(true);
+    });
+
+    it("sends a player back to the dashboard", () => {
+      expect(canEnter("player")).toBeInstanceOf(UrlTree);
+    });
+  });
+
   describe("leagues route", () => {
     function canEnter(role: Role) {
       TestBed.configureTestingModule({ providers: [provideRouter([])] });

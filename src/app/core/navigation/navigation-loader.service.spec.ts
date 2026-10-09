@@ -25,7 +25,7 @@ describe("NavigationLoaderService", () => {
     return TestBed.inject(NavigationLoaderService);
   }
 
-  it("shows the superadmin the dashboard, users and leagues", () => {
+  it("shows the superadmin the dashboard, users, leagues and tournaments", () => {
     expect(labels(signInAs("superadmin").items())).toEqual([
       "nav.main",
       "nav.dashboard",
@@ -33,11 +33,22 @@ describe("NavigationLoaderService", () => {
       "nav.manage",
       "nav.leagues",
       "nav.manage",
+      "nav.tournaments",
+      "nav.manage",
+    ]);
+  });
+
+  it("shows the league admin the dashboard and tournaments", () => {
+    expect(labels(signInAs("league_admin").items())).toEqual([
+      "nav.main",
+      "nav.dashboard",
+      "nav.tournaments",
+      "nav.manage",
     ]);
   });
 
   it("shows the roles without capabilities only the dashboard", () => {
-    expect(labels(signInAs("league_admin").items())).toEqual([
+    expect(labels(signInAs("player").items())).toEqual([
       "nav.main",
       "nav.dashboard",
     ]);

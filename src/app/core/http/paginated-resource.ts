@@ -21,18 +21,24 @@ export interface PaginatedResource<T> {
 /**
  * Reads a page of a Laravel-style paginated endpoint and re-requests it
  * whenever `query` changes. `filterParams` maps the filters of `query` to the
- * API's params; return only the ones that have a value.
+ * API's params; return only the ones that have a value. `url` may return
+ * `undefined` (e.g. no active league yet): the request waits until it has one.
  */
 export function paginatedResource<T, Q extends PageQuery>(
-  url: () => string,
+  url: () => string | undefined,
   query: Signal<Q>,
   filterParams: (query: Q) => Record<string, string | number>,
 ): PaginatedResource<T> {
   const resource = httpResource<PaginatedResponse<T>>(() => {
     const current = query();
+    const requestUrl = url();
+
+    if (requestUrl === undefined) {
+      return undefined;
+    }
 
     return {
-      url: url(),
+      url: requestUrl,
       params: {
         page: current.page + 1,
         per_page: current.pageSize,

@@ -46,6 +46,19 @@ const NAVIGATION: NavigationItem[] = [
           },
         ],
       },
+      {
+        type: "dropdown",
+        label: "nav.tournaments",
+        icon: "mat:emoji_events",
+        capability: "tournaments.manage",
+        children: [
+          {
+            type: "link",
+            label: "nav.manage",
+            route: "/dashboard/torneos",
+          },
+        ],
+      },
     ],
   },
 ];

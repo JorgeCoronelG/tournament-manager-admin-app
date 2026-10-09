@@ -1,0 +1,107 @@
+<h2 mat-dialog-title>
+  {{
+    (tournament ? "tournaments.form.editTitle" : "tournaments.form.newTitle")
+      | transloco
+  }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-1 !pt-2 min-w-[320px]">
+    @if (tournament?.status === "in_progress") {
+      <p class="text-secondary m-0 mb-2">
+        {{ "tournaments.form.inProgressNotice" | transloco }}
+      </p>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "tournaments.fields.name" | transloco }}</mat-label>
+      <input [formField]="tournamentForm.name" autocomplete="off" matInput />
+      @if (tournamentForm.name().errors().length) {
+        <mat-error>{{ errorText(tournamentForm.name().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ "tournaments.fields.gender" | transloco }}</mat-label>
+      <mat-select [formField]="tournamentForm.gender">
+        @for (gender of genders; track gender) {
+          <mat-option [value]="gender">{{
+            "tournaments.gender." + gender | transloco
+          }}</mat-option>
+        }
+      </mat-select>
+      @if (tournamentForm.gender().errors().length) {
+        <mat-error>{{ errorText(tournamentForm.gender().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="flex gap-4">
+      <mat-form-field class="flex-1">
+        <mat-label>{{ "tournaments.fields.minAge" | transloco }}</mat-label>
+        <input
+          [formField]="tournamentForm.min_age"
+          autocomplete="off"
+          inputmode="numeric"
+          matInput
+          type="number"
+        />
+        @if (tournamentForm.min_age().errors().length) {
+          <mat-error>{{
+            errorText(tournamentForm.min_age().errors())
+          }}</mat-error>
+        } @else {
+          <mat-hint>{{ "tournaments.form.optional" | transloco }}</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="flex-1">
+        <mat-label>{{ "tournaments.fields.maxAge" | transloco }}</mat-label>
+        <input
+          [formField]="tournamentForm.max_age"
+          autocomplete="off"
+          inputmode="numeric"
+          matInput
+          type="number"
+        />
+        @if (tournamentForm.max_age().errors().length) {
+          <mat-error>{{
+            errorText(tournamentForm.max_age().errors())
+          }}</mat-error>
+        } @else {
+          <mat-hint>{{ "tournaments.form.optional" | transloco }}</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field>
+      <mat-label>{{ "tournaments.fields.startDate" | transloco }}</mat-label>
+      <input
+        [formField]="tournamentForm.start_date"
+        [matDatepicker]="picker"
+        autocomplete="off"
+        matInput
+      />
+      <mat-datepicker-toggle [for]="picker" matIconSuffix />
+      <mat-datepicker #picker />
+      @if (tournamentForm.start_date().errors().length) {
+        <mat-error>{{
+          errorText(tournamentForm.start_date().errors())
+        }}</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="tournamentForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>
