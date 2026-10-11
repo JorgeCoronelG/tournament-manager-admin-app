@@ -32,6 +32,7 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 - **La app es zoneless** (no existe `zone.js`). Un valor que cambie fuera de un evento del template (timers, callbacks, promesas) tiene que ser un `signal` o la vista no se actualizará. No uses `ChangeDetectorRef.markForCheck()` como parche.
 - Formularios nuevos: Signal Forms (`form()` de `@angular/forms/signals` y `[formField]`), no `FormGroup`/`ngModel`.
 - Enviar un formulario (Signal Forms): `FormSubmitService.submit(form, { send, onSuccess, errors })` (`shared/form-submit/form-submit.service.ts`). Solo envía si es válido y mantiene `form().submitting()` (úsalo para deshabilitar el botón; no crees un `saving` aparte). Con `errors: "form"` (peticiones con `SKIP_ERROR_NOTIFICATION`) los errores 422 se ponen en sus campos y el resto en un snackbar; por defecto el interceptor ya avisó al usuario.
+- Los `mat-form-field` no llevan `subscriptSizing="dynamic"` (ni el input `subscriptSizing` en componentes propios): el tamaño fijo reserva el espacio del error y el formulario no se mueve al aparecer.
 - Templates: `@if` / `@for` (con `track`) / `@switch` / `@let`. Nada de `*ngIf`, `*ngFor` ni `ngClass`/`ngStyle`; usa `[class]`/`[style]`.
 - Sin `any` (usa `unknown` o genéricos): es error de ESLint.
 - Los elementos interactivos son `<button type="button">` o `<a>`. No pongas `(click)` en un `div`/`span`: es error de ESLint (accesibilidad). Un fondo que solo captura clics lleva `role="presentation"`.

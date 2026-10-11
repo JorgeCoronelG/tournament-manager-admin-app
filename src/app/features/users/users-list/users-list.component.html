@@ -5,7 +5,7 @@
 <app-page-layout>
   <app-page-layout-content>
     <div class="flex flex-wrap items-start gap-4 mb-4">
-      <mat-form-field class="w-72" subscriptSizing="dynamic">
+      <mat-form-field class="w-72">
         <mat-label>{{ "users.search" | transloco }}</mat-label>
         <mat-icon matPrefix svgIcon="mat:search" />
         <input
@@ -16,7 +16,7 @@
         />
       </mat-form-field>
 
-      <mat-form-field class="w-48" subscriptSizing="dynamic">
+      <mat-form-field class="w-48">
         <mat-label>{{ "users.fields.roles" | transloco }}</mat-label>
         <mat-select [formField]="filtersForm.roleId">
           <mat-option value="">{{
@@ -28,7 +28,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="w-48" subscriptSizing="dynamic">
+      <mat-form-field class="w-48">
         <mat-label>{{ "users.fields.status" | transloco }}</mat-label>
         <mat-select [formField]="filtersForm.status">
           <mat-option value="">{{

@@ -48,7 +48,7 @@
         }
 
         @if (manualEntry()) {
-          <mat-form-field subscriptSizing="dynamic">
+          <mat-form-field>
             <mat-label>{{ "login.email" | transloco }}</mat-label>
             <input
               [formField]="activateForm.email"
@@ -66,7 +66,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field subscriptSizing="dynamic">
+          <mat-form-field>
             <mat-label>{{ "forgotPassword.code" | transloco }}</mat-label>
             <input
               [formField]="activateForm.code"
@@ -82,7 +82,7 @@
           </mat-form-field>
         }
 
-        <mat-form-field subscriptSizing="dynamic">
+        <mat-form-field>
           <mat-label>{{ "forgotPassword.newPassword" | transloco }}</mat-label>
           <input
             [formField]="activateForm.password"
@@ -111,7 +111,7 @@
           }
         </mat-form-field>
 
-        <mat-form-field subscriptSizing="dynamic">
+        <mat-form-field>
           <mat-label>{{
             "forgotPassword.confirmPassword" | transloco
           }}</mat-label>

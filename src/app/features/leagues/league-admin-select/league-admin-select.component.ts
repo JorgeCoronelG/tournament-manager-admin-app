@@ -19,10 +19,7 @@ import {
 } from "@angular/material/autocomplete";
 import { MatButtonModule } from "@angular/material/button";
 import { ErrorStateMatcher, MatOptionModule } from "@angular/material/core";
-import {
-  MatFormFieldModule,
-  SubscriptSizing,
-} from "@angular/material/form-field";
+import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInput, MatInputModule } from "@angular/material/input";
 import { RouterLink } from "@angular/router";
@@ -73,7 +70,6 @@ export class LeagueAdminSelectComponent implements FormValueControl<
   readonly label = input.required<string>();
   /** The current manager, to show their name before the user types anything */
   readonly selected = input<LeagueAdmin | null>(null);
-  readonly subscriptSizing = input<SubscriptSizing>("fixed");
   readonly errors = input<readonly ValidationError.WithOptionalFieldTree[]>([]);
   readonly touched = input(false);
   readonly disabled = input(false);

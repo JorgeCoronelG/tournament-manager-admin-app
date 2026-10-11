@@ -8,7 +8,7 @@
       <app-league-required />
     } @else {
       <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72" subscriptSizing="dynamic">
+        <mat-form-field class="w-72">
           <mat-label>{{ "referees.search" | transloco }}</mat-label>
           <mat-icon matPrefix svgIcon="mat:search" />
           <input
@@ -19,7 +19,7 @@
           />
         </mat-form-field>
 
-        <mat-form-field class="w-48" subscriptSizing="dynamic">
+        <mat-form-field class="w-48">
           <mat-label>{{ "referees.fields.status" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.status">
             <mat-option value="">{{
