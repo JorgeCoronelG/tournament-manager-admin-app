@@ -35,12 +35,12 @@
 
       <form
         (submit)="$event.preventDefault(); activate()"
-        class="p-6 flex flex-col gap-4"
+        class="p-6 flex flex-col gap-2"
         novalidate
       >
         @if (rejected(); as message) {
           <div
-            class="flex items-start gap-3 mb-2 p-3 rounded border border-warn-600 bg-warn-50 text-warn-800 dark:border-warn-400 dark:bg-warn-950 dark:text-warn-200"
+            class="flex items-start gap-3 mb-4 p-3 rounded border border-warn-600 bg-warn-50 text-warn-800 dark:border-warn-400 dark:bg-warn-950 dark:text-warn-200"
             role="alert"
           >
             <mat-icon class="shrink-0" svgIcon="mat:error" />

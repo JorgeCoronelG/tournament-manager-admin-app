@@ -3,7 +3,7 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-1 !pt-2 min-w-[320px]">
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
     @if (!user) {
       <p class="text-secondary m-0 mb-2">
         {{ "users.form.invitationNotice" | transloco }}

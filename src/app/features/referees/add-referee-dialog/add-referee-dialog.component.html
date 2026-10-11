@@ -10,7 +10,7 @@
     <mat-tab [label]="'referees.add.newTab' | transloco">
       <form
         (submit)="$event.preventDefault(); saveNew()"
-        class="flex flex-col gap-1 pt-4"
+        class="flex flex-col gap-2 pt-4"
         id="new-referee-form"
         novalidate
       >
@@ -93,7 +93,7 @@
     </mat-tab>
 
     <mat-tab [label]="'referees.add.codeTab' | transloco">
-      <div class="flex flex-col gap-1 pt-4">
+      <div class="flex flex-col gap-2 pt-4">
         @if (cameFromDuplicate()) {
           <p class="text-secondary m-0 mb-2">
             {{ "referees.add.codeHelp" | transloco }}
