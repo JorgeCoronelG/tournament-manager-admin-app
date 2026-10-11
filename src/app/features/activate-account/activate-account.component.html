@@ -86,10 +86,24 @@
           <mat-label>{{ "forgotPassword.newPassword" | transloco }}</mat-label>
           <input
             [formField]="activateForm.password"
+            [type]="visible().password ? 'text' : 'password'"
             autocomplete="new-password"
             matInput
-            type="password"
           />
+          <button
+            (click)="toggleVisibility('password')"
+            [attr.aria-label]="'login.toggleVisibility' | transloco"
+            [matTooltip]="'login.toggleVisibility' | transloco"
+            mat-icon-button
+            matIconSuffix
+            type="button"
+          >
+            <mat-icon
+              [svgIcon]="
+                visible().password ? 'mat:visibility_off' : 'mat:visibility'
+              "
+            />
+          </button>
           @if (activateForm.password().errors().length) {
             <mat-error>{{
               "forgotPassword.passwordError" | transloco
@@ -103,10 +117,24 @@
           }}</mat-label>
           <input
             [formField]="activateForm.passwordConfirmation"
+            [type]="visible().confirmation ? 'text' : 'password'"
             autocomplete="new-password"
             matInput
-            type="password"
           />
+          <button
+            (click)="toggleVisibility('confirmation')"
+            [attr.aria-label]="'login.toggleVisibility' | transloco"
+            [matTooltip]="'login.toggleVisibility' | transloco"
+            mat-icon-button
+            matIconSuffix
+            type="button"
+          >
+            <mat-icon
+              [svgIcon]="
+                visible().confirmation ? 'mat:visibility_off' : 'mat:visibility'
+              "
+            />
+          </button>
           @if (activateForm.passwordConfirmation().errors().length) {
             <mat-error>{{
               (activateForm.passwordConfirmation().value()

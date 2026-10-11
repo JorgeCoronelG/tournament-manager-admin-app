@@ -19,8 +19,10 @@ import {
 } from "@angular/forms/signals";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { ActivateAccountModel } from "../../core/auth/activate-account.model";
 import { AuthApi } from "../../core/auth/auth.api";
@@ -42,8 +44,10 @@ function orEmpty(value: string | undefined): string {
     FormField,
     MatButtonModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatProgressBarModule,
+    MatTooltipModule,
     RouterLink,
     TranslocoPipe,
   ],
@@ -92,6 +96,13 @@ export class ActivateAccountComponent {
       value() === valueOf(activate.password) ? undefined : { kind: "mismatch" },
     );
   });
+
+  /** Which passwords are shown in plain text */
+  readonly visible = signal({ password: false, confirmation: false });
+
+  toggleVisibility(field: "password" | "confirmation"): void {
+    this.visible.update((state) => ({ ...state, [field]: !state[field] }));
+  }
 
   activate(): Promise<boolean> {
     return submit(this.activateForm, async () => {

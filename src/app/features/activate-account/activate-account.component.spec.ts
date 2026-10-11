@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { TestBed } from "@angular/core/testing";
+import { MatIconRegistry } from "@angular/material/icon";
+import { FakeMatIconRegistry } from "@angular/material/icon/testing";
 import { provideRouter } from "@angular/router";
 import { of, throwError } from "rxjs";
 import { provideTestI18n } from "../../../testing/i18n";
@@ -14,6 +16,7 @@ describe("ActivateAccountComponent", () => {
       providers: [
         provideTestI18n(),
         provideRouter([]),
+        { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
         { provide: AuthApi, useValue: { activateAccount } },
       ],
     });
@@ -38,6 +41,28 @@ describe("ActivateAccountComponent", () => {
 
   beforeEach(() => {
     activateAccount.mockReset();
+  });
+
+  it("shows or hides each password on demand", () => {
+    const fixture = setup();
+    const page: HTMLElement = fixture.nativeElement;
+    const types = () =>
+      Array.from(page.querySelectorAll("input")).map((input) => input.type);
+    const buttons = page.querySelectorAll(
+      "button[matIconSuffix]",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    expect(buttons).toHaveLength(2);
+    expect(types()).toEqual(["password", "password"]);
+
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(types()).toEqual(["password", "text"]);
+
+    buttons[0].click();
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(types()).toEqual(["text", "password"]);
   });
 
   it("activates the account with the link's email and code and shows a generic message with a link to the login", async () => {
@@ -145,6 +170,7 @@ describe("ActivateAccountComponent", () => {
       providers: [
         provideTestI18n(),
         provideRouter([]),
+        { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
         { provide: AuthApi, useValue: { activateAccount } },
       ],
     });
