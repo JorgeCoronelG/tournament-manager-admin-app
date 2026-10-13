@@ -78,16 +78,22 @@
         </mat-form-field>
 
         @if (duplicate()) {
-          <p class="text-sm m-0 mt-3" role="status">
-            {{ "referees.add.duplicate" | transloco }}
-            <button
-              (click)="goToCode()"
-              class="p-0 border-0 bg-transparent font-[inherit] underline cursor-pointer text-primary-600 dark:text-primary-300"
-              type="button"
-            >
-              {{ "referees.add.goToCode" | transloco }}
-            </button>
-          </p>
+          <div
+            class="flex items-start gap-3 mt-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+            role="status"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <p class="m-0 text-sm">
+              {{ "referees.add.duplicate" | transloco }}
+              <button
+                (click)="goToCode()"
+                class="p-0 border-0 bg-transparent font-[inherit] font-medium underline cursor-pointer text-inherit"
+                type="button"
+              >
+                {{ "referees.add.goToCode" | transloco }}
+              </button>
+            </p>
+          </div>
         }
       </form>
     </mat-tab>
