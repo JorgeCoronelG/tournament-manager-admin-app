@@ -1,4 +1,12 @@
 <div class="flex items-center gap-3">
   <mat-icon [svgIcon]="icon" class="icon-sm flex-none" />
   <span class="flex-1">{{ data.message }}</span>
+  <button
+    (click)="dismiss()"
+    [attr.aria-label]="'common.close' | transloco"
+    class="flex-none flex items-center justify-center p-0 border-0 bg-transparent text-inherit cursor-pointer opacity-80 hover:opacity-100"
+    type="button"
+  >
+    <mat-icon class="icon-xs" svgIcon="mat:close" />
+  </button>
 </div>
