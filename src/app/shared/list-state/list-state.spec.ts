@@ -17,12 +17,13 @@ describe("listState", () => {
   let rows: WritableSignal<number[] | undefined>;
   let query: () => Filters & PageQuery;
 
-  function setup(pageSize?: number) {
+  function setup(pageSize?: number, resetOn?: WritableSignal<unknown>) {
     return TestBed.runInInjectionContext(() =>
       listState({
         filters,
         defaultSort: { active: "created_at", direction: "desc" },
         pageSize,
+        resetOn,
         load: (q) => {
           query = q;
 
@@ -83,6 +84,26 @@ describe("listState", () => {
 
     rows.set(undefined);
     expect(list.rows()).toEqual([1, 2]);
+  });
+
+  it("drops the rows when resetOn changes, so they do not come back while the new ones load", () => {
+    const league = signal<unknown>(1);
+    const list = setup(undefined, league);
+
+    rows.set([1, 2]);
+    expect(list.rows()).toEqual([1, 2]);
+
+    // League removed: the request goes idle and the table empties
+    league.set(null);
+    rows.set(undefined);
+    expect(list.rows()).toEqual([]);
+
+    // League chosen again with a slow network: still nothing from before
+    league.set(1);
+    expect(list.rows()).toEqual([]);
+
+    rows.set([3]);
+    expect(list.rows()).toEqual([3]);
   });
 
   it("tells whether any filter is active", () => {

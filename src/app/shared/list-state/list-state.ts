@@ -25,7 +25,11 @@ export interface ListStateOptions<F extends object, T> {
   /** The filters model; its empty values are `""` (or `null`/`[]`) */
   filters: Signal<F>;
   defaultSort: Sort;
-  /** Also sends the user back to the first page when this changes (e.g. the active league) */
+  /**
+   * Also sends the user back to the first page and drops the rows on screen
+   * when this changes (e.g. the active league): they belong to the old value
+   * and must not show up again while the new ones load.
+   */
   resetOn?: Signal<unknown>;
   /** Initial page size (default 5) */
   pageSize?: number;
@@ -67,10 +71,13 @@ export function listState<F extends object, T>({
 
   const list = load(query);
 
-  // Keep showing the previous rows while the next page is loading
-  const rows = linkedSignal<T[] | undefined, T[]>({
-    source: list.rows,
-    computation: (value, previous) => value ?? previous?.value ?? [],
+  // Keep showing the previous rows while the next page is loading, unless
+  // `resetOn` changed: those rows are from another context
+  const rows = linkedSignal<{ rows: T[] | undefined; key: unknown }, T[]>({
+    source: () => ({ rows: list.rows(), key: resetOn?.() }),
+    computation: (source, previous) =>
+      source.rows ??
+      (previous && previous.source.key === source.key ? previous.value : []),
   });
 
   /** Tells an empty table (nothing yet) from one emptied by the filters */
