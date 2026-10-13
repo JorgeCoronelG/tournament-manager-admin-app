@@ -122,7 +122,8 @@
               <mat-error>{{
                 errorText(
                   codeForm.user_code().errors(),
-                  codeForm.user_code().value()
+                  codeForm.user_code().value(),
+                  userCodeMax
                 )
               }}</mat-error>
             }

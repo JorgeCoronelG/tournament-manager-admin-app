@@ -28,6 +28,7 @@ import { AppAvatarComponent } from "@ui/components/app-avatar/app-avatar.compone
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import {
   NAME_MAX,
+  USER_CODE_MAX,
   NAME_MIN,
   PHONE_PATTERN,
   refereeErrorText,
@@ -77,6 +78,7 @@ export class AddRefereeDialogComponent {
   private readonly formSubmit = inject(FormSubmitService);
   private readonly transloco = inject(TranslocoService);
 
+  readonly userCodeMax = USER_CODE_MAX;
   readonly tab = signal(NEW_TAB);
   /** The user came from a duplicate email or phone: tell them how to get the code */
   readonly cameFromDuplicate = signal(false);
@@ -117,6 +119,7 @@ export class AddRefereeDialogComponent {
 
   readonly codeForm = form(this.codeModel, (code) => {
     required(code.user_code);
+    maxLength(code.user_code, USER_CODE_MAX);
   });
 
   private readonly normalizedCode = computed(() =>
@@ -159,8 +162,12 @@ export class AddRefereeDialogComponent {
     },
   );
 
-  errorText(errors: readonly ValidationError[], value: unknown): string {
-    return refereeErrorText(this.transloco, errors, value);
+  errorText(
+    errors: readonly ValidationError[],
+    value: unknown,
+    max?: number,
+  ): string {
+    return refereeErrorText(this.transloco, errors, value, max);
   }
 
   goToCode(): void {

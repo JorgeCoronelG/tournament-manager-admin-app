@@ -3,6 +3,7 @@ import { TranslocoService } from "@jsverse/transloco";
 
 export const NAME_MIN = 3;
 export const NAME_MAX = 100;
+export const USER_CODE_MAX = 10;
 export const PHONE_PATTERN = /^\d{10}$/;
 
 /** Text of the first failed rule of a referee field (shared by the referee dialogs) */
@@ -10,6 +11,7 @@ export function refereeErrorText(
   transloco: TranslocoService,
   errors: readonly ValidationError[],
   value: unknown,
+  max = NAME_MAX,
 ): string {
   const message = errors.find((error) => error.message)?.message;
 
@@ -26,7 +28,7 @@ export function refereeErrorText(
   if (kind === "minLength" || kind === "maxLength") {
     return transloco.translate(`validation.${kind}`, {
       min: NAME_MIN,
-      max: NAME_MAX,
+      max,
     });
   }
 
