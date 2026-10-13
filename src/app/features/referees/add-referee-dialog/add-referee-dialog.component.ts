@@ -137,7 +137,8 @@ export class AddRefereeDialogComponent {
       this.searchedCode() === this.normalizedCode(),
   );
   readonly found = computed(() =>
-    this.current() ? this.lookup.value() : undefined,
+    // `value()` throws while the resource is in error (e.g. a 404)
+    this.current() && this.lookup.hasValue() ? this.lookup.value() : undefined,
   );
   readonly searching = computed(
     () => this.current() && this.lookup.isLoading(),
