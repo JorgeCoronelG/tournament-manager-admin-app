@@ -106,6 +106,18 @@
           </p>
         }
 
+        @if (lookupError(); as error) {
+          <div
+            class="flex items-start gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+            role="alert"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <p class="m-0 text-sm">
+              {{ "referees.add.lookup." + error | transloco }}
+            </p>
+          </div>
+        }
+
         <form
           (submit)="$event.preventDefault(); search()"
           class="flex items-start gap-2"
@@ -140,12 +152,6 @@
 
         @if (searching()) {
           <mat-progress-bar mode="indeterminate" />
-        }
-
-        @if (lookupError(); as error) {
-          <p class="text-sm text-warn m-0" role="alert">
-            {{ "referees.add.lookup." + error | transloco }}
-          </p>
         }
 
         @if (found(); as referee) {

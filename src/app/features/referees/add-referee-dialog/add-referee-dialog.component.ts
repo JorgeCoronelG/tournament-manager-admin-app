@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
 } from "@angular/core";
@@ -112,6 +113,13 @@ export class AddRefereeDialogComponent {
       field.errors().some((error) => error.kind === "server"),
     ),
   );
+
+  /** The warning is gone (the email or phone changed): the code hint no longer applies */
+  private readonly resetDuplicateHint = effect(() => {
+    if (!this.duplicate()) {
+      this.cameFromDuplicate.set(false);
+    }
+  });
 
   // Referee with a code
 
