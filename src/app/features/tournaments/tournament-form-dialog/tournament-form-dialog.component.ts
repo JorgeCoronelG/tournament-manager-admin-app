@@ -26,6 +26,8 @@ import {
   ValidationError,
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { catchError, throwError } from "rxjs";
+import { fieldErrors } from "../../../core/http/api-errors";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import {
   MAX_AGE,
@@ -92,9 +94,29 @@ export class TournamentFormDialogComponent {
     start_date: this.tournament ? parseDate(this.tournament.start_date) : null,
   });
 
+  /**
+   * The name/gender pair the server rejected as taken in this league. The rule
+   * spans both fields, so it is checked here (not as a field submission error)
+   * and clears as soon as either one changes.
+   */
+  private readonly taken = signal<{
+    name: string;
+    gender: TournamentGender | "";
+    message: string;
+  } | null>(null);
+
   readonly tournamentForm = form(this.model, (tournament) => {
     required(tournament.name);
     maxLength(tournament.name, NAME_MAX);
+    validate(tournament.name, ({ value, valueOf }) => {
+      const taken = this.taken();
+
+      return taken &&
+        taken.name === value().trim() &&
+        taken.gender === valueOf(tournament.gender)
+        ? { kind: "server", message: taken.message }
+        : undefined;
+    });
     required(tournament.gender);
     required(tournament.start_date);
     min(tournament.min_age, MIN_AGE);
@@ -147,6 +169,7 @@ export class TournamentFormDialogComponent {
   save(): Promise<boolean> {
     return this.formSubmit.submit(this.tournamentForm, {
       errors: "form",
+      ignoreFields: ["name"],
       send: () => {
         const { name, gender, min_age, max_age, start_date } = this.model();
         const body = {
@@ -157,9 +180,21 @@ export class TournamentFormDialogComponent {
           start_date: formatDate(start_date as Date),
         };
 
-        return this.tournament
+        const request = this.tournament
           ? this.api.update(this.tournament.id, body)
           : this.api.create(body);
+
+        return request.pipe(
+          catchError((error: unknown) => {
+            const message = fieldErrors(error)?.["name"]?.join(" ");
+
+            if (message) {
+              this.taken.set({ name: body.name, gender, message });
+            }
+
+            return throwError(() => error);
+          }),
+        );
       },
       onSuccess: (saved) => this.dialogRef.close(saved),
     });
