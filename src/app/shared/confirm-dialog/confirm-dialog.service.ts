@@ -15,6 +15,8 @@ export interface ConfirmOptions {
   key: string;
   /** Values for the message, e.g. `{ name: "Ana Pérez" }` */
   params?: Record<string, unknown>;
+  /** Confirm button color: `danger` (red, default) or `primary` */
+  tone?: "danger" | "primary";
 }
 
 /** Asks the user to confirm a destructive action */
@@ -24,7 +26,7 @@ export class ConfirmDialogService {
   private readonly transloco = inject(TranslocoService);
 
   /** Emits once: `true` if the user confirmed, `false` if they cancelled or dismissed it */
-  confirm({ key, params }: ConfirmOptions): Observable<boolean> {
+  confirm({ key, params, tone }: ConfirmOptions): Observable<boolean> {
     return this.dialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(
         ConfirmDialogComponent,
@@ -33,6 +35,7 @@ export class ConfirmDialogService {
           // and the focus trap and Escape still work
           autoFocus: "dialog",
           data: {
+            tone,
             title: this.transloco.translate(`${key}.title`),
             message: this.transloco.translate(`${key}.message`, params),
             confirmLabel: this.transloco.translate(`${key}.confirm`),

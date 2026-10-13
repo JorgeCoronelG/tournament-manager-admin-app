@@ -171,6 +171,7 @@ export class TournamentsListComponent {
       .confirm({
         key: starting ? "tournaments.start" : "tournaments.finish",
         params: { name: tournament.name },
+        tone: starting ? "primary" : "danger",
       })
       .subscribe((confirmed) => {
         if (confirmed) {

@@ -7,6 +7,8 @@ export interface ConfirmDialogData {
   title: string;
   message: string;
   confirmLabel: string;
+  /** `danger` (default, red) for destructive actions; `primary` for the rest */
+  tone?: "danger" | "primary";
 }
 
 /** Closes with `true` when confirmed, `undefined` otherwise */
@@ -24,8 +26,8 @@ export interface ConfirmDialogData {
         {{ "common.cancel" | transloco }}
       </button>
       <button
+        [color]="data.tone === 'primary' ? undefined : 'warn'"
         [mat-dialog-close]="true"
-        color="warn"
         mat-flat-button
         type="button"
       >
