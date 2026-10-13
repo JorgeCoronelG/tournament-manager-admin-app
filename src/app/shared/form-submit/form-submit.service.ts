@@ -16,6 +16,11 @@ export interface FormSubmitOptions<R> {
    *   A 422's field errors go to their fields, the rest to a snackbar.
    */
   errors?: "interceptor" | "form";
+  /**
+   * Fields whose 422 errors the caller handles itself (e.g. a rule that spans
+   * several fields and must clear when any of them changes). Only with `"form"`.
+   */
+  ignoreFields?: readonly string[];
 }
 
 /**
@@ -29,7 +34,12 @@ export class FormSubmitService {
 
   submit<TModel, R>(
     form: FieldTree<TModel>,
-    { send, onSuccess, errors = "interceptor" }: FormSubmitOptions<R>,
+    {
+      send,
+      onSuccess,
+      errors = "interceptor",
+      ignoreFields = [],
+    }: FormSubmitOptions<R>,
   ): Promise<boolean> {
     return submit(form, async () => {
       try {
@@ -38,20 +48,30 @@ export class FormSubmitService {
 
         return undefined;
       } catch (error) {
-        return errors === "form" ? this.report(form, error) : undefined;
+        return errors === "form"
+          ? this.report(form, error, ignoreFields)
+          : undefined;
       }
     });
   }
 
   /** Field errors from a 422 onto the form's fields; anything else in a snackbar */
-  private report<TModel>(form: FieldTree<TModel>, error: unknown) {
-    const serverErrors = fieldErrors(error);
+  private report<TModel>(
+    form: FieldTree<TModel>,
+    error: unknown,
+    ignoreFields: readonly string[],
+  ) {
+    const all = fieldErrors(error);
 
-    if (!serverErrors) {
+    if (!all) {
       this.snackbar.notifyFailure(error);
 
       return undefined;
     }
+
+    const serverErrors = Object.fromEntries(
+      Object.entries(all).filter(([field]) => !ignoreFields.includes(field)),
+    );
 
     const fields = new Set(Object.keys(form().value() as object));
     const tree = form as unknown as Record<string, FieldTree<unknown>>;
