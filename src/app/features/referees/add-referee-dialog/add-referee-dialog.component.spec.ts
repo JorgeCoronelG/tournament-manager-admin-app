@@ -42,6 +42,7 @@ describe("AddRefereeDialogComponent", () => {
 
               return {
                 value,
+                hasValue: () => value() !== undefined,
                 error: failure,
                 isLoading: signal(false),
                 reload,
