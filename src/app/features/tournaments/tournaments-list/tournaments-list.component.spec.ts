@@ -261,6 +261,7 @@ describe("TournamentsListComponent", () => {
     expect(confirm).toHaveBeenCalledWith({
       key: "tournaments.start",
       params: { name: "Torneo 1" },
+      tone: "primary",
     });
     expect(setStatus).toHaveBeenCalledWith(1, "in_progress");
     expect(reload).toHaveBeenCalled();
@@ -276,6 +277,7 @@ describe("TournamentsListComponent", () => {
     expect(confirm).toHaveBeenCalledWith({
       key: "tournaments.finish",
       params: { name: "Torneo 2" },
+      tone: "danger",
     });
     expect(setStatus).toHaveBeenCalledWith(2, "finished");
     expect(notifySuccess).toHaveBeenCalledWith("tournaments.finished");
