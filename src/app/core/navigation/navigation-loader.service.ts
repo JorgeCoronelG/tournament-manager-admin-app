@@ -72,6 +72,19 @@ const NAVIGATION: NavigationItem[] = [
           },
         ],
       },
+      {
+        type: "dropdown",
+        label: "nav.fields",
+        icon: "mat:stadium",
+        capability: "fields.manage",
+        children: [
+          {
+            type: "link",
+            label: "nav.manage",
+            route: "/dashboard/canchas",
+          },
+        ],
+      },
     ],
   },
 ];

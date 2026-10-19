@@ -34,30 +34,42 @@ async function mockSession(page: Page): Promise<void> {
 }
 
 /** The toolbar loads the leagues of the user; with one, it is selected by itself */
-async function mockMyLeagues(page: Page): Promise<void> {
+async function mockMyLeagues(
+  page: Page,
+  leagues: { id: number; name: string }[],
+): Promise<void> {
   await page.route(/\/my-leagues(\?.*)?$/, (route) =>
     route.fulfill({
       json: {
-        data: [{ id: 1, name: "Liga de prueba" }],
+        data: leagues,
         links: { first: null, last: "x", prev: null, next: null },
         meta: {
           currentPage: 1,
-          from: 1,
+          from: leagues.length ? 1 : null,
           lastPage: 1,
           perPage: 100,
-          to: 1,
-          total: 1,
+          to: leagues.length || null,
+          total: leagues.length,
         },
       },
     }),
   );
 }
 
+export interface GotoOptions {
+  /** Leagues of the user; with several (or none) no league is active by itself */
+  leagues?: { id: number; name: string }[];
+}
+
 /** Waits for the splash screen to disappear and, for pages inside the layout, for it to be ready */
-export async function gotoApp(page: Page, path = "/dashboard"): Promise<void> {
+export async function gotoApp(
+  page: Page,
+  path = "/dashboard",
+  { leagues = [{ id: 1, name: "Liga de prueba" }] }: GotoOptions = {},
+): Promise<void> {
   if (path.startsWith("/dashboard")) {
     await mockSession(page);
-    await mockMyLeagues(page);
+    await mockMyLeagues(page, leagues);
   }
 
   await page.goto(path);
@@ -502,6 +514,161 @@ export async function mockRefereesApi(
             .toLowerCase()
             .includes(search) &&
           (!query.get("status") || r.status === query.get("status")),
+      )
+      .sort(
+        (a, b) => String(a[field]).localeCompare(String(b[field])) * direction,
+      );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}
+
+export interface MockField {
+  id: number;
+  league_id: number;
+  name: string;
+  status: "active" | "inactive";
+  created_at: string;
+}
+
+/** Deterministic fields of league 1, newest first by id */
+export function makeFields(count: number): MockField[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    league_id: 1,
+    name: `Cancha ${String(i + 1).padStart(2, "0")}`,
+    status: i % 4 === 3 ? "inactive" : "active",
+    created_at: new Date(
+      FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+    ).toISOString(),
+  }));
+}
+
+export interface FieldsApiOptions {
+  fields?: MockField[];
+  /** What `POST /fields` answers (default: 201 with the new field) */
+  create?: { status: number; body: unknown };
+}
+
+export interface FieldsApi {
+  /** Query strings of every `GET /fields` so far */
+  queries: URLSearchParams[];
+  /** Ids of the fields deleted so far */
+  deleted: number[];
+  /** `{ id, status }` of every `PATCH /status` so far */
+  statusChanges: { id: number; status: string }[];
+  /** Bodies of the `POST /fields` so far */
+  created: unknown[];
+  /** `{ id, body }` of every `PUT /fields/{id}` so far */
+  updated: { id: number; body: unknown }[];
+}
+
+/** Stubs `/leagues/1/fields`: search, filter, sort and pagination work like the real list */
+export async function mockFieldsApi(
+  page: Page,
+  { fields = [], create }: FieldsApiOptions = {},
+): Promise<FieldsApi> {
+  const state = [...fields];
+  const api: FieldsApi = {
+    queries: [],
+    deleted: [],
+    statusChanges: [],
+    created: [],
+    updated: [],
+  };
+
+  await page.route(/\/fields\/\d+\/status$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    const { status } = route.request().postDataJSON() as { status: string };
+    api.statusChanges.push({ id, status });
+    const found = state.find((f) => f.id === id);
+
+    if (found) {
+      found.status = status as MockField["status"];
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/fields\/\d+$/, (route) => {
+    const request = route.request();
+    const id = Number(request.url().split("/").pop());
+
+    if (request.method() === "DELETE") {
+      api.deleted.push(id);
+      state.splice(0, state.length, ...state.filter((f) => f.id !== id));
+
+      return route.fulfill({ status: 204 });
+    }
+
+    const body = request.postDataJSON() as { name: string };
+    api.updated.push({ id, body });
+    const found = state.find((f) => f.id === id);
+
+    if (found) {
+      found.name = body.name;
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/fields(\?.*)?$/, (route) => {
+    const request = route.request();
+
+    if (request.method() === "POST") {
+      const body = request.postDataJSON() as {
+        name: string;
+        status: MockField["status"];
+      };
+      api.created.push(body);
+
+      if (create) {
+        return route.fulfill({ status: create.status, json: create.body });
+      }
+
+      const next: MockField = {
+        id: Math.max(0, ...state.map((f) => f.id)) + 1,
+        league_id: 1,
+        name: body.name,
+        status: body.status,
+        created_at: FIXED_NOW.toISOString(),
+      };
+      state.push(next);
+
+      return route.fulfill({ status: 201, json: next });
+    }
+
+    const query = new URL(request.url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const sort = query.get("sort") ?? "-created_at";
+    const field = sort.replace(/^-/, "") as keyof MockField;
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+
+    const matching = state
+      .filter(
+        (f) =>
+          f.name.toLowerCase().includes(search) &&
+          (!query.get("status") || f.status === query.get("status")),
       )
       .sort(
         (a, b) => String(a[field]).localeCompare(String(b[field])) * direction,

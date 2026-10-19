@@ -2,9 +2,11 @@ import { expect, test } from "@playwright/test";
 import {
   freezeTime,
   gotoApp,
+  makeFields,
   makeReferees,
   makeTournaments,
   makeUsers,
+  mockFieldsApi,
   mockRefereesApi,
   mockTournamentsApi,
   mockUsersApi,
@@ -49,6 +51,14 @@ test.describe("visual regression", () => {
     await expect(page.locator("tr[mat-row]")).toHaveCount(5);
 
     await expect(page).toHaveScreenshot("referees.png");
+  });
+
+  test("fields", async ({ page }) => {
+    await mockFieldsApi(page, { fields: makeFields(12) });
+    await gotoApp(page, "/dashboard/canchas");
+    await expect(page.locator("tr[mat-row]")).toHaveCount(5);
+
+    await expect(page).toHaveScreenshot("fields.png");
   });
 
   test("users, empty", async ({ page }) => {

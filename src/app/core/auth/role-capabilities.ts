@@ -8,6 +8,7 @@ export const CAPABILITIES = [
   "teams.manage",
   "players.manage",
   "referees.manage",
+  "fields.manage",
   "matches.manage",
 ] as const;
 
@@ -25,6 +26,7 @@ export const ROLE_CAPABILITIES: Record<Role, readonly Capability[]> = {
     "teams.manage",
     "players.manage",
     "referees.manage",
+    "fields.manage",
     "matches.manage",
   ],
   referee: [],

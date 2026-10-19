@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>
+  {{ (field ? "fields.form.editTitle" : "fields.form.newTitle") | transloco }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    <mat-form-field>
+      <mat-label>{{ "fields.fields.name" | transloco }}</mat-label>
+      <input [formField]="fieldForm.name" autocomplete="off" matInput />
+      @if (fieldForm.name().errors().length) {
+        <mat-error>{{ errorText(fieldForm.name().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (!field) {
+      <mat-form-field>
+        <mat-label>{{ "fields.fields.status" | transloco }}</mat-label>
+        <mat-select [formField]="fieldForm.status">
+          @for (status of statuses; track status) {
+            <mat-option [value]="status">{{
+              "fields.status." + status | transloco
+            }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="fieldForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

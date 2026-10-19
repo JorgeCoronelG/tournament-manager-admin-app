@@ -35,7 +35,8 @@
     "home": "Inicio",
     "leagues": "Ligas",
     "tournaments": "Torneos",
-    "referees": "Árbitros"
+    "referees": "Árbitros",
+    "fields": "Canchas"
   },
   "dashboard": {
     "title": "Panel",
@@ -373,6 +374,50 @@
     "edit": {
       "title": "Editar árbitro",
       "rejected": "No se pudo guardar. Si el árbitro pertenece a otras ligas, solo él puede cambiar sus datos."
+    }
+  },
+  "fields": {
+    "title": "Canchas",
+    "add": "Agregar cancha",
+    "search": "Buscar canchas",
+    "created": "Cancha agregada",
+    "updated": "Cancha actualizada",
+    "deleted": "Cancha eliminada",
+    "activated": "Cancha activada",
+    "deactivated": "Cancha desactivada",
+    "error": "No pudimos cargar las canchas.",
+    "fields": {
+      "name": "Nombre",
+      "status": "Estado",
+      "createdAt": "Alta",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activa",
+      "inactive": "Inactiva"
+    },
+    "filters": {
+      "allStatuses": "Todos los estados"
+    },
+    "actions": {
+      "edit": "Editar",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "delete": "Eliminar"
+    },
+    "deactivate": {
+      "title": "Desactivar cancha",
+      "message": "¿Seguro que quieres desactivar la cancha {{name}}?\nNo podrá usarse hasta que la vuelvas a activar.",
+      "confirm": "Desactivar"
+    },
+    "delete": {
+      "title": "Eliminar cancha",
+      "message": "¿Seguro que quieres eliminar la cancha {{name}}?\nEsta acción no se puede deshacer.",
+      "confirm": "Eliminar"
+    },
+    "form": {
+      "newTitle": "Nueva cancha",
+      "editTitle": "Editar cancha"
     }
   }
 }

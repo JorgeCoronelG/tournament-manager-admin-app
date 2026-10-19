@@ -22,6 +22,14 @@ describe("capabilitiesFor", () => {
     expect(capabilities.has("leagues.manage")).toBe(false);
   });
 
+  it("lets the superadmin and the league admin manage fields", () => {
+    expect(capabilitiesFor(["superadmin"]).has("fields.manage")).toBe(true);
+    expect(capabilitiesFor(["league_admin"]).has("fields.manage")).toBe(true);
+    expect(capabilitiesFor(["referee", "manager"]).has("fields.manage")).toBe(
+      false,
+    );
+  });
+
   it("gives the roles used from the mobile app no panel capabilities", () => {
     expect(capabilitiesFor(["referee", "manager", "player"]).size).toBe(0);
   });
