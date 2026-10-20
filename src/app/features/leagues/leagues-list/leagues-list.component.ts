@@ -22,6 +22,7 @@ import { AppPageLayoutContentDirective } from "@ui/components/app-page-layout/ap
 import { AppPageLayoutComponent } from "@ui/components/app-page-layout/app-page-layout.component";
 import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolbar/app-secondary-toolbar.component";
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
+import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { listState } from "../../../shared/list-state/list-state";
@@ -61,6 +62,7 @@ export class LeaguesListComponent {
   private readonly api = inject(LeaguesApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly leagueContext = inject(LeagueContextService);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
@@ -98,12 +100,18 @@ export class LeaguesListComponent {
       .afterClosed()
       .subscribe((saved) => {
         if (saved) {
-          this.resource.reload();
+          this.reloadLists();
           this.snackbar.notifySuccess(
             league ? "leagues.updated" : "leagues.created",
           );
         }
       });
+  }
+
+  /** Refreshes the table and the toolbar selector, which loads its own list */
+  private reloadLists(): void {
+    this.resource.reload();
+    this.leagueContext.reload();
   }
 
   remove(league: League): void {
@@ -116,7 +124,7 @@ export class LeaguesListComponent {
 
         this.api.remove(league.id).subscribe({
           next: () => {
-            this.resource.reload();
+            this.reloadLists();
             this.snackbar.notifySuccess("leagues.deleted");
           },
           error: (error: unknown) => this.snackbar.notifyFailure(error),
