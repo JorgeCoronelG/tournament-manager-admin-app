@@ -15,6 +15,7 @@ interface Filters {
 describe("listState", () => {
   let filters: WritableSignal<Filters>;
   let rows: WritableSignal<number[] | undefined>;
+  let total: WritableSignal<number>;
   let query: () => Filters & PageQuery;
 
   function setup(pageSize?: number, resetOn?: WritableSignal<unknown>) {
@@ -30,7 +31,7 @@ describe("listState", () => {
           return {
             resource: {} as PaginatedResource<number>["resource"],
             rows,
-            total: signal(0),
+            total,
           };
         },
       }),
@@ -40,6 +41,7 @@ describe("listState", () => {
   beforeEach(() => {
     filters = signal({ search: "", roleId: "", tags: [] });
     rows = signal<number[] | undefined>(undefined);
+    total = signal(0);
   });
 
   it("starts on the first page, with the default order and page size", () => {
@@ -104,6 +106,36 @@ describe("listState", () => {
 
     rows.set([3]);
     expect(list.rows()).toEqual([3]);
+  });
+
+  it("goes back to the last page with rows when the current one comes back empty", () => {
+    const state = setup();
+    state.changePage({ pageIndex: 1, pageSize: 5 });
+    total.set(6);
+    rows.set([1, 2, 3, 4, 5]);
+    TestBed.tick();
+
+    // The only row of page 2 is deleted: 5 left, all on page 1
+    total.set(5);
+    rows.set([]);
+    TestBed.tick();
+
+    expect(state.paging()).toEqual({ page: 0, pageSize: 5 });
+
+    state.changePage({ pageIndex: 3, pageSize: 5 });
+    total.set(12);
+    rows.set([]);
+    TestBed.tick();
+
+    expect(state.paging()).toEqual({ page: 2, pageSize: 5 });
+  });
+
+  it("stays on the first page when it is empty", () => {
+    const state = setup();
+    rows.set([]);
+    TestBed.tick();
+
+    expect(state.paging().page).toBe(0);
   });
 
   it("tells whether any filter is active", () => {

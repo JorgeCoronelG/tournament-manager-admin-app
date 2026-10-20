@@ -1,4 +1,11 @@
-import { computed, linkedSignal, Signal, signal } from "@angular/core";
+import {
+  computed,
+  effect,
+  linkedSignal,
+  Signal,
+  signal,
+  untracked,
+} from "@angular/core";
 import { Sort } from "@angular/material/sort";
 import {
   PageQuery,
@@ -41,7 +48,8 @@ export interface ListStateOptions<F extends object, T> {
  * State of a paginated, filterable and sortable list: the order, the page, the
  * query that goes to the API and the rows that come back. Call it in an
  * injection context (a component field). Changing a filter or the order sends
- * the user back to the first page, keeping the page size.
+ * the user back to the first page, keeping the page size; an emptied page
+ * (e.g. after deleting its only row) goes back to the last one with rows.
  */
 export function listState<F extends object, T>({
   filters,
@@ -70,6 +78,25 @@ export function listState<F extends object, T>({
   }));
 
   const list = load(query);
+
+  // A page that comes back empty (its last row was deleted, or the total
+  // shrank) sends the user to the last page that still has rows
+  effect(() => {
+    const loaded = list.rows();
+
+    if (!loaded || loaded.length > 0) {
+      return;
+    }
+
+    const { page, pageSize: size } = untracked(paging);
+
+    if (page > 0) {
+      paging.set({
+        page: Math.max(0, Math.ceil(list.total() / size) - 1),
+        pageSize: size,
+      });
+    }
+  });
 
   // Keep showing the previous rows while the next page is loading, unless
   // `resetOn` changed: those rows are from another context
