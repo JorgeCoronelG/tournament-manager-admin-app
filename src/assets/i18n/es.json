@@ -36,7 +36,8 @@
     "leagues": "Ligas",
     "tournaments": "Torneos",
     "referees": "Árbitros",
-    "fields": "Canchas"
+    "fields": "Canchas",
+    "teams": "Equipos"
   },
   "dashboard": {
     "title": "Panel",
@@ -169,7 +170,7 @@
     "subtitle": "Elige una contraseña para terminar de activar tu cuenta.",
     "manualSubtitle": "Ingresa tu correo y el código de verificación que te enviamos, y elige una contraseña.",
     "submit": "Activar cuenta",
-    "done": "Tu cuenta está activa. Si eres administrador, inicia sesión; si eres árbitro o jugador, usa la app móvil.",
+    "done": "Tu cuenta está activa. Si eres administrador, inicia sesión; si eres árbitro, delegado o jugador, usa la app móvil.",
     "askNewInvitation": "Pide una nueva invitación al administrador.",
     "goToLogin": "Ir al inicio de sesión"
   },
@@ -418,6 +419,116 @@
     "form": {
       "newTitle": "Nueva cancha",
       "editTitle": "Editar cancha"
+    }
+  },
+  "logoPicker": {
+    "label": "Archivo de imagen del logo",
+    "drop": "Arrastra tu imagen aquí o selecciónala",
+    "choose": "Elegir imagen",
+    "remove": "Quitar",
+    "hint": "JPG, PNG o WebP de hasta 2 MB.",
+    "errors": {
+      "type": "El archivo debe ser una imagen JPG, PNG o WebP.",
+      "size": "La imagen pesa más de 2 MB. Elige una más ligera."
+    }
+  },
+  "teams": {
+    "title": "Equipos",
+    "add": "Agregar equipo",
+    "search": "Buscar por equipo o delegado",
+    "created": "Equipo agregado",
+    "updated": "Equipo actualizado",
+    "deleted": "Equipo eliminado",
+    "banned": "Equipo vetado",
+    "reactivated": "Equipo reactivado",
+    "managerSaved": "Delegado guardado",
+    "managerUpdated": "Datos del delegado actualizados",
+    "managerRemoved": "Delegado quitado",
+    "invitationSent": "Invitación reenviada",
+    "logoFailed": "El equipo se guardó, pero no pudimos subir el logo. Inténtalo de nuevo desde Editar.",
+    "noManager": "Sin delegado",
+    "error": "No pudimos cargar los equipos.",
+    "fields": {
+      "logo": "Logo",
+      "name": "Nombre",
+      "manager": "Delegado",
+      "status": "Estado",
+      "createdAt": "Alta",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "banned": "Vetado"
+    },
+    "filters": {
+      "allStatuses": "Todos los estados",
+      "allManagers": "Todos los delegados"
+    },
+    "actions": {
+      "edit": "Editar",
+      "assignManager": "Asignar delegado",
+      "changeManager": "Cambiar delegado",
+      "editManager": "Editar datos del delegado",
+      "resendInvitation": "Reenviar invitación",
+      "removeManager": "Quitar delegado",
+      "ban": "Vetar",
+      "reactivate": "Reactivar",
+      "delete": "Eliminar"
+    },
+    "withManager": "{{name}} (delegado: {{manager}})",
+    "withoutManager": "{{name}} (sin delegado)",
+    "removeManager": {
+      "title": "Quitar delegado",
+      "message": "¿Seguro que quieres quitar a {{name}} como delegado de {{team}}?\nSu cuenta seguirá existiendo.",
+      "confirm": "Quitar"
+    },
+    "ban": {
+      "title": "Vetar equipo",
+      "message": "¿Seguro que quieres vetar a {{name}}?\nNo podrá participar hasta que lo reactives.",
+      "confirm": "Vetar"
+    },
+    "delete": {
+      "title": "Eliminar equipo",
+      "message": "¿Seguro que quieres eliminar a {{name}}?\nEsta acción no se puede deshacer.",
+      "confirm": "Eliminar"
+    },
+    "form": {
+      "newTitle": "Nuevo equipo",
+      "editTitle": "Editar equipo",
+      "nameHint": "Puedes repetir el nombre si el delegado es distinto."
+    },
+    "manager": {
+      "title": "Delegado",
+      "assignTitle": "Asignar delegado",
+      "changeTitle": "Cambiar delegado",
+      "editTitle": "Editar datos del delegado",
+      "modes": {
+        "none": "Sin delegado por ahora",
+        "new": "Nuevo delegado",
+        "code": "Ya tiene clave"
+      },
+      "noneHelp": "Podrás asignar un delegado más adelante desde la lista.",
+      "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "phoneHint": "Opcional, 10 dígitos",
+      "userCode": "Clave",
+      "duplicate": "Ese correo o teléfono ya está registrado. Si es un delegado, ¿ya tiene clave?",
+      "goToCode": "Asígnalo con ella",
+      "codeHelp": "Pídele su clave a la persona y escríbela aquí.",
+      "search": "Buscar",
+      "lookup": {
+        "notFound": "No encontramos un delegado con esa clave",
+        "tooMany": "Hiciste demasiadas búsquedas. Espera un momento e inténtalo de nuevo.",
+        "generic": "No pudimos buscar la clave. Inténtalo de nuevo."
+      }
+    },
+    "accountStatus": {
+      "pending": "Pendiente",
+      "active": "Activo",
+      "inactive": "Inactivo"
     }
   }
 }

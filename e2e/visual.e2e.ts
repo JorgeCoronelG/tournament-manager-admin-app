@@ -4,10 +4,12 @@ import {
   gotoApp,
   makeFields,
   makeReferees,
+  makeTeams,
   makeTournaments,
   makeUsers,
   mockFieldsApi,
   mockRefereesApi,
+  mockTeamsApi,
   mockTournamentsApi,
   mockUsersApi,
 } from "./support";
@@ -51,6 +53,14 @@ test.describe("visual regression", () => {
     await expect(page.locator("tr[mat-row]")).toHaveCount(5);
 
     await expect(page).toHaveScreenshot("referees.png");
+  });
+
+  test("teams", async ({ page }) => {
+    await mockTeamsApi(page, { teams: makeTeams(12) });
+    await gotoApp(page, "/dashboard/equipos");
+    await expect(page.locator("tr[mat-row]")).toHaveCount(5);
+
+    await expect(page).toHaveScreenshot("teams.png");
   });
 
   test("fields", async ({ page }) => {

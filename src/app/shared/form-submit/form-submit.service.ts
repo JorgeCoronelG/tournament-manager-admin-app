@@ -21,6 +21,12 @@ export interface FormSubmitOptions<R> {
    * several fields and must clear when any of them changes). Only with `"form"`.
    */
   ignoreFields?: readonly string[];
+  /**
+   * Where the failures that belong to no field go (a 422 with a plain message,
+   * any other error) instead of the snackbar, e.g. an alert inside the dialog.
+   * Only with `"form"`.
+   */
+  onFormError?: (message: string) => void;
 }
 
 /**
@@ -39,6 +45,7 @@ export class FormSubmitService {
       onSuccess,
       errors = "interceptor",
       ignoreFields = [],
+      onFormError,
     }: FormSubmitOptions<R>,
   ): Promise<boolean> {
     return submit(form, async () => {
@@ -49,22 +56,29 @@ export class FormSubmitService {
         return undefined;
       } catch (error) {
         return errors === "form"
-          ? this.report(form, error, ignoreFields)
+          ? this.report(form, error, ignoreFields, onFormError)
           : undefined;
       }
     });
   }
 
-  /** Field errors from a 422 onto the form's fields; anything else in a snackbar */
+  /** Field errors from a 422 onto the form's fields; anything else in a snackbar (or `onFormError`) */
   private report<TModel>(
     form: FieldTree<TModel>,
     error: unknown,
     ignoreFields: readonly string[],
+    onFormError?: (message: string) => void,
   ) {
+    const show = (message: string) =>
+      onFormError ? onFormError(message) : this.snackbar.error(message);
     const all = fieldErrors(error);
 
     if (!all) {
-      this.snackbar.notifyFailure(error);
+      if (onFormError) {
+        onFormError(this.snackbar.failureText(error));
+      } else {
+        this.snackbar.notifyFailure(error);
+      }
 
       return undefined;
     }
@@ -82,7 +96,7 @@ export class FormSubmitService {
       .flatMap(([, messages]) => messages);
 
     if (unmatched.length) {
-      this.snackbar.error(unmatched.join(" "));
+      show(unmatched.join(" "));
     }
 
     return Object.entries(serverErrors)

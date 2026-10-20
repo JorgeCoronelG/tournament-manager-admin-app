@@ -693,3 +693,272 @@ export async function mockFieldsApi(
 
   return api;
 }
+
+export interface MockTeam {
+  id: number;
+  name: string;
+  logo_url: string | null;
+  status: "active" | "banned";
+  manager: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string | null;
+    user_code: string;
+    photo_url: string | null;
+    account_status: "pending" | "active" | "inactive";
+  } | null;
+  created_at: string;
+}
+
+/** Deterministic teams of league 1, newest first by id: every third one has no delegate */
+export function makeTeams(count: number): MockTeam[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: `Equipo ${String(i + 1).padStart(2, "0")}`,
+    logo_url: null,
+    status: i % 4 === 3 ? "banned" : "active",
+    manager:
+      i % 3 === 2
+        ? null
+        : {
+            id: 100 + i,
+            first_name: FIRST_NAMES[i % FIRST_NAMES.length],
+            last_name: LAST_NAMES[i % LAST_NAMES.length],
+            email: `delegado${i + 1}@example.com`,
+            phone: null,
+            user_code: `DEL${String(i + 1).padStart(4, "0")}`,
+            photo_url: null,
+            account_status: i % 3 === 1 ? "pending" : "active",
+          },
+    created_at: new Date(
+      FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+    ).toISOString(),
+  }));
+}
+
+export interface TeamsApiOptions {
+  teams?: MockTeam[];
+  /** What `POST /teams` answers (default: 201 with the new team) */
+  create?: { status: number; body: unknown };
+  /** What `GET /manager-lookup` answers (default: 404) */
+  lookup?: { status: number; body?: unknown };
+  /** What `PUT /teams/{id}/manager` answers (default: 200 with the team) */
+  assign?: { status: number; body: unknown };
+  /** What `DELETE /teams/{id}/manager` answers (default: 204) */
+  unassign?: { status: number; body: unknown };
+}
+
+export interface TeamsApi {
+  /** Query strings of every `GET /teams` so far */
+  queries: URLSearchParams[];
+  /** Bodies of the `POST /teams` so far */
+  created: unknown[];
+  /** Ids of the teams deleted so far */
+  deleted: number[];
+  /** `{ id, status }` of every `PATCH /status` so far */
+  statusChanges: { id: number; status: string }[];
+  /** `{ id, body }` of every `PUT /teams/{id}/manager` so far */
+  managerSet: { id: number; body: unknown }[];
+  /** Ids of the teams whose delegate was removed so far */
+  managerRemoved: number[];
+  /** `{ id, contentType }` of every `POST /teams/{id}/logo` so far */
+  logos: { id: number; contentType: string }[];
+}
+
+/** Stubs `/leagues/1/teams`: search, filters, sort and pagination work like the real list */
+export async function mockTeamsApi(
+  page: Page,
+  { teams = [], create, lookup, assign, unassign }: TeamsApiOptions = {},
+): Promise<TeamsApi> {
+  const state = [...teams];
+  const api: TeamsApi = {
+    queries: [],
+    created: [],
+    deleted: [],
+    statusChanges: [],
+    managerSet: [],
+    managerRemoved: [],
+    logos: [],
+  };
+  const idOf = (url: string, fromEnd: number) =>
+    Number(new URL(url).pathname.split("/").at(-fromEnd));
+
+  await page.route(/\/teams\/managers$/, (route) =>
+    route.fulfill({
+      json: [
+        ...new Map(
+          state.flatMap((t) => (t.manager ? [[t.manager.id, t.manager]] : [])),
+        ).values(),
+      ].map(({ id, first_name, last_name }) => ({ id, first_name, last_name })),
+    }),
+  );
+
+  await page.route(/\/manager-lookup(\?.*)?$/, (route) =>
+    route.fulfill({
+      status: lookup?.status ?? 404,
+      json: lookup?.body ?? { code: 404, error: "No encontrado." },
+    }),
+  );
+
+  await page.route(/\/teams\/\d+\/logo$/, (route) => {
+    const request = route.request();
+    const id = idOf(request.url(), 2);
+
+    if (request.method() === "POST") {
+      api.logos.push({
+        id,
+        contentType: request.headers()["content-type"] ?? "",
+      });
+    }
+
+    return route.fulfill({
+      status: request.method() === "DELETE" ? 204 : 200,
+      json: state.find((t) => t.id === id) ?? {},
+    });
+  });
+
+  await page.route(/\/teams\/\d+\/manager$/, (route) => {
+    const request = route.request();
+    const id = idOf(request.url(), 2);
+    const found = state.find((t) => t.id === id);
+
+    if (request.method() === "DELETE") {
+      if (unassign) {
+        return route.fulfill({ status: unassign.status, json: unassign.body });
+      }
+
+      api.managerRemoved.push(id);
+
+      if (found) {
+        found.manager = null;
+      }
+
+      return route.fulfill({ status: 204 });
+    }
+
+    api.managerSet.push({ id, body: request.postDataJSON() });
+
+    if (assign) {
+      return route.fulfill({ status: assign.status, json: assign.body });
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/teams\/\d+\/status$/, (route) => {
+    const id = idOf(route.request().url(), 2);
+    const { status } = route.request().postDataJSON() as { status: string };
+    api.statusChanges.push({ id, status });
+    const found = state.find((t) => t.id === id);
+
+    if (found) {
+      found.status = status as MockTeam["status"];
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/teams\/\d+$/, (route) => {
+    const request = route.request();
+    const id = idOf(request.url(), 1);
+
+    if (request.method() === "DELETE") {
+      api.deleted.push(id);
+      state.splice(0, state.length, ...state.filter((t) => t.id !== id));
+
+      return route.fulfill({ status: 204 });
+    }
+
+    const found = state.find((t) => t.id === id);
+
+    if (found) {
+      found.name = (request.postDataJSON() as { name: string }).name;
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/teams(\?.*)?$/, (route) => {
+    const request = route.request();
+
+    if (request.method() === "POST") {
+      const body = request.postDataJSON() as {
+        name: string;
+        manager?: Record<string, string>;
+      };
+      api.created.push(body);
+
+      if (create) {
+        return route.fulfill({ status: create.status, json: create.body });
+      }
+
+      const next: MockTeam = {
+        id: Math.max(0, ...state.map((t) => t.id)) + 1,
+        name: body.name,
+        logo_url: null,
+        status: "active",
+        manager: body.manager?.first_name
+          ? {
+              id: 900,
+              first_name: body.manager.first_name,
+              last_name: body.manager.last_name,
+              email: body.manager.email,
+              phone: null,
+              user_code: "NEW0001",
+              photo_url: null,
+              account_status: "pending",
+            }
+          : null,
+        created_at: FIXED_NOW.toISOString(),
+      };
+      state.push(next);
+
+      return route.fulfill({ status: 201, json: next });
+    }
+
+    const query = new URL(request.url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const sort = query.get("sort") ?? "-created_at";
+    const field = sort.replace(/^-/, "") as keyof MockTeam;
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+
+    const matching = state
+      .filter(
+        (t) =>
+          `${t.name} ${t.manager?.first_name ?? ""} ${t.manager?.last_name ?? ""}`
+            .toLowerCase()
+            .includes(search) &&
+          (!query.get("status") || t.status === query.get("status")) &&
+          (query.get("has_manager") !== "false" || t.manager === null) &&
+          (!query.get("manager_user_id") ||
+            t.manager?.id === Number(query.get("manager_user_id"))),
+      )
+      .sort(
+        (a, b) => String(a[field]).localeCompare(String(b[field])) * direction,
+      );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}

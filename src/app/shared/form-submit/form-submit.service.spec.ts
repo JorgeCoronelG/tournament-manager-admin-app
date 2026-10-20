@@ -41,7 +41,15 @@ describe("FormSubmitService", () => {
     send.mockReturnValue(of({ id: 1 }));
     TestBed.configureTestingModule({
       providers: [
-        { provide: SnackbarService, useValue: { error, notifyFailure } },
+        {
+          provide: SnackbarService,
+          useValue: {
+            error,
+            notifyFailure,
+            failureText: (e: HttpErrorResponse) =>
+              (e.error as { error?: string } | null)?.error ?? "generic",
+          },
+        },
       ],
     });
   });
@@ -111,5 +119,21 @@ describe("FormSubmitService", () => {
     await service.submit(userForm, { send, errors: "form" });
 
     expect(notifyFailure).toHaveBeenCalledWith(failure);
+  });
+
+  it("hands the failures that belong to no field to onFormError instead of the snackbar", async () => {
+    const onFormError = vi.fn();
+    const { service, userForm } = setup();
+
+    send.mockReturnValue(unprocessable({ error: "Ya tiene ese equipo." }));
+    await service.submit(userForm, { send, errors: "form", onFormError });
+    expect(onFormError).toHaveBeenLastCalledWith("Ya tiene ese equipo.");
+
+    send.mockReturnValue(unprocessable({ error: { other: ["Sin campo."] } }));
+    await service.submit(userForm, { send, errors: "form", onFormError });
+    expect(onFormError).toHaveBeenLastCalledWith("Sin campo.");
+
+    expect(error).not.toHaveBeenCalled();
+    expect(notifyFailure).not.toHaveBeenCalled();
   });
 });

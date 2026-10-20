@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>
+  {{ (team ? "teams.form.editTitle" : "teams.form.newTitle") | transloco }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>{{ "teams.fields.name" | transloco }}</mat-label>
+      <input [formField]="teamForm.name" autocomplete="off" matInput />
+      @if (teamForm.name().errors().length) {
+        <mat-error>{{ errorText(teamForm.name().errors()) }}</mat-error>
+      }
+      <!-- Material swaps it for the error while the field shows one -->
+      <mat-hint>{{ "teams.form.nameHint" | transloco }}</mat-hint>
+    </mat-form-field>
+
+    <app-logo-picker
+      [(file)]="logoFile"
+      [(removed)]="logoRemoved"
+      [alt]="teamForm.name().value()"
+      [currentUrl]="team?.logo_url ?? null"
+      class="mb-2"
+    />
+
+    @if (!team) {
+      <h3 class="m-0 mt-2 mb-1 text-base font-medium">
+        {{ "teams.manager.title" | transloco }}
+      </h3>
+      <app-manager-fields
+        [(found)]="found"
+        [form]="teamForm"
+        [modes]="managerModes"
+      />
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="!canSave()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

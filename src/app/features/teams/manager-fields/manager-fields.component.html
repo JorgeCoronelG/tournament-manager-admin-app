@@ -1,0 +1,178 @@
+@if (tabbed()) {
+  <mat-tab-group
+    (selectedIndexChange)="select($event)"
+    [selectedIndex]="tab()"
+    animationDuration="0ms"
+    mat-stretch-tabs="false"
+  >
+    @for (mode of modes(); track mode) {
+      <mat-tab [label]="'teams.manager.modes.' + mode | transloco">
+        <div class="flex flex-col gap-2 pt-4">
+          @switch (mode) {
+            @case ("none") {
+              <p class="text-secondary m-0">
+                {{ "teams.manager.noneHelp" | transloco }}
+              </p>
+            }
+            @case ("new") {
+              <p class="text-secondary m-0 mb-2">
+                {{ "teams.manager.invitationNotice" | transloco }}
+              </p>
+              <ng-container *ngTemplateOutlet="newFields" />
+            }
+            @case ("code") {
+              <ng-container *ngTemplateOutlet="codeFields" />
+            }
+          }
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+} @else {
+  <div class="flex flex-col gap-2">
+    <ng-container *ngTemplateOutlet="newFields" />
+  </div>
+}
+
+<ng-template #newFields>
+  <mat-form-field>
+    <mat-label>{{ "teams.manager.firstName" | transloco }}</mat-label>
+    <input [formField]="form().first_name" autocomplete="off" matInput />
+    @if (form().first_name().errors().length) {
+      <mat-error>{{
+        errorText(form().first_name().errors(), form().first_name().value())
+      }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>{{ "teams.manager.lastName" | transloco }}</mat-label>
+    <input [formField]="form().last_name" autocomplete="off" matInput />
+    @if (form().last_name().errors().length) {
+      <mat-error>{{
+        errorText(form().last_name().errors(), form().last_name().value())
+      }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>{{ "teams.manager.email" | transloco }}</mat-label>
+    <input
+      [formField]="form().email"
+      autocomplete="off"
+      matInput
+      type="email"
+    />
+    @if (form().email().errors().length) {
+      <mat-error>{{
+        errorText(form().email().errors(), form().email().value())
+      }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>{{ "teams.manager.phone" | transloco }}</mat-label>
+    <input
+      [formField]="form().phone"
+      autocomplete="off"
+      inputmode="numeric"
+      matInput
+      type="tel"
+    />
+    @if (form().phone().errors().length) {
+      <mat-error>{{
+        errorText(form().phone().errors(), form().phone().value())
+      }}</mat-error>
+    } @else {
+      <mat-hint>{{ "teams.manager.phoneHint" | transloco }}</mat-hint>
+    }
+  </mat-form-field>
+
+  @if (duplicate() && modes().includes("code")) {
+    <div
+      #duplicateNotice
+      class="flex items-start gap-3 mt-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:info" />
+      <p class="m-0 text-sm">
+        {{ "teams.manager.duplicate" | transloco }}
+        <button
+          (click)="goToCode()"
+          class="p-0 border-0 bg-transparent font-[inherit] font-medium underline cursor-pointer text-inherit"
+          type="button"
+        >
+          {{ "teams.manager.goToCode" | transloco }}
+        </button>
+      </p>
+    </div>
+  }
+</ng-template>
+
+<ng-template #codeFields>
+  @if (cameFromDuplicate()) {
+    <p class="text-secondary m-0 mb-2">
+      {{ "teams.manager.codeHelp" | transloco }}
+    </p>
+  }
+
+  @if (lookupError(); as error) {
+    <div
+      class="flex items-start gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+      role="alert"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:info" />
+      <p class="m-0 text-sm">
+        {{ "teams.manager.lookup." + error | transloco }}
+      </p>
+    </div>
+  }
+
+  <div class="flex items-start gap-2">
+    <mat-form-field class="flex-1">
+      <mat-label>{{ "teams.manager.userCode" | transloco }}</mat-label>
+      <input
+        (keydown.enter)="$event.preventDefault(); search()"
+        [formField]="form().user_code"
+        autocomplete="off"
+        matInput
+      />
+      @if (form().user_code().errors().length) {
+        <mat-error>{{
+          errorText(
+            form().user_code().errors(),
+            form().user_code().value(),
+            userCodeMax
+          )
+        }}</mat-error>
+      }
+    </mat-form-field>
+    <button
+      (click)="search()"
+      [disabled]="searching()"
+      class="mt-1"
+      mat-stroked-button
+      type="button"
+    >
+      {{ "teams.manager.search" | transloco }}
+    </button>
+  </div>
+
+  @if (searching()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (found(); as manager) {
+    <div
+      class="flex items-center gap-3 rounded border border-solid border-gray-500/30 p-3 mt-2"
+    >
+      <app-avatar
+        [src]="manager.photo_url"
+        class="w-12 h-12 rounded-full shrink-0"
+      />
+      <p class="m-0 font-medium">
+        {{ manager.first_name }} {{ manager.last_name }}
+      </p>
+    </div>
+  }
+</ng-template>

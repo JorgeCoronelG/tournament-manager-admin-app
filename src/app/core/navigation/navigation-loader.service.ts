@@ -61,6 +61,19 @@ const NAVIGATION: NavigationItem[] = [
       },
       {
         type: "dropdown",
+        label: "nav.teams",
+        icon: "mat:groups",
+        capability: "teams.manage",
+        children: [
+          {
+            type: "link",
+            label: "nav.manage",
+            route: "/dashboard/equipos",
+          },
+        ],
+      },
+      {
+        type: "dropdown",
         label: "nav.referees",
         icon: "mat:sports",
         capability: "referees.manage",

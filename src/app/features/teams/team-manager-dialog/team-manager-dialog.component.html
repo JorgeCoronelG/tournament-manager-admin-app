@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>
+  {{
+    (team.manager ? "teams.manager.changeTitle" : "teams.manager.assignTitle")
+      | transloco
+  }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="!pt-2 min-w-[320px]">
+    @if (serverError(); as message) {
+      <div
+        class="flex items-start gap-3 mb-3 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm">{{ message }}</p>
+      </div>
+    }
+    <app-manager-fields
+      (searched)="serverError.set(null)"
+      [(found)]="found"
+      [form]="managerForm"
+      [modes]="modes"
+    />
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="!canSave()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

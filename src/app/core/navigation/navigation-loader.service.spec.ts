@@ -25,7 +25,7 @@ describe("NavigationLoaderService", () => {
     return TestBed.inject(NavigationLoaderService);
   }
 
-  it("shows the superadmin the dashboard, users, leagues, tournaments, referees and fields", () => {
+  it("shows the superadmin the dashboard, users, leagues, tournaments, teams, referees and fields", () => {
     expect(labels(signInAs("superadmin").items())).toEqual([
       "nav.main",
       "nav.dashboard",
@@ -35,6 +35,8 @@ describe("NavigationLoaderService", () => {
       "nav.manage",
       "nav.tournaments",
       "nav.manage",
+      "nav.teams",
+      "nav.manage",
       "nav.referees",
       "nav.manage",
       "nav.fields",
@@ -42,11 +44,13 @@ describe("NavigationLoaderService", () => {
     ]);
   });
 
-  it("shows the league admin the dashboard, tournaments, referees and fields", () => {
+  it("shows the league admin the dashboard, tournaments, teams, referees and fields", () => {
     expect(labels(signInAs("league_admin").items())).toEqual([
       "nav.main",
       "nav.dashboard",
       "nav.tournaments",
+      "nav.manage",
+      "nav.teams",
       "nav.manage",
       "nav.referees",
       "nav.manage",

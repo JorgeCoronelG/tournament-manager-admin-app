@@ -20,11 +20,13 @@ const CLASSES: Record<UserStatus, string> = {
   template: `<span
     [class]="classes()"
     class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
-    >{{ "users.status." + status() | transloco }}</span
+    >{{ labelPrefix() + "." + status() | transloco }}</span
   >`,
 })
 export class UserStatusChipComponent {
   readonly status = input.required<UserStatus>();
+  /** Translation key holding one label per status */
+  readonly labelPrefix = input("users.status");
 
   readonly classes = computed(() => CLASSES[this.status()]);
 }

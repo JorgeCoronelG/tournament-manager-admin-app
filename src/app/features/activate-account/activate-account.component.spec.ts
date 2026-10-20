@@ -82,7 +82,7 @@ describe("ActivateAccountComponent", () => {
 
     const page: HTMLElement = fixture.nativeElement;
     expect(page.textContent).toContain(
-      "Tu cuenta está activa. Si eres administrador, inicia sesión; si eres árbitro o jugador, usa la app móvil.",
+      "Tu cuenta está activa. Si eres administrador, inicia sesión; si eres árbitro, delegado o jugador, usa la app móvil.",
     );
     expect(page.querySelector("form")).toBeNull();
     expect(page.querySelector("a[href='/']")?.textContent).toContain(

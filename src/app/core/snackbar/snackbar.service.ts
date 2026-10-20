@@ -42,7 +42,12 @@ export class SnackbarService {
 
   /** A failed request: the backend's own message, or a generic one for its status */
   notifyFailure(error: unknown): void {
-    this.error(failureMessage(error, (key) => this.transloco.translate(key)));
+    this.error(this.failureText(error));
+  }
+
+  /** The text `notifyFailure` shows, for places that show it themselves */
+  failureText(error: unknown): string {
+    return failureMessage(error, (key) => this.transloco.translate(key));
   }
 
   private show(message: string, variant: SnackbarVariant): void {
