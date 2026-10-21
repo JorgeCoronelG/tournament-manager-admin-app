@@ -37,7 +37,7 @@ import {
   RegistrationDialogComponent,
   RegistrationDialogData,
 } from "../registration-dialog/registration-dialog.component";
-import { Registration } from "../registration.model";
+import { isBanned, Registration } from "../registration.model";
 import { RegistrationsApi } from "../registrations.api";
 
 @Component({
@@ -130,6 +130,14 @@ export class RegistrationsPageComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly changePage = this.list.changePage;
+
+  /** Totals of the whole tournament, whatever the search or the page */
+  private readonly summary = computed(() => this.resource.value()?.summary);
+  readonly registeredCount = computed(
+    () => this.summary()?.["registered"] ?? this.total(),
+  );
+  readonly bannedCount = computed(() => this.summary()?.["banned"] ?? 0);
+  protected readonly isBanned = isBanned;
 
   readonly crumbs = computed(() => [
     this.transloco.translate("nav.tournaments"),

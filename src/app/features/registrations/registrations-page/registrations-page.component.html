@@ -59,10 +59,19 @@
           <app-tournament-status-chip [status]="tournament()!.status" />
           <span class="font-medium">
             {{
-              (total() === 1
+              (registeredCount() === 1
                 ? "registrations.count.one"
                 : "registrations.count.other"
-              ) | transloco: { count: total() }
+              ) | transloco: { count: registeredCount() }
+            }}{{
+              bannedCount() > 0
+                ? " (" +
+                  ((bannedCount() === 1
+                    ? "registrations.bannedCount.one"
+                    : "registrations.bannedCount.other"
+                  ) | transloco: { count: bannedCount() }) +
+                  ")"
+                : ""
             }}
           </span>
         </div>
@@ -106,8 +115,17 @@
                 <th *matHeaderCellDef mat-header-cell>
                   {{ "registrations.fields.team" | transloco }}
                 </th>
-                <td *matCellDef="let row" mat-cell class="font-medium">
-                  {{ row.team.name }}
+                <td *matCellDef="let row" mat-cell>
+                  <span class="flex flex-wrap items-center gap-2 py-1">
+                    <span class="font-medium">{{ row.team.name }}</span>
+                    @if (isBanned(row.team)) {
+                      <span
+                        [matTooltip]="'registrations.bannedHint' | transloco"
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+                        >{{ "registrations.banned" | transloco }}</span
+                      >
+                    }
+                  </span>
                 </td>
               </ng-container>
 

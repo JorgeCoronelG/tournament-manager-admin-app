@@ -6,6 +6,8 @@ export interface RegistrationTeam {
   name: string;
   logo_url: string | null;
   manager: { name: string; pending: boolean } | null;
+  /** Banned teams stay enrolled but do not count to start the tournament */
+  status?: TeamStatus;
 }
 
 /** A team enrolled in a tournament, as the list returns it */
@@ -28,10 +30,8 @@ export type RegistrationsQuery = RegistrationsFilters & PageQuery;
  * A team of the league that is not enrolled yet, as the dialog lists it.
  * Banned teams come too, so the dialog can show them disabled.
  */
-export interface AvailableTeam extends RegistrationTeam {
-  status?: TeamStatus;
-}
+export type AvailableTeam = RegistrationTeam;
 
-export function isBanned(team: AvailableTeam): boolean {
+export function isBanned(team: RegistrationTeam): boolean {
   return team.status === "banned";
 }

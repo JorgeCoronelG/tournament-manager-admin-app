@@ -15,4 +15,6 @@ export interface PaginatedResponse<T> {
     to: number | null;
     total: number;
   };
+  /** Totals some endpoints add over the whole list, not just the page or search */
+  summary?: Record<string, number>;
 }

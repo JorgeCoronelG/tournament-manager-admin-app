@@ -443,6 +443,12 @@
       "one": "{{count}} equipo inscrito",
       "other": "{{count}} equipos inscritos"
     },
+    "banned": "Vetado",
+    "bannedHint": "Los equipos vetados no cuentan para iniciar el torneo.",
+    "bannedCount": {
+      "one": "{{count}} vetado",
+      "other": "{{count}} vetados"
+    },
     "register": "Inscribir equipos",
     "registered": "Equipos inscritos",
     "removed": "Inscripción quitada",
