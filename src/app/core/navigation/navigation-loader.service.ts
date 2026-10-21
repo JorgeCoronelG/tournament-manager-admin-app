@@ -56,6 +56,7 @@ const NAVIGATION: NavigationItem[] = [
             type: "link",
             label: "nav.manage",
             route: "/dashboard/torneos",
+            routerLinkActiveOptions: { exact: true },
           },
         ],
       },
