@@ -1,6 +1,7 @@
-import { HttpClient, HttpContext } from "@angular/common/http";
+import { HttpClient, HttpContext, httpResource } from "@angular/common/http";
 import { inject, Service, Signal } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../../core/http/error.interceptor";
+import { PaginatedResponse } from "../../core/http/paginated-response.model";
 import { paginatedResource } from "../../core/http/paginated-resource";
 import { LeagueContextService } from "../../core/league-context/league-context.service";
 import {
@@ -43,6 +44,17 @@ export class TournamentsApi {
         ...(status ? { status } : {}),
       }),
     );
+  }
+
+  /** The league's tournaments, newest first, for a selector; waits while there is no league */
+  options() {
+    return httpResource<PaginatedResponse<Tournament>>(() => {
+      const url = this.league.leagueApi("/tournaments");
+
+      return url
+        ? { url, params: { per_page: 100, sort: "-start_date" } }
+        : undefined;
+    });
   }
 
   create(tournament: NewTournament) {

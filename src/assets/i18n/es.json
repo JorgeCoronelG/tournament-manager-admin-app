@@ -37,7 +37,8 @@
     "tournaments": "Torneos",
     "referees": "Árbitros",
     "fields": "Canchas",
-    "teams": "Equipos"
+    "teams": "Equipos",
+    "registrations": "Inscripciones"
   },
   "dashboard": {
     "title": "Panel",
@@ -430,6 +431,49 @@
     "errors": {
       "type": "El archivo debe ser una imagen JPG, PNG o WebP.",
       "size": "La imagen pesa más de 2 MB. Elige una más ligera."
+    }
+  },
+  "registrations": {
+    "title": "Inscripciones",
+    "tournament": "Torneo",
+    "pickTournament": "Elige un torneo para ver sus equipos inscritos.",
+    "noTournaments": "Esta liga aún no tiene torneos.",
+    "search": "Buscar por equipo o delegado",
+    "count": {
+      "one": "{{count}} equipo inscrito",
+      "other": "{{count}} equipos inscritos"
+    },
+    "register": "Inscribir equipos",
+    "registered": "Equipos inscritos",
+    "removed": "Inscripción quitada",
+    "error": "No pudimos cargar las inscripciones.",
+    "emptyAction": "Aún no hay equipos inscritos en este torneo.",
+    "readOnly": "Solo se pueden inscribir o quitar equipos con el torneo en planeación.",
+    "noManager": "Sin delegado",
+    "fields": {
+      "logo": "Logo",
+      "team": "Equipo",
+      "manager": "Delegado",
+      "registeredAt": "Inscrito",
+      "actions": "Acciones"
+    },
+    "actions": { "remove": "Quitar inscripción" },
+    "remove": {
+      "title": "Quitar inscripción",
+      "message": "¿Seguro que quieres quitar a {{name}} de este torneo?",
+      "confirm": "Quitar"
+    },
+    "dialog": {
+      "title": "Inscribir equipos",
+      "search": "Buscar equipo o delegado",
+      "banned": "Vetado",
+      "bannedHint": "Los equipos vetados no pueden inscribirse.",
+      "noManager": "(sin delegado)",
+      "selected": "{{count}} seleccionados",
+      "empty": "No hay equipos disponibles para inscribir.",
+      "error": "No pudimos cargar los equipos.",
+      "failed": "{{team}}: {{message}}",
+      "confirm": "Inscribir"
     }
   },
   "teams": {

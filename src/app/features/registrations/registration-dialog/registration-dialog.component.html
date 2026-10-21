@@ -1,0 +1,112 @@
+<h2 mat-dialog-title>{{ "registrations.dialog.title" | transloco }}</h2>
+
+<mat-dialog-content class="!pt-2 min-w-[320px]">
+  @if (serverError(); as message) {
+    <div
+      class="flex items-start gap-3 mb-3 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+      role="alert"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:error" />
+      <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+    </div>
+  }
+
+  <mat-form-field class="w-full">
+    <mat-label>{{ "registrations.dialog.search" | transloco }}</mat-label>
+    <mat-icon matPrefix svgIcon="mat:search" />
+    <input
+      [formField]="filtersForm.search"
+      autocomplete="off"
+      matInput
+      type="search"
+    />
+  </mat-form-field>
+
+  <mat-progress-bar
+    [class.invisible]="!resource.isLoading()"
+    mode="indeterminate"
+  />
+
+  @if (resource.error()) {
+    <div class="py-6 text-center" role="alert">
+      <p class="text-secondary mb-4">
+        {{ "registrations.dialog.error" | transloco }}
+      </p>
+      <button (click)="resource.reload()" mat-stroked-button type="button">
+        {{ "common.retry" | transloco }}
+      </button>
+    </div>
+  } @else if (!resource.isLoading() && teams().length === 0) {
+    <p class="py-6 text-center text-secondary">
+      {{ "registrations.dialog.empty" | transloco }}
+    </p>
+  } @else {
+    <ul class="list-none m-0 p-0 max-h-80 overflow-y-auto">
+      @for (team of teams(); track team.id) {
+        <li
+          [class.opacity-60]="isBanned(team)"
+          [matTooltip]="
+            isBanned(team)
+              ? ('registrations.dialog.bannedHint' | transloco)
+              : ''
+          "
+          class="flex items-center gap-2"
+        >
+          <mat-checkbox
+            (change)="toggle(team, $event.checked)"
+            [checked]="isSelected(team)"
+            [disabled]="isBanned(team)"
+            [disabled]="team.status === 'banned'"
+            class="flex-1"
+          >
+            <span class="flex items-center gap-3 py-1">
+              <app-logo-image
+                [alt]="team.name"
+                [src]="team.logo_url"
+                class="w-8 h-8 rounded-full"
+              />
+              <span class="flex flex-col">
+                <span class="flex flex-wrap items-center gap-2">
+                  <span class="font-medium">{{ team.name }}</span>
+                  @if (isBanned(team)) {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+                      >{{ "registrations.dialog.banned" | transloco }}</span
+                    >
+                  }
+                </span>
+                <span class="text-sm text-secondary">
+                  @if (team.manager; as manager) {
+                    {{ manager.name }}
+                  } @else {
+                    {{ "registrations.dialog.noManager" | transloco }}
+                  }
+                </span>
+              </span>
+            </span>
+          </mat-checkbox>
+        </li>
+      }
+    </ul>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <span class="flex-1 ml-4 text-sm text-secondary">
+    {{
+      "registrations.dialog.selected" | transloco: { count: selected().length }
+    }}
+  </span>
+  <button mat-button mat-dialog-close type="button">
+    {{ "common.cancel" | transloco }}
+  </button>
+  <button
+    (click)="save()"
+    [disabled]="selected().length === 0 || saving()"
+    color="primary"
+    mat-flat-button
+    type="button"
+  >
+    {{ "registrations.dialog.confirm" | transloco }}
+  </button>
+</mat-dialog-actions>

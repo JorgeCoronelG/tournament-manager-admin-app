@@ -47,4 +47,18 @@ describe("capabilitiesFor", () => {
 
     expect(capabilities.has("matches.manage")).toBe(true);
   });
+
+  it("lets the superadmin and the league admin manage registrations", () => {
+    expect(capabilitiesFor(["superadmin"]).has("registrations.manage")).toBe(
+      true,
+    );
+    expect(capabilitiesFor(["league_admin"]).has("registrations.manage")).toBe(
+      true,
+    );
+    expect(
+      capabilitiesFor(["referee", "manager", "player"]).has(
+        "registrations.manage",
+      ),
+    ).toBe(false);
+  });
 });

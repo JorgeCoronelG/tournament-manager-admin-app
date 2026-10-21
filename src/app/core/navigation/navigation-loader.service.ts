@@ -58,6 +58,12 @@ const NAVIGATION: NavigationItem[] = [
             route: "/dashboard/torneos",
             routerLinkActiveOptions: { exact: true },
           },
+          {
+            type: "link",
+            label: "nav.registrations",
+            route: "/dashboard/torneos/inscripciones",
+            capability: "registrations.manage",
+          },
         ],
       },
       {

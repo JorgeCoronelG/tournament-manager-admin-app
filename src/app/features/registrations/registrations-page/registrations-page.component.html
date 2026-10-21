@@ -1,0 +1,209 @@
+<app-secondary-toolbar [current]="'registrations.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    @if (!leagueContext.activeLeague()) {
+      <app-league-required />
+    } @else {
+      <div class="flex flex-wrap items-start gap-4 mb-4">
+        <mat-form-field class="w-72">
+          <mat-label>{{ "registrations.tournament" | transloco }}</mat-label>
+          <mat-select [formField]="pickerForm.tournament">
+            @for (item of tournaments(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (tournament()) {
+          <mat-form-field class="w-72">
+            <mat-label>{{ "registrations.search" | transloco }}</mat-label>
+            <mat-icon matPrefix svgIcon="mat:search" />
+            <input
+              [formField]="filtersForm.search"
+              autocomplete="off"
+              matInput
+              type="search"
+            />
+          </mat-form-field>
+        }
+
+        <span class="flex-1"></span>
+
+        @if (editable()) {
+          <button
+            (click)="register()"
+            color="primary"
+            mat-flat-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+            {{ "registrations.register" | transloco }}
+          </button>
+        }
+      </div>
+
+      @if (!tournament()) {
+        <p class="py-10 px-6 text-center text-secondary">
+          {{
+            (tournamentsResource.hasValue() && tournaments().length === 0
+              ? "registrations.noTournaments"
+              : "registrations.pickTournament"
+            ) | transloco
+          }}
+        </p>
+      } @else {
+        <div class="flex flex-wrap items-center gap-4 mb-4">
+          <app-tournament-status-chip [status]="tournament()!.status" />
+          <span class="font-medium">
+            {{
+              (total() === 1
+                ? "registrations.count.one"
+                : "registrations.count.other"
+              ) | transloco: { count: total() }
+            }}
+          </span>
+        </div>
+
+        @if (!editable()) {
+          <div
+            class="flex items-start gap-3 mb-4 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+            role="status"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <p class="m-0 text-sm">
+              {{ "registrations.readOnly" | transloco }}
+            </p>
+          </div>
+        }
+
+        <div class="app-table-card bg-foreground rounded shadow">
+          <mat-progress-bar
+            [class.invisible]="!resource.isLoading()"
+            mode="indeterminate"
+          />
+
+          <div class="app-table-scroll">
+            <table [dataSource]="rows()" class="w-full" mat-table>
+              <ng-container matColumnDef="logo">
+                <th *matHeaderCellDef mat-header-cell>
+                  <span class="sr-only">{{
+                    "registrations.fields.logo" | transloco
+                  }}</span>
+                </th>
+                <td *matCellDef="let row" mat-cell class="w-14">
+                  <app-logo-image
+                    [alt]="row.team.name"
+                    [src]="row.team.logo_url"
+                    class="w-10 h-10 rounded-full my-1"
+                  />
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="team">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "registrations.fields.team" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell class="font-medium">
+                  {{ row.team.name }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="manager">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "registrations.fields.manager" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell>
+                  @if (row.team.manager; as manager) {
+                    <div class="flex flex-wrap items-center gap-2 py-1">
+                      <span class="whitespace-nowrap">{{ manager.name }}</span>
+                      <app-user-status-chip
+                        [status]="manager.pending ? 'pending' : 'active'"
+                        labelPrefix="teams.accountStatus"
+                      />
+                    </div>
+                  } @else {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                      >{{ "registrations.noManager" | transloco }}</span
+                    >
+                  }
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="created_at">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "registrations.fields.registeredAt" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
+                  {{ row.created_at | appDateFormatRelative }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions" stickyEnd>
+                <th *matHeaderCellDef mat-header-cell>
+                  <span class="sr-only">{{
+                    "registrations.fields.actions" | transloco
+                  }}</span>
+                </th>
+                <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
+                  @if (editable()) {
+                    <button
+                      (click)="remove(row)"
+                      [attr.aria-label]="
+                        'registrations.actions.remove' | transloco
+                      "
+                      [matTooltip]="'registrations.actions.remove' | transloco"
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon color="warn" svgIcon="mat:remove_circle" />
+                    </button>
+                  }
+                </td>
+              </ng-container>
+
+              <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
+              <tr *matRowDef="let row; columns: columns" mat-row></tr>
+            </table>
+          </div>
+
+          @if (resource.error()) {
+            <div class="py-10 px-6 text-center" role="alert">
+              <p class="text-secondary mb-4">
+                {{ "registrations.error" | transloco }}
+              </p>
+              <button
+                (click)="resource.reload()"
+                mat-stroked-button
+                type="button"
+              >
+                {{ "common.retry" | transloco }}
+              </button>
+            </div>
+          } @else if (!resource.isLoading() && rows().length === 0) {
+            <p class="py-10 px-6 text-center text-secondary">
+              {{
+                (hasFilters()
+                  ? "table.emptyFiltered"
+                  : "registrations.emptyAction"
+                ) | transloco
+              }}
+            </p>
+          }
+
+          <mat-paginator
+            (page)="changePage($event)"
+            [length]="total()"
+            [pageIndex]="paging().page"
+            [pageSizeOptions]="[5, 10, 25]"
+            [pageSize]="paging().pageSize"
+            showFirstLastButtons
+          />
+        </div>
+      }
+    }
+  </app-page-layout-content>
+</app-page-layout>
