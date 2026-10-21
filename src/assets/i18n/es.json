@@ -243,6 +243,8 @@
       "maxAge": "Edad máxima",
       "age": "Edad",
       "startDate": "Fecha de inicio",
+      "maxRosterSize": "Máximo de jugadores por equipo",
+      "minMatchesForPlayoffs": "Partidos mínimos para liguilla",
       "status": "Estado",
       "actions": "Acciones"
     },
@@ -292,6 +294,9 @@
       "optional": "Opcional",
       "ageBounds": "Ingresa una edad entre {{min}} y {{max}}",
       "ageRange": "La edad máxima no puede ser menor que la mínima",
+      "positiveInteger": "Debe ser un número entero mayor a 0",
+      "maxRosterSizeHint": "Cuentan los jugadores activos y las solicitudes pendientes. Déjalo vacío si no hay límite.",
+      "minMatchesForPlayoffsHint": "Partidos de la fase regular en los que el jugador debe tener asistencia para jugar la liguilla. Déjalo vacío si no aplica.",
       "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre."
     }
   },

@@ -29,6 +29,8 @@ export interface Tournament {
   max_age: number | null;
   /** Y-m-d */
   start_date: string;
+  max_roster_size: number | null;
+  min_matches_for_playoffs: number | null;
   status: TournamentStatus;
   /** ISO 8601 date */
   created_at: string;
@@ -42,6 +44,8 @@ export interface NewTournament {
   max_age: number | null;
   /** Y-m-d */
   start_date: string;
+  max_roster_size: number | null;
+  min_matches_for_playoffs: number | null;
 }
 
 export type TournamentSortField = "name" | "start_date" | "created_at";

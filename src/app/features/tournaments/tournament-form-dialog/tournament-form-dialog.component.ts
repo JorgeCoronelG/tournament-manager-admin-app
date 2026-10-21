@@ -11,6 +11,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { MatIconModule } from "@angular/material/icon";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
@@ -46,6 +47,8 @@ interface TournamentFormModel {
   min_age: number | null;
   max_age: number | null;
   start_date: Date | null;
+  max_roster_size: number | null;
+  min_matches_for_playoffs: number | null;
 }
 
 const NAME_MAX = 150;
@@ -65,6 +68,7 @@ const NAME_MAX = 150;
     MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
     TranslocoPipe,
@@ -92,6 +96,8 @@ export class TournamentFormDialogComponent {
     min_age: this.tournament?.min_age ?? null,
     max_age: this.tournament?.max_age ?? null,
     start_date: this.tournament ? parseDate(this.tournament.start_date) : null,
+    max_roster_size: this.tournament?.max_roster_size ?? null,
+    min_matches_for_playoffs: this.tournament?.min_matches_for_playoffs ?? null,
   });
 
   /**
@@ -132,12 +138,27 @@ export class TournamentFormDialogComponent {
         : undefined;
     });
 
+    for (const field of [
+      tournament.max_roster_size,
+      tournament.min_matches_for_playoffs,
+    ]) {
+      validate(field, ({ value }) => {
+        const amount = value();
+
+        return amount !== null && !(Number.isInteger(amount) && amount >= 1)
+          ? { kind: "positiveInteger" }
+          : undefined;
+      });
+    }
+
     // In progress only the name changes (the backend rejects the rest)
     const locked = () => this.tournament?.status === "in_progress";
     disabled(tournament.gender, locked);
     disabled(tournament.min_age, locked);
     disabled(tournament.max_age, locked);
     disabled(tournament.start_date, locked);
+    disabled(tournament.max_roster_size, locked);
+    disabled(tournament.min_matches_for_playoffs, locked);
   });
 
   /** Server messages win over the generic text of the failed rule */
@@ -153,6 +174,8 @@ export class TournamentFormDialogComponent {
         return this.transloco.translate("validation.maxLength", {
           max: NAME_MAX,
         });
+      case "positiveInteger":
+        return this.transloco.translate("tournaments.form.positiveInteger");
       case "min":
       case "max":
         return this.transloco.translate("tournaments.form.ageBounds", {
@@ -171,13 +194,23 @@ export class TournamentFormDialogComponent {
       errors: "form",
       ignoreFields: ["name"],
       send: () => {
-        const { name, gender, min_age, max_age, start_date } = this.model();
+        const {
+          name,
+          gender,
+          min_age,
+          max_age,
+          start_date,
+          max_roster_size,
+          min_matches_for_playoffs,
+        } = this.model();
         const body = {
           name: name.trim(),
           gender: gender as TournamentGender,
           min_age,
           max_age,
           start_date: formatDate(start_date as Date),
+          max_roster_size,
+          min_matches_for_playoffs,
         };
 
         const request = this.tournament

@@ -31,6 +31,8 @@ const tournament = (
   gender: "female",
   ...ages,
   start_date: "2026-03-01",
+  max_roster_size: null,
+  min_matches_for_playoffs: null,
   status,
   created_at: "2026-01-01T00:00:00.000Z",
 });

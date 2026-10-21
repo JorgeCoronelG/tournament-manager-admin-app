@@ -16,6 +16,8 @@ const existing = (status: Tournament["status"] = "planning"): Tournament => ({
   min_age: 18,
   max_age: 35,
   start_date: "2026-03-01",
+  max_roster_size: 12,
+  min_matches_for_playoffs: null,
   status,
   created_at: "2026-01-01T00:00:00.000Z",
 });
@@ -120,6 +122,8 @@ describe("TournamentFormDialogComponent", () => {
       min_age: null,
       max_age: null,
       start_date: "2026-05-09",
+      max_roster_size: null,
+      min_matches_for_playoffs: null,
     });
     expect(close).toHaveBeenCalledWith({ id: 1 });
   });
@@ -138,7 +142,29 @@ describe("TournamentFormDialogComponent", () => {
       min_age: 18,
       max_age: 35,
       start_date: "2026-03-01",
+      max_roster_size: 12,
+      min_matches_for_playoffs: null,
     });
+  });
+
+  it("requires roster fields to be positive integers", () => {
+    const component = setup();
+    const { max_roster_size, min_matches_for_playoffs } =
+      component.tournamentForm;
+
+    for (const field of [max_roster_size, min_matches_for_playoffs]) {
+      for (const bad of [0, -1, 2.5]) {
+        field().value.set(bad);
+        expect(field().invalid()).toBe(true);
+        expect(component.errorText(field().errors())).toBe(
+          "Debe ser un número entero mayor a 0",
+        );
+      }
+      field().value.set(3);
+      expect(field().invalid()).toBe(false);
+      field().value.set(null);
+      expect(field().invalid()).toBe(false);
+    }
   });
 
   it("enables every field while planning", () => {
@@ -158,6 +184,8 @@ describe("TournamentFormDialogComponent", () => {
     expect(f.min_age().disabled()).toBe(true);
     expect(f.max_age().disabled()).toBe(true);
     expect(f.start_date().disabled()).toBe(true);
+    expect(f.max_roster_size().disabled()).toBe(true);
+    expect(f.min_matches_for_playoffs().disabled()).toBe(true);
   });
 
   it("maps 422 errors to their fields and keeps the dialog open", async () => {

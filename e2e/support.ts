@@ -257,6 +257,8 @@ export interface MockTournament {
   min_age: number | null;
   max_age: number | null;
   start_date: string;
+  max_roster_size: number | null;
+  min_matches_for_playoffs: number | null;
   status: "planning" | "in_progress" | "finished";
   created_at: string;
 }
@@ -274,6 +276,8 @@ export function makeTournaments(count: number): MockTournament[] {
     min_age: i % 4 === 0 ? 18 : null,
     max_age: i % 4 === 0 ? 35 : null,
     start_date: `2026-10-${String((i % 28) + 1).padStart(2, "0")}`,
+    max_roster_size: null,
+    min_matches_for_playoffs: null,
     status: STATUSES[i % 3],
     created_at: new Date(
       FIXED_NOW.getTime() - (i + 1) * 86_400_000,

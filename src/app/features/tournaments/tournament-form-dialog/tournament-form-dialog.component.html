@@ -8,9 +8,15 @@
 <form (submit)="$event.preventDefault(); save()" novalidate>
   <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
     @if (tournament?.status === "in_progress") {
-      <p class="text-secondary m-0 mb-2">
-        {{ "tournaments.form.inProgressNotice" | transloco }}
-      </p>
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:info" />
+        <p class="m-0 text-sm">
+          {{ "tournaments.form.inProgressNotice" | transloco }}
+        </p>
+      </div>
     }
 
     <mat-form-field>
@@ -92,6 +98,50 @@
         <mat-error>{{
           errorText(tournamentForm.start_date().errors())
         }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>{{
+        "tournaments.fields.maxRosterSize" | transloco
+      }}</mat-label>
+      <input
+        [formField]="tournamentForm.max_roster_size"
+        autocomplete="off"
+        inputmode="numeric"
+        matInput
+        type="number"
+      />
+      @if (tournamentForm.max_roster_size().errors().length) {
+        <mat-error>{{
+          errorText(tournamentForm.max_roster_size().errors())
+        }}</mat-error>
+      } @else {
+        <mat-hint>{{
+          "tournaments.form.maxRosterSizeHint" | transloco
+        }}</mat-hint>
+      }
+    </mat-form-field>
+
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>{{
+        "tournaments.fields.minMatchesForPlayoffs" | transloco
+      }}</mat-label>
+      <input
+        [formField]="tournamentForm.min_matches_for_playoffs"
+        autocomplete="off"
+        inputmode="numeric"
+        matInput
+        type="number"
+      />
+      @if (tournamentForm.min_matches_for_playoffs().errors().length) {
+        <mat-error>{{
+          errorText(tournamentForm.min_matches_for_playoffs().errors())
+        }}</mat-error>
+      } @else {
+        <mat-hint>{{
+          "tournaments.form.minMatchesForPlayoffsHint" | transloco
+        }}</mat-hint>
       }
     </mat-form-field>
   </mat-dialog-content>

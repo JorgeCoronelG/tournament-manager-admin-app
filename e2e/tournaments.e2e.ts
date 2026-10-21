@@ -146,6 +146,8 @@ test.describe("tournaments", () => {
         min_age: 40,
         max_age: 45,
         start_date: "2026-09-20",
+        max_roster_size: null,
+        min_matches_for_playoffs: null,
       },
     ]);
   });
