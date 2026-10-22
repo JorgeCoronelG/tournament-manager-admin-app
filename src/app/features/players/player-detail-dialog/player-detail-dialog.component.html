@@ -1,0 +1,144 @@
+<h2 mat-dialog-title>{{ "players.detail.title" | transloco }}</h2>
+
+<mat-dialog-content class="!pt-2 min-w-[320px]">
+  <mat-progress-bar
+    [class.invisible]="!resource.isLoading()"
+    mode="indeterminate"
+  />
+
+  @if (resource.error()) {
+    <div class="py-10 text-center" role="alert">
+      <p class="text-secondary mb-4">
+        {{ "players.detail.error" | transloco }}
+      </p>
+      <button (click)="resource.reload()" mat-stroked-button type="button">
+        {{ "common.retry" | transloco }}
+      </button>
+    </div>
+  } @else if (player(); as player) {
+    <div class="flex items-center gap-4 mb-4">
+      <app-logo-image
+        [alt]="fullName(player)"
+        [src]="player.photo_url"
+        class="w-16 h-16 rounded-full shrink-0"
+      />
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-lg font-medium">{{ fullName(player) }}</span>
+          @if (player.is_banned) {
+            <span
+              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+              >{{ "players.status.banned" | transloco }}</span
+            >
+          }
+        </div>
+        <div class="text-secondary text-sm">{{ player.user_code }}</div>
+      </div>
+    </div>
+
+    <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 m-0 mb-6">
+      <dt class="text-secondary">{{ "players.fields.gender" | transloco }}</dt>
+      <dd class="m-0">{{ "players.gender." + player.gender | transloco }}</dd>
+      <dt class="text-secondary">
+        {{ "players.fields.birthDate" | transloco }}
+      </dt>
+      <dd class="m-0">{{ formatBirthDate(player.birth_date) }}</dd>
+      <dt class="text-secondary">{{ "players.fields.age" | transloco }}</dt>
+      <dd class="m-0">{{ player.age }}</dd>
+      <dt class="text-secondary">{{ "players.fields.phone" | transloco }}</dt>
+      <dd class="m-0">{{ player.phone ?? "—" }}</dd>
+    </dl>
+
+    <h3 class="text-base font-medium m-0 mb-2">
+      {{ "players.detail.rosters" | transloco }}
+    </h3>
+    @if (player.rosters.length === 0) {
+      <p class="text-secondary mt-0 mb-6">
+        {{ "players.detail.noRosters" | transloco }}
+      </p>
+    } @else {
+      <ul class="list-none p-0 m-0 mb-6 flex flex-col gap-3">
+        @for (roster of player.rosters; track roster.id) {
+          <li class="flex flex-col gap-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-medium">{{ roster.team }}</span>
+              <span class="text-secondary">· {{ roster.tournament }}</span>
+              <app-roster-status-chip [status]="roster.status" />
+            </div>
+            <div class="text-secondary text-sm">
+              {{
+                "players.detail.jersey"
+                  | transloco: { number: roster.jersey_number }
+              }}
+            </div>
+            @if (roster.status === "removed") {
+              <div class="text-secondary text-sm">
+                {{
+                  "rosters.removedBy"
+                    | transloco
+                      : {
+                          name: roster.removed_by?.name ?? "—",
+                          date: (roster.removed_at | appDateFormatRelative),
+                        }
+                }}
+                @if (roster.removal_reason) {
+                  <br />{{
+                    "rosters.removalReason"
+                      | transloco: { reason: roster.removal_reason }
+                  }}
+                }
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    <h3 class="text-base font-medium m-0 mb-2">
+      {{ "players.detail.bans" | transloco }}
+    </h3>
+    @if (player.bans.length === 0) {
+      <p class="text-secondary mt-0">
+        {{ "players.detail.noBans" | transloco }}
+      </p>
+    } @else {
+      <ul class="list-none p-0 m-0 flex flex-col gap-3">
+        @for (ban of player.bans; track ban.id) {
+          <li class="flex flex-col gap-1">
+            <div>
+              {{ "rosters.removalReason" | transloco: { reason: ban.reason } }}
+            </div>
+            <div class="text-secondary text-sm">
+              {{
+                "players.detail.bannedBy"
+                  | transloco
+                    : {
+                        name: ban.banned_by?.name ?? "—",
+                        date: (ban.banned_at | appDateFormatRelative),
+                      }
+              }}
+            </div>
+            @if (ban.lifted_at) {
+              <div class="text-secondary text-sm">
+                {{
+                  "players.detail.liftedBy"
+                    | transloco
+                      : {
+                          name: ban.lifted_by?.name ?? "—",
+                          date: (ban.lifted_at | appDateFormatRelative),
+                        }
+                }}
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">
+    {{ "common.close" | transloco }}
+  </button>
+</mat-dialog-actions>

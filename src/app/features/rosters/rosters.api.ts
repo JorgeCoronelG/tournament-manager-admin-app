@@ -55,7 +55,7 @@ export class RostersApi {
     rosterId: number,
     reason: string,
   ) {
-    return this.http.patch<{ data: RosterEntry }>(
+    return this.http.patch<RosterEntry>(
       this.url(tournamentId, registrationId, `/${rosterId}/remove`) ?? "",
       { removal_reason: reason.trim() },
       this.ownErrors,
@@ -67,7 +67,7 @@ export class RostersApi {
     registrationId: number,
     rosterId: number,
   ) {
-    return this.http.post<{ data: RosterEntry }>(
+    return this.http.post<RosterEntry>(
       this.url(tournamentId, registrationId, `/${rosterId}/rejoin`) ?? "",
       {},
       this.ownErrors,
@@ -75,7 +75,7 @@ export class RostersApi {
   }
 
   revokeRejoin(tournamentId: number, registrationId: number, rosterId: number) {
-    return this.http.delete<{ data: RosterEntry }>(
+    return this.http.delete<RosterEntry>(
       this.url(tournamentId, registrationId, `/${rosterId}/rejoin`) ?? "",
       this.ownErrors,
     );

@@ -39,7 +39,9 @@
     "fields": "Canchas",
     "teams": "Equipos",
     "registrations": "Inscripciones",
-    "rosters": "Plantillas"
+    "rosters": "Plantillas",
+    "players": "Jugadores",
+    "list": "Listado"
   },
   "dashboard": {
     "title": "Panel",
@@ -437,6 +439,78 @@
     "errors": {
       "type": "El archivo debe ser una imagen JPG, PNG o WebP.",
       "size": "La imagen pesa más de 2 MB. Elige una más ligera."
+    }
+  },
+  "players": {
+    "title": "Jugadores",
+    "search": "Buscar por nombre o clave",
+    "empty": "Todavía no hay jugadores con plantilla en esta liga.",
+    "error": "No pudimos cargar los jugadores.",
+    "genderUpdated": "Rama actualizada",
+    "banned": "Jugador vetado.",
+    "unbanned": "Jugador reactivado.",
+    "fields": {
+      "photo": "Foto",
+      "player": "Jugador",
+      "gender": "Rama",
+      "birthDate": "Fecha de nacimiento",
+      "age": "Edad",
+      "phone": "Teléfono",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "gender": {
+      "male": "Varonil",
+      "female": "Femenil",
+      "title": "Corregir rama",
+      "hint": "Solo cámbiala si el jugador se registró con la rama equivocada. Si está inscrito en un torneo que no acepta la nueva rama, primero hay que quitarlo de ese torneo."
+    },
+    "status": { "banned": "Vetado" },
+    "filters": {
+      "allGenders": "Todas",
+      "allStatuses": "Todos",
+      "banned": "Vetados",
+      "notBanned": "No vetados"
+    },
+    "actions": {
+      "detail": "Ver detalle",
+      "gender": "Corregir rama",
+      "ban": "Vetar",
+      "reactivate": "Reactivar"
+    },
+    "ban": {
+      "title": "Vetar jugador",
+      "message": "¿Seguro que quieres vetar a {{name}}?",
+      "info": "Se quitará de las plantillas de los torneos en planeación y en curso de esta liga, y no podrá recibir nuevas solicitudes hasta que lo reactives. Sus estadísticas se conservan.",
+      "reason": "Motivo",
+      "confirm": "Vetar"
+    },
+    "banResult": {
+      "removed": {
+        "one": "Se quitó de {{count}} plantilla",
+        "other": "Se quitó de {{count}} plantillas"
+      },
+      "cancelled": {
+        "one": "se canceló {{count}} solicitud",
+        "other": "se cancelaron {{count}} solicitudes"
+      },
+      "join": " y "
+    },
+    "unban": {
+      "title": "Reactivar jugador",
+      "message": "¿Reactivar a {{name}}? Podrá recibir nuevas solicitudes. No se restauran las plantillas de las que fue quitado.",
+      "confirm": "Reactivar"
+    },
+    "detail": {
+      "title": "Detalle del jugador",
+      "error": "No pudimos cargar el jugador.",
+      "rosters": "Plantillas",
+      "noRosters": "Todavía no tiene plantillas en esta liga.",
+      "jersey": "Dorsal {{number}}",
+      "bans": "Vetos",
+      "noBans": "Nunca ha sido vetado en esta liga.",
+      "bannedBy": "Vetado por {{name}} · {{date}}",
+      "liftedBy": "Reactivado por {{name}} · {{date}}"
     }
   },
   "rosters": {

@@ -74,6 +74,19 @@ const NAVIGATION: NavigationItem[] = [
       },
       {
         type: "dropdown",
+        label: "nav.players",
+        icon: "mat:sports_soccer",
+        capability: "players.manage",
+        children: [
+          {
+            type: "link",
+            label: "nav.list",
+            route: "/dashboard/jugadores",
+          },
+        ],
+      },
+      {
+        type: "dropdown",
         label: "nav.teams",
         icon: "mat:groups",
         capability: "teams.manage",

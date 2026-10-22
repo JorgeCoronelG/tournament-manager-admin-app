@@ -1,0 +1,51 @@
+<h2 mat-dialog-title>{{ "players.gender.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (serverError(); as message) {
+      <div
+        class="flex items-start gap-3 mb-2 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+      </div>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "players.fields.gender" | transloco }}</mat-label>
+      <mat-select [formField]="genderForm.gender">
+        @for (gender of genders; track gender) {
+          <mat-option [value]="gender">{{
+            "players.gender." + gender | transloco
+          }}</mat-option>
+        }
+      </mat-select>
+      @if (genderForm.gender().errors().length) {
+        <mat-error>{{ errorText(genderForm.gender().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div
+      class="flex items-center gap-3 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:info" />
+      <p class="m-0 text-sm">{{ "players.gender.hint" | transloco }}</p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="genderForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>
