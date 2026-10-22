@@ -38,7 +38,8 @@
     "referees": "Árbitros",
     "fields": "Canchas",
     "teams": "Equipos",
-    "registrations": "Inscripciones"
+    "registrations": "Inscripciones",
+    "rosters": "Plantillas"
   },
   "dashboard": {
     "title": "Panel",
@@ -436,6 +437,68 @@
     "errors": {
       "type": "El archivo debe ser una imagen JPG, PNG o WebP.",
       "size": "La imagen pesa más de 2 MB. Elige una más ligera."
+    }
+  },
+  "rosters": {
+    "title": "Plantillas",
+    "tournament": "Torneo",
+    "team": "Equipo",
+    "search": "Buscar por nombre o clave",
+    "allStatuses": "Todos los estados",
+    "pickTeam": "Elige un torneo y un equipo para ver su plantilla.",
+    "noTournaments": "Esta liga aún no tiene torneos.",
+    "noTeams": "Este torneo aún no tiene equipos inscritos.",
+    "empty": "Este equipo todavía no tiene jugadores. Las solicitudes las envía el delegado desde la app.",
+    "error": "No pudimos cargar la plantilla.",
+    "banned": "Vetado",
+    "bannedHint": "Este equipo está vetado.",
+    "count": {
+      "one": "{{count}} jugador",
+      "other": "{{count}} jugadores"
+    },
+    "countOfMax": {
+      "one": "{{count}} de {{max}} jugador",
+      "other": "{{count}} de {{max}} jugadores"
+    },
+    "fields": {
+      "photo": "Foto",
+      "player": "Jugador",
+      "jersey": "Dorsal",
+      "status": "Estado",
+      "request": "Solicitud",
+      "actions": "Acciones"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activo",
+      "rejected": "Rechazado",
+      "cancelled": "Cancelado",
+      "removed": "Removido"
+    },
+    "removedBy": "Removido por {{name}} · {{date}}",
+    "removalReason": "Motivo: {{reason}}",
+    "rejoinAuthorizedTag": "Reingreso autorizado",
+    "finishedHint": "El torneo terminó: ya no se puede quitar jugadores.",
+    "playoffsHint": "La liguilla ya inició: ya no se puede quitar jugadores.",
+    "actions": {
+      "remove": "Quitar jugador",
+      "authorize": "Autorizar reingreso",
+      "revoke": "Revocar reingreso"
+    },
+    "removed": "Jugador removido de la plantilla",
+    "rejoinAuthorized": "Reingreso autorizado",
+    "rejoinRevoked": "Reingreso revocado",
+    "remove": {
+      "title": "Quitar jugador",
+      "message": "¿Seguro que quieres quitar a {{player}} de {{team}}?",
+      "reason": "Motivo",
+      "hint": "Solo se debe quitar en casos especiales. El jugador conserva sus estadísticas con este equipo.",
+      "confirm": "Quitar"
+    },
+    "rejoin": {
+      "title": "Autorizar reingreso",
+      "message": "¿Autorizar que {{player}} se sume a otro equipo de este torneo?",
+      "confirm": "Autorizar"
     }
   },
   "registrations": {

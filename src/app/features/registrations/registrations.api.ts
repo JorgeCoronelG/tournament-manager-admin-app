@@ -1,6 +1,7 @@
-import { HttpClient, HttpContext } from "@angular/common/http";
+import { HttpClient, HttpContext, httpResource } from "@angular/common/http";
 import { computed, inject, Service, Signal } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../../core/http/error.interceptor";
+import { PaginatedResponse } from "../../core/http/paginated-response.model";
 import { paginatedResource } from "../../core/http/paginated-resource";
 import { LeagueContextService } from "../../core/league-context/league-context.service";
 import {
@@ -46,6 +47,17 @@ export class RegistrationsApi {
       query,
       ({ search }): Record<string, string> => (search ? { search } : {}),
     );
+  }
+
+  /** Every enrolled team by name, unpaged (for pickers); waits while no tournament is picked */
+  all(tournamentId: Signal<number | undefined>) {
+    return httpResource<PaginatedResponse<Registration>>(() => {
+      const url = this.url(tournamentId());
+
+      return url === undefined
+        ? undefined
+        : { url, params: { skip_paging: true, sort: "name" } };
+    });
   }
 
   /** League teams not enrolled in the tournament yet (banned ones included) */

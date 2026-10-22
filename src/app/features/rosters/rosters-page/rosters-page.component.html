@@ -1,0 +1,289 @@
+<app-secondary-toolbar [current]="'rosters.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    @if (!leagueContext.activeLeague()) {
+      <app-league-required />
+    } @else {
+      <div class="flex flex-wrap items-start gap-4 mb-4">
+        <mat-form-field class="w-72">
+          <mat-label>{{ "rosters.tournament" | transloco }}</mat-label>
+          <mat-select [formField]="pickerForm.tournament">
+            @for (item of tournaments(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="w-72">
+          <mat-label>{{ "rosters.team" | transloco }}</mat-label>
+          <mat-select [formField]="teamPickerForm.team">
+            @for (item of teams(); track item.id) {
+              <mat-option [value]="item.id">{{ teamLabel(item) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (registration()) {
+          <mat-form-field class="w-72">
+            <mat-label>{{ "rosters.search" | transloco }}</mat-label>
+            <mat-icon matPrefix svgIcon="mat:search" />
+            <input
+              [formField]="filtersForm.search"
+              autocomplete="off"
+              matInput
+              type="search"
+            />
+          </mat-form-field>
+
+          <mat-form-field class="w-48">
+            <mat-label>{{ "rosters.fields.status" | transloco }}</mat-label>
+            <mat-select [formField]="filtersForm.status">
+              <mat-option value="">{{
+                "rosters.allStatuses" | transloco
+              }}</mat-option>
+              @for (status of statuses; track status) {
+                <mat-option [value]="status">{{
+                  "rosters.status." + status | transloco
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+
+      @if (!registration()) {
+        <p class="py-10 px-6 text-center text-secondary">
+          {{
+            (tournament() && teamsResource.hasValue() && teams().length === 0
+              ? "rosters.noTeams"
+              : tournamentsResource.hasValue() && tournaments().length === 0
+                ? "rosters.noTournaments"
+                : "rosters.pickTeam"
+            ) | transloco
+          }}
+        </p>
+      } @else {
+        <div class="flex flex-wrap items-center gap-4 mb-4">
+          <app-tournament-status-chip [status]="tournament()!.status" />
+          @if (counter(); as counter) {
+            <span class="font-medium">
+              @if (counter.max !== null) {
+                {{
+                  (counter.max === 1
+                    ? "rosters.countOfMax.one"
+                    : "rosters.countOfMax.other"
+                  ) | transloco: { count: counter.count, max: counter.max }
+                }}
+              } @else {
+                {{
+                  (counter.count === 1
+                    ? "rosters.count.one"
+                    : "rosters.count.other"
+                  ) | transloco: { count: counter.count }
+                }}
+              }
+            </span>
+          }
+          @if (banned()) {
+            <span
+              [matTooltip]="'rosters.bannedHint' | transloco"
+              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+              >{{ "rosters.banned" | transloco }}</span
+            >
+          }
+        </div>
+
+        <div class="app-table-card bg-foreground rounded shadow">
+          <mat-progress-bar
+            [class.invisible]="!rosterResource.isLoading()"
+            mode="indeterminate"
+          />
+
+          <div class="app-table-scroll">
+            <table [dataSource]="rows()" class="w-full" mat-table>
+              <ng-container matColumnDef="photo">
+                <th *matHeaderCellDef mat-header-cell>
+                  <span class="sr-only">{{
+                    "rosters.fields.photo" | transloco
+                  }}</span>
+                </th>
+                <td *matCellDef="let row" mat-cell class="w-14">
+                  <app-logo-image
+                    [alt]="playerName(row.player)"
+                    [src]="row.player.photo_url"
+                    class="w-10 h-10 rounded-full my-1"
+                  />
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="player">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "rosters.fields.player" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell>
+                  <div class="py-1">
+                    <div class="font-medium">{{ playerName(row.player) }}</div>
+                    <div class="text-secondary text-sm">
+                      {{ row.player.user_code }}
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="jersey">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "rosters.fields.jersey" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell>
+                  {{ row.jersey_number }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "rosters.fields.status" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell>
+                  <div class="flex flex-wrap items-center gap-2 py-1">
+                    <app-roster-status-chip [status]="row.status" />
+                    @if (row.rejoin_authorized_at) {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-blue-600/10 text-blue-800 dark:text-blue-400"
+                        >{{ "rosters.rejoinAuthorizedTag" | transloco }}</span
+                      >
+                    }
+                  </div>
+                  @if (row.status === "removed") {
+                    <div class="text-secondary text-sm pb-1">
+                      {{
+                        "rosters.removedBy"
+                          | transloco
+                            : {
+                                name: row.removed_by?.name ?? "—",
+                                date: (row.removed_at | appDateFormatRelative),
+                              }
+                      }}
+                      @if (row.removal_reason) {
+                        <br />{{
+                          "rosters.removalReason"
+                            | transloco: { reason: row.removal_reason }
+                        }}
+                      }
+                    </div>
+                  }
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="request">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "rosters.fields.request" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell>
+                  <div class="py-1 whitespace-nowrap">
+                    <div>{{ row.requested_at | appDateFormatRelative }}</div>
+                    @if (row.requested_by; as by) {
+                      <div class="text-secondary text-sm">{{ by.name }}</div>
+                    }
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions" stickyEnd>
+                <th *matHeaderCellDef mat-header-cell>
+                  <span class="sr-only">{{
+                    "rosters.fields.actions" | transloco
+                  }}</span>
+                </th>
+                <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
+                  @if (row.status === "active") {
+                    <span
+                      [matTooltip]="
+                        removeBlocked() ? (removeBlocked()! | transloco) : ''
+                      "
+                    >
+                      <button
+                        (click)="remove(row)"
+                        [attr.aria-label]="'rosters.actions.remove' | transloco"
+                        [disabled]="!canRemove()"
+                        [matTooltip]="
+                          canRemove()
+                            ? ('rosters.actions.remove' | transloco)
+                            : ''
+                        "
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon color="warn" svgIcon="mat:remove_circle" />
+                      </button>
+                    </span>
+                  } @else if (row.status === "removed") {
+                    @let revoke = !!row.rejoin_authorized_at;
+                    <button
+                      (click)="toggleRejoin(row)"
+                      [attr.aria-label]="
+                        (revoke
+                          ? 'rosters.actions.revoke'
+                          : 'rosters.actions.authorize'
+                        ) | transloco
+                      "
+                      [matTooltip]="
+                        (revoke
+                          ? 'rosters.actions.revoke'
+                          : 'rosters.actions.authorize'
+                        ) | transloco
+                      "
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon
+                        [color]="revoke ? 'warn' : 'primary'"
+                        [svgIcon]="revoke ? 'mat:block' : 'mat:how_to_reg'"
+                      />
+                    </button>
+                  }
+                </td>
+              </ng-container>
+
+              <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
+              <tr *matRowDef="let row; columns: columns" mat-row></tr>
+            </table>
+          </div>
+
+          @if (rosterResource.error()) {
+            <div class="py-10 px-6 text-center" role="alert">
+              <p class="text-secondary mb-4">
+                {{ "rosters.error" | transloco }}
+              </p>
+              <button
+                (click)="rosterResource.reload()"
+                mat-stroked-button
+                type="button"
+              >
+                {{ "common.retry" | transloco }}
+              </button>
+            </div>
+          } @else if (!rosterResource.isLoading() && rows().length === 0) {
+            <p class="py-10 px-6 text-center text-secondary">
+              {{
+                (hasFilters() ? "table.emptyFiltered" : "rosters.empty")
+                  | transloco
+              }}
+            </p>
+          }
+
+          <mat-paginator
+            (page)="changePage($event)"
+            [length]="total()"
+            [pageIndex]="paging().page"
+            [pageSizeOptions]="[5, 10, 25]"
+            [pageSize]="paging().pageSize"
+            showFirstLastButtons
+          />
+        </div>
+      }
+    }
+  </app-page-layout-content>
+</app-page-layout>

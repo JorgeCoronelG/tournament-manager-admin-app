@@ -19,4 +19,13 @@ export const tournamentsRoutes: Routes = [
         (m) => m.RegistrationsPageComponent,
       ),
   },
+  {
+    path: "plantillas",
+    title: "rosters.title",
+    canActivate: [capabilityGuard("rosters.manage")],
+    loadComponent: () =>
+      import("../rosters/rosters-page/rosters-page.component").then(
+        (m) => m.RostersPageComponent,
+      ),
+  },
 ];

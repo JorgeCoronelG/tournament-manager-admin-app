@@ -61,4 +61,12 @@ describe("capabilitiesFor", () => {
       ),
     ).toBe(false);
   });
+
+  it("lets the superadmin and the league admin manage rosters", () => {
+    expect(capabilitiesFor(["superadmin"]).has("rosters.manage")).toBe(true);
+    expect(capabilitiesFor(["league_admin"]).has("rosters.manage")).toBe(true);
+    expect(
+      capabilitiesFor(["referee", "manager", "player"]).has("rosters.manage"),
+    ).toBe(false);
+  });
 });

@@ -48,6 +48,26 @@ describe("RegistrationsApi", () => {
     controller.expectNone(() => true);
   });
 
+  it("lists every enrolled team by name without paging", () => {
+    TestBed.runInInjectionContext(() => api.all(signal(8)));
+    TestBed.tick();
+
+    const { params } = controller.expectOne(
+      (r) => r.url === "/api/leagues/3/tournaments/8/registrations",
+    ).request;
+    expect(params.get("skip_paging")).toBe("true");
+    expect(params.get("sort")).toBe("name");
+    expect(params.has("per_page")).toBe(false);
+    expect(params.has("page")).toBe(false);
+  });
+
+  it("waits to list every team until a tournament is picked", () => {
+    TestBed.runInInjectionContext(() => api.all(signal(undefined)));
+    TestBed.tick();
+
+    controller.expectNone(() => true);
+  });
+
   it("lists the enrolled teams of the tournament with the page, search and order", () => {
     TestBed.runInInjectionContext(() => api.list(signal(8), signal(query)));
     TestBed.tick();

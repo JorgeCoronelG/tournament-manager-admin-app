@@ -64,6 +64,12 @@ const NAVIGATION: NavigationItem[] = [
             route: "/dashboard/torneos/inscripciones",
             capability: "registrations.manage",
           },
+          {
+            type: "link",
+            label: "nav.rosters",
+            route: "/dashboard/torneos/plantillas",
+            capability: "rosters.manage",
+          },
         ],
       },
       {

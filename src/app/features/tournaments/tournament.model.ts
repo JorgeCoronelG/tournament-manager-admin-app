@@ -31,6 +31,8 @@ export interface Tournament {
   start_date: string;
   max_roster_size: number | null;
   min_matches_for_playoffs: number | null;
+  /** Once the playoffs start, rosters are closed */
+  playoffs_started: boolean;
   status: TournamentStatus;
   /** ISO 8601 date */
   created_at: string;

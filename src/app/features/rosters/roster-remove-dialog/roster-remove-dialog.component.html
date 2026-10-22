@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>{{ "rosters.remove.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (serverError(); as message) {
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+      </div>
+    }
+
+    <p class="m-0 mb-2">
+      {{
+        "rosters.remove.message"
+          | transloco: { player: data.player, team: data.team }
+      }}
+    </p>
+
+    <mat-form-field>
+      <mat-label>{{ "rosters.remove.reason" | transloco }}</mat-label>
+      <textarea
+        [formField]="removeForm.removal_reason"
+        matInput
+        rows="3"
+      ></textarea>
+      @if (removeForm.removal_reason().errors().length) {
+        <mat-error>{{
+          errorText(removeForm.removal_reason().errors())
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div
+      class="flex items-center gap-3 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:info" />
+      <p class="m-0 text-sm">{{ "rosters.remove.hint" | transloco }}</p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="removeForm().submitting()"
+      color="warn"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "rosters.remove.confirm" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>
