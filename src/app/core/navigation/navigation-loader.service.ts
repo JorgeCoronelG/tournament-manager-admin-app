@@ -66,6 +66,12 @@ const NAVIGATION: NavigationItem[] = [
           },
           {
             type: "link",
+            label: "nav.groups",
+            route: "/dashboard/torneos/grupos",
+            capability: "groups.manage",
+          },
+          {
+            type: "link",
             label: "nav.rosters",
             route: "/dashboard/torneos/plantillas",
             capability: "rosters.manage",

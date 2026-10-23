@@ -263,7 +263,7 @@ export interface MockTournament {
   match_duration_minutes: number;
   tiebreakers: string[];
   playoffs_started: boolean;
-  status: "planning" | "in_progress" | "finished";
+  status: "planning" | "in_progress" | "playoffs" | "finished";
   created_at: string;
 }
 
@@ -970,6 +970,337 @@ export async function mockTeamsApi(
         },
       },
     });
+  });
+
+  return api;
+}
+
+export interface MockGroupTeam {
+  /** Registration id */
+  id: number;
+  name: string;
+  manager: string | null;
+  groupId: number | null;
+}
+
+export interface MockGroup {
+  id: number;
+  name: string;
+  type: "regular_stage" | "playoff";
+  start_date?: string | null;
+  round_interval_days?: number;
+  /** Dates sent by hand (Y-m-d per round); when absent they come from start and interval */
+  round_dates?: string[];
+  /** False when the backend locks the playoff; absent means editable */
+  editable?: boolean;
+  sources?: {
+    source_group_id: number;
+    position_start: number;
+    position_end: number;
+  }[];
+}
+
+export interface GroupsApiOptions {
+  groups?: MockGroup[];
+  teams?: MockGroupTeam[];
+}
+
+export interface GroupsApi {
+  /** Bodies of every write so far, as `[method, path, body]` */
+  writes: [string, string, unknown][];
+}
+
+/**
+ * Stubs `/leagues/1/tournaments/{id}/groups` (and the registrations list that
+ * shows each team's group) over one in-memory tournament: the rules the
+ * backend enforces that the screens depend on (unique names, power-of-2
+ * playoffs, delete restrictions, balanced random assignment) work like the real thing.
+ */
+export async function mockGroupsApi(
+  page: Page,
+  {
+    groups = [{ id: 1, name: "Fase regular", type: "regular_stage" }],
+    teams = [],
+  }: GroupsApiOptions = {},
+): Promise<GroupsApi> {
+  const api: GroupsApi = { writes: [] };
+  // Copies: a test that moves a team must not change the fixtures the next one reads
+  const state = {
+    groups: groups.map((group) => ({ ...group })),
+    teams: teams.map((team) => ({ ...team })),
+    nextId: 100,
+  };
+  const regular = () => state.groups.filter((g) => g.type === "regular_stage");
+  const totalOf = (group: MockGroup) =>
+    (group.sources ?? []).reduce(
+      (sum, s) => sum + s.position_end - s.position_start + 1,
+      0,
+    );
+  const ROUND_NAMES: Record<number, string> = {
+    2: "Final",
+    4: "Semifinal",
+    8: "Cuartos de final",
+    16: "Octavos de final",
+  };
+  const roundDates = (group: MockGroup): (string | null)[] => {
+    const rounds = Math.log2(totalOf(group));
+
+    if (group.round_dates) {
+      return group.round_dates;
+    }
+
+    return Array.from({ length: rounds }, (_, index) => {
+      if (!group.start_date) {
+        return null;
+      }
+
+      const date = new Date(`${group.start_date}T00:00:00Z`);
+      date.setUTCDate(
+        date.getUTCDate() + (group.round_interval_days ?? 7) * index,
+      );
+
+      return date.toISOString().slice(0, 10);
+    });
+  };
+  const finalDate = (group: MockGroup) => roundDates(group).at(-1) ?? null;
+  const teamJson = (team: MockGroupTeam) => ({
+    id: team.id,
+    team: {
+      id: team.id * 10,
+      name: team.name,
+      logo_url: null,
+      status: "active",
+      manager: team.manager ? { name: team.manager, pending: false } : null,
+    },
+  });
+  const groupJson = (group: MockGroup) => {
+    const base = {
+      id: group.id,
+      name: group.name,
+      type: group.type,
+      teams_count: state.teams.filter((t) => t.groupId === group.id).length,
+    };
+
+    if (group.type === "regular_stage") {
+      return base;
+    }
+
+    const total = totalOf(group);
+
+    return {
+      ...base,
+      start_date: group.start_date ?? null,
+      round_interval_days: group.round_interval_days ?? 7,
+      sources: (group.sources ?? []).map((s, i) => ({
+        id: group.id * 10 + i,
+        ...s,
+        source_group_name:
+          state.groups.find((g) => g.id === s.source_group_id)?.name ?? null,
+      })),
+      total_teams: total,
+      rounds: Math.log2(total),
+      round_dates: roundDates(group),
+      ...(group.editable !== undefined && { editable: group.editable }),
+      rounds_detail: roundDates(group).map((date, index, all) => ({
+        name: ROUND_NAMES[2 ** (all.length - index)] ?? "Ronda",
+        date,
+      })),
+      final_date: finalDate(group),
+    };
+  };
+  const overview = () => {
+    const finals = new Set(
+      state.groups
+        .filter((g) => g.type === "playoff")
+        .map(finalDate)
+        .filter(Boolean),
+    );
+
+    return {
+      groups: [
+        ...regular().map(groupJson),
+        ...state.groups.filter((g) => g.type === "playoff").map(groupJson),
+      ],
+      unassigned: state.teams.filter((t) => t.groupId === null).map(teamJson),
+      finals_aligned: finals.size <= 1,
+    };
+  };
+  const unprocessable = (error: unknown) => ({
+    status: 422,
+    json: { code: 422, error },
+  });
+  const normalize = (name: string) =>
+    name
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+
+  await page.route(/\/tournaments\/\d+\/registrations(\?.*)?$/, (route) => {
+    const data = state.teams.map((t) => ({
+      id: t.id,
+      status: "active",
+      created_at: "2026-01-01T00:00:00.000Z",
+      team: teamJson(t).team,
+    }));
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: 1,
+          from: 1,
+          lastPage: 1,
+          perPage: 5,
+          to: data.length,
+          total: data.length,
+        },
+        summary: { registered: data.length, banned: 0 },
+      },
+    });
+  });
+
+  await page.route(/\/tournaments\/\d+\/groups(\/.*)?(\?.*)?$/, (route) => {
+    const request = route.request();
+    const method = request.method();
+    const path = new URL(request.url()).pathname.split("/groups")[1] ?? "";
+    const body = request.postDataJSON() as Record<string, unknown> | null;
+
+    if (method !== "GET") {
+      api.writes.push([method, path || "/", body]);
+    }
+
+    if (method === "GET" && path === "") {
+      return route.fulfill({ json: overview() });
+    }
+
+    if (method === "GET") {
+      const group = state.groups.find((g) => `/${g.id}` === path);
+
+      return route.fulfill({
+        json: {
+          ...groupJson(group as MockGroup),
+          teams: state.teams
+            .filter((t) => t.groupId === group?.id)
+            .map(teamJson),
+        },
+      });
+    }
+
+    if (path === "/assignments") {
+      for (const row of (
+        body as {
+          assignments: { registration_id: number; group_id: number | null }[];
+        }
+      ).assignments) {
+        const team = state.teams.find((t) => t.id === row.registration_id);
+
+        if (team) {
+          team.groupId = row.group_id;
+        }
+      }
+
+      return route.fulfill({ json: overview() });
+    }
+
+    if (path === "/random-assignment") {
+      const targets = regular();
+      state.teams.forEach((team, i) => {
+        team.groupId = targets[i % targets.length].id;
+      });
+
+      return route.fulfill({ json: overview() });
+    }
+
+    if (method === "DELETE") {
+      state.groups = state.groups.filter((g) => `/${g.id}` !== path);
+
+      return route.fulfill({ status: 204 });
+    }
+
+    const current = state.groups.find((g) => `/${g.id}` === path);
+    const name = String(body?.["name"] ?? current?.name ?? "");
+
+    if (
+      state.groups.some(
+        (g) => g !== current && normalize(g.name) === normalize(name),
+      )
+    ) {
+      return route.fulfill(
+        unprocessable({
+          name: ["Ya hay un grupo con ese nombre en este torneo."],
+        }),
+      );
+    }
+
+    const sources = body?.["sources"] as MockGroup["sources"];
+
+    if (sources) {
+      const total = sources.reduce(
+        (sum, s) => sum + s.position_end - s.position_start + 1,
+        0,
+      );
+      const overlaps = sources.some((a, i) =>
+        sources.some(
+          (b, j) =>
+            i < j &&
+            a.source_group_id === b.source_group_id &&
+            a.position_start <= b.position_end &&
+            b.position_start <= a.position_end,
+        ),
+      );
+
+      if (overlaps) {
+        return route.fulfill(
+          unprocessable({
+            "sources.1.position_start": [
+              "Las posiciones se traslapan con otra fuente de la liguilla.",
+            ],
+          }),
+        );
+      }
+
+      if (total < 2 || (total & (total - 1)) !== 0) {
+        return route.fulfill(
+          unprocessable({
+            sources: [`El total de equipos (${total}) no es potencia de 2.`],
+          }),
+        );
+      }
+    }
+
+    if (current) {
+      Object.assign(current, {
+        name,
+        ...(body?.["start_date"] !== undefined && {
+          start_date: body["start_date"],
+        }),
+        ...(body?.["round_interval_days"] !== undefined && {
+          round_interval_days: body["round_interval_days"],
+        }),
+        round_dates: body?.["round_dates"] as string[] | undefined,
+        ...(sources && { sources }),
+      });
+
+      return route.fulfill({ json: groupJson(current) });
+    }
+
+    const created: MockGroup = {
+      id: state.nextId++,
+      name,
+      type: body?.["type"] === "playoff" ? "playoff" : "regular_stage",
+      ...(body?.["type"] === "playoff" && {
+        start_date: (body["start_date"] as string | null) ?? null,
+        round_interval_days: (body["round_interval_days"] as number) ?? 7,
+        round_dates: body["round_dates"] as string[] | undefined,
+        sources,
+      }),
+    };
+    state.groups.push(created);
+
+    return route.fulfill({ status: 201, json: groupJson(created) });
   });
 
   return api;

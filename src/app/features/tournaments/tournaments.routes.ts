@@ -20,6 +20,15 @@ export const tournamentsRoutes: Routes = [
       ),
   },
   {
+    path: "grupos",
+    title: "groups.title",
+    canActivate: [capabilityGuard("groups.manage")],
+    loadComponent: () =>
+      import("../groups/groups-page/groups-page.component").then(
+        (m) => m.GroupsPageComponent,
+      ),
+  },
+  {
     path: "plantillas",
     title: "rosters.title",
     canActivate: [capabilityGuard("rosters.manage")],

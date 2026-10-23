@@ -197,7 +197,9 @@ export class RostersPageComponent {
       return "rosters.finishedHint";
     }
 
-    return tournament?.playoffs_started ? "rosters.playoffsHint" : null;
+    return tournament?.playoffs_started || tournament?.status === "playoffs"
+      ? "rosters.playoffsHint"
+      : null;
   });
   readonly canRemove = computed(() => this.removeBlocked() === null);
 

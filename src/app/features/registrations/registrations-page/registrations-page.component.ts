@@ -30,6 +30,7 @@ import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dia
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
+import { GroupsApi } from "../../groups/groups.api";
 import { TournamentStatusChipComponent } from "../../tournaments/tournament-status-chip/tournament-status-chip.component";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
 import { UserStatusChipComponent } from "../../users/user-status-chip/user-status-chip.component";
@@ -78,8 +79,6 @@ export class RegistrationsPageComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  readonly columns = ["logo", "team", "manager", "created_at", "actions"];
-
   protected readonly tournamentsResource = inject(TournamentsApi).options();
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
@@ -111,6 +110,36 @@ export class RegistrationsPageComponent {
       this.picker.set({ tournament: "" });
     }
   });
+
+  private readonly groups = inject(GroupsApi).view(this.tournamentId);
+
+  /** Registration id to the name of its group, only with more than one regular group */
+  private readonly groupNames = computed(() => {
+    const regular = this.groups.value()?.regular ?? [];
+
+    return regular.length > 1
+      ? new Map(
+          regular.flatMap((group) =>
+            group.teams.map((team) => [team.id, group.name] as const),
+          ),
+        )
+      : null;
+  });
+
+  /** The Group column only makes sense when the tournament has several regular groups */
+  readonly columns = computed(() => [
+    "logo",
+    "team",
+    ...(this.groupNames() ? ["group"] : []),
+    "manager",
+    "created_at",
+    "actions",
+  ]);
+
+  /** Name of the registration's group; null when it has none */
+  groupName(registration: Registration): string | null {
+    return this.groupNames()?.get(registration.id) ?? null;
+  }
 
   readonly filters = signal({ search: "" });
   readonly filtersForm = form(this.filters, (filter) => {

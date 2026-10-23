@@ -39,6 +39,7 @@
     "fields": "Canchas",
     "teams": "Equipos",
     "registrations": "Inscripciones",
+    "groups": "Grupos",
     "rosters": "Plantillas",
     "players": "Jugadores",
     "list": "Listado"
@@ -262,6 +263,7 @@
     "status": {
       "planning": "Planeación",
       "in_progress": "En curso",
+      "playoffs": "Liguilla",
       "finished": "Finalizado"
     },
     "rounds": {
@@ -603,6 +605,107 @@
       "confirm": "Autorizar"
     }
   },
+  "groups": {
+    "title": "Grupos",
+    "tournament": "Torneo",
+    "pickTournament": "Elige un torneo para ver sus grupos.",
+    "noTournaments": "Esta liga aún no tiene torneos.",
+    "readOnly": {
+      "in_progress": "El torneo está en curso: los grupos ya no se pueden modificar.",
+      "playoffs": "El torneo está en liguilla: los grupos y las liguillas ya no se pueden modificar.",
+      "finished": "El torneo terminó: los grupos y las liguillas ya no se pueden modificar."
+    },
+    "error": "No pudimos cargar los grupos.",
+    "new": "Nuevo grupo",
+    "created": "Grupo creado",
+    "renamed": "Grupo renombrado",
+    "deleted": "Grupo eliminado",
+    "moved": "Equipo movido",
+    "randomized": "Equipos repartidos",
+    "playoffCreated": "Liguilla creada",
+    "playoffUpdated": "Liguilla actualizada",
+    "playoffDeleted": "Liguilla eliminada",
+    "moveTo": "Mover a",
+    "moveTeam": "Mover {{name}} a otro grupo",
+    "singleHint": "Si el torneo no se divide en grupos, todos los equipos juegan en un solo grupo.",
+    "deleteBlocked": "Solo se puede eliminar un grupo vacío que no sea el único ni esté en una liguilla.",
+    "teamsCount": {
+      "one": "{{count}} equipo",
+      "other": "{{count}} equipos"
+    },
+    "regular": { "title": "Fase regular" },
+    "unassigned": {
+      "title": "Sin grupo",
+      "hint": "Estos equipos no tienen grupo. Asígnalos antes de iniciar el torneo."
+    },
+    "actions": {
+      "rename": "Renombrar {{name}}",
+      "edit": "Editar {{name}}",
+      "delete": "Eliminar {{name}}"
+    },
+    "form": {
+      "newTitle": "Nuevo grupo",
+      "renameTitle": "Renombrar grupo",
+      "name": "Nombre del grupo"
+    },
+    "delete": {
+      "title": "Eliminar grupo",
+      "message": "¿Seguro que quieres eliminar el grupo {{name}}?",
+      "confirm": "Eliminar"
+    },
+    "deletePlayoff": {
+      "title": "Eliminar liguilla",
+      "message": "¿Seguro que quieres eliminar la liguilla {{name}}?",
+      "confirm": "Eliminar"
+    },
+    "random": {
+      "action": "Reparto aleatorio",
+      "title": "Reparto aleatorio",
+      "message": "Se reemplazará la asignación actual y los equipos se repartirán al azar de forma equilibrada. ¿Continuar?",
+      "confirm": "Repartir"
+    },
+    "playoffs": {
+      "title": "Liguillas",
+      "new": "Nueva liguilla",
+      "hint": "Las liguillas definen qué posiciones de cada grupo clasifican y se enfrentan entre sí. El total de equipos de cada liguilla debe ser 2, 4, 8, 16 o 32.",
+      "empty": "Aún no hay liguillas en este torneo.",
+      "finalsNotAligned": "Las finales de las liguillas no coinciden en la misma fecha.",
+      "source": "{{group}}: posiciones {{from}} a {{to}}",
+      "sourceOne": "{{group}}: posición {{from}}"
+    },
+    "playoff": {
+      "newTitle": "Nueva liguilla",
+      "editTitle": "Editar liguilla",
+      "name": "Nombre",
+      "startDate": "Fecha de inicio",
+      "startDateHint": "Opcional. Fecha de la primera ronda; las demás rondas se calculan a partir de ella.",
+      "interval": "Días entre rondas",
+      "daysError": "Ingresa un número entero mayor a 0",
+      "sources": "Fuentes",
+      "group": "Grupo",
+      "from": "Desde la posición",
+      "to": "Hasta la posición",
+      "positionError": "Ingresa posiciones válidas (la final no puede ser menor que la inicial)",
+      "addSource": "Agregar fuente",
+      "removeSource": "Quitar fuente",
+      "total": "Total: {{count}} equipos",
+      "totalError": "El total debe ser 2, 4, 8, 16 o 32.",
+      "rounds": "Rondas",
+      "roundDates": "Fechas por ronda",
+      "roundDatesHint": "Puedes ajustar la fecha de cada ronda; por ejemplo, cuartos el lunes y semifinal el miércoles de la semana siguiente.",
+      "datesLater": "Las fechas se definirán al cerrar la fase regular. También puedes capturarlas ahora.",
+      "roundsOrder": "Las fechas de las rondas deben ir en orden.",
+      "datesPending": "Fechas por definir",
+      "roundsChanged": "Cambió el número de rondas; se recalcularon las fechas."
+    },
+    "round": {
+      "2": "Final",
+      "4": "Semifinal",
+      "8": "Cuartos de final",
+      "16": "Octavos de final",
+      "other": "Ronda de {{teams}}"
+    }
+  },
   "registrations": {
     "title": "Inscripciones",
     "tournament": "Torneo",
@@ -626,7 +729,9 @@
     "emptyAction": "Aún no hay equipos inscritos en este torneo.",
     "readOnly": "Solo se pueden inscribir o quitar equipos con el torneo en planeación.",
     "noManager": "Sin delegado",
+    "noGroup": "Sin grupo",
     "fields": {
+      "group": "Grupo",
       "logo": "Logo",
       "team": "Equipo",
       "manager": "Delegado",

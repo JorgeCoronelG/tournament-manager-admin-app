@@ -1,0 +1,246 @@
+<h2 mat-dialog-title>
+  {{
+    (data.playoff ? "groups.playoff.editTitle" : "groups.playoff.newTitle")
+      | transloco
+  }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (formError(); as message) {
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm">{{ message }}</p>
+      </div>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "groups.playoff.name" | transloco }}</mat-label>
+      <input
+        [formField]="playoffForm.name"
+        autocomplete="off"
+        cdkFocusInitial
+        matInput
+      />
+      @if (playoffForm.name().errors().length) {
+        <mat-error>{{ errorText(playoffForm.name().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="flex gap-4">
+      <mat-form-field class="flex-1">
+        <mat-label>{{ "groups.playoff.startDate" | transloco }}</mat-label>
+        <input
+          (beforeinput)="$event.preventDefault()"
+          (click)="picker.open()"
+          (keydown.enter)="picker.open()"
+          aria-readonly="true"
+          [formField]="playoffForm.start_date"
+          [matDatepicker]="picker"
+          autocomplete="off"
+          class="cursor-pointer"
+          matInput
+        />
+        <button
+          [attr.aria-label]="'groups.playoff.startDateHint' | transloco"
+          [matTooltip]="'groups.playoff.startDateHint' | transloco"
+          class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+          matIconButton
+          matSuffix
+          matTooltipPosition="above"
+          type="button"
+        >
+          <mat-icon svgIcon="mat:info" />
+        </button>
+        <mat-datepicker-toggle
+          [for]="picker"
+          class="[&_.mat-mdc-button-touch-target]:hidden"
+          matIconSuffix
+        />
+        <mat-datepicker #picker />
+      </mat-form-field>
+
+      <mat-form-field class="flex-1">
+        <mat-label>{{ "groups.playoff.interval" | transloco }}</mat-label>
+        <input
+          [formField]="playoffForm.round_interval_days"
+          autocomplete="off"
+          inputmode="numeric"
+          matInput
+          type="number"
+        />
+        @if (playoffForm.round_interval_days().errors().length) {
+          <mat-error>{{
+            errorText(playoffForm.round_interval_days().errors())
+          }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <fieldset class="m-0 mb-2 p-0 border-0 min-w-0">
+      <legend class="p-0 mb-2 text-sm font-medium">
+        {{ "groups.playoff.sources" | transloco }}
+      </legend>
+
+      @for (source of playoffForm.sources; track $index; let i = $index) {
+        <div class="flex items-start gap-2">
+          <mat-form-field class="flex-[2]">
+            <mat-label>{{ "groups.playoff.group" | transloco }}</mat-label>
+            <mat-select [formField]="source.source_group_id">
+              @for (group of data.groups; track group.id) {
+                <mat-option [value]="group.id">{{ group.name }}</mat-option>
+              }
+            </mat-select>
+            @if (source.source_group_id().errors().length) {
+              <mat-error>{{
+                errorText(source.source_group_id().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="flex-1">
+            <mat-label>{{ "groups.playoff.from" | transloco }}</mat-label>
+            <input
+              [formField]="source.position_start"
+              autocomplete="off"
+              inputmode="numeric"
+              matInput
+              type="number"
+            />
+            @if (source.position_start().errors().length) {
+              <mat-error>{{
+                errorText(source.position_start().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="flex-1">
+            <mat-label>{{ "groups.playoff.to" | transloco }}</mat-label>
+            <input
+              [formField]="source.position_end"
+              autocomplete="off"
+              inputmode="numeric"
+              matInput
+              type="number"
+            />
+            @if (source.position_end().errors().length) {
+              <mat-error>{{
+                errorText(source.position_end().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
+
+          <button
+            (click)="removeSource(i)"
+            [attr.aria-label]="'groups.playoff.removeSource' | transloco"
+            [disabled]="playoffForm.sources().value().length === 1"
+            class="mt-1"
+            mat-icon-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:close" />
+          </button>
+        </div>
+      }
+
+      <button (click)="addSource()" mat-stroked-button type="button">
+        <mat-icon svgIcon="mat:add" />
+        {{ "groups.playoff.addSource" | transloco }}
+      </button>
+
+      <p
+        [class]="
+          'm-0 mt-3 text-sm font-medium ' +
+          (totalValid() ? '' : 'text-red-600 dark:text-red-400')
+        "
+        [attr.role]="totalValid() ? null : 'alert'"
+      >
+        {{ "groups.playoff.total" | transloco: { count: total() } }}
+        @if (!totalValid()) {
+          <span class="font-normal">
+            {{ "groups.playoff.totalError" | transloco }}
+          </span>
+        }
+      </p>
+      @if (playoffForm.sources().errors().length && totalValid()) {
+        <p class="m-0 mt-1 text-xs text-red-600" role="alert">
+          {{ errorText(playoffForm.sources().errors()) }}
+        </p>
+      }
+      @if (rounds().length) {
+        <p class="m-0 mt-1 text-sm text-secondary">
+          {{ "groups.playoff.rounds" | transloco }}: {{ rounds().join(", ") }}
+        </p>
+      }
+    </fieldset>
+
+    @if (rounds().length && !hasStart()) {
+      <p class="m-0 mb-2 text-sm text-secondary">
+        {{ "groups.playoff.datesLater" | transloco }}
+      </p>
+    }
+
+    @if (rounds().length && hasStart()) {
+      <fieldset class="m-0 mb-2 p-0 border-0 min-w-0">
+        <legend class="p-0 mb-1 text-sm font-medium">
+          {{ "groups.playoff.roundDates" | transloco }}
+        </legend>
+        <p class="m-0 mb-3 text-sm text-secondary">
+          {{ "groups.playoff.roundDatesHint" | transloco }}
+        </p>
+        @if (roundsChanged()) {
+          <p class="m-0 mb-3 text-sm text-secondary" role="status">
+            {{ "groups.playoff.roundsChanged" | transloco }}
+          </p>
+        }
+
+        @for (row of playoffForm.round_dates; track $index; let i = $index) {
+          <mat-form-field class="w-full">
+            <mat-label>{{ rounds()[i] }}</mat-label>
+            <input
+              (beforeinput)="$event.preventDefault()"
+              (click)="roundPicker.open()"
+              (dateChange)="onRoundDateChange(i, $event)"
+              (keydown.enter)="roundPicker.open()"
+              aria-readonly="true"
+              [formField]="row.date"
+              [matDatepicker]="roundPicker"
+              autocomplete="off"
+              class="cursor-pointer"
+              matInput
+            />
+            <mat-datepicker-toggle
+              [for]="roundPicker"
+              class="[&_.mat-mdc-button-touch-target]:hidden"
+              matIconSuffix
+            />
+            <mat-datepicker #roundPicker />
+          </mat-form-field>
+        }
+
+        @if (playoffForm.round_dates().errors().length) {
+          <p class="m-0 text-xs text-red-600" role="alert">
+            {{ errorText(playoffForm.round_dates().errors()) }}
+          </p>
+        }
+      </fieldset>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="playoffForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

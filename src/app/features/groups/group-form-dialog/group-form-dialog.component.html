@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>
+  {{
+    (data.group ? "groups.form.renameTitle" : "groups.form.newTitle")
+      | transloco
+  }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    <mat-form-field>
+      <mat-label>{{ "groups.form.name" | transloco }}</mat-label>
+      <input
+        [formField]="groupForm.name"
+        autocomplete="off"
+        cdkFocusInitial
+        matInput
+      />
+      @if (groupForm.name().errors().length) {
+        <mat-error>{{ errorText(groupForm.name().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="groupForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

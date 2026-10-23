@@ -129,6 +129,22 @@
                 </td>
               </ng-container>
 
+              <ng-container matColumnDef="group">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "registrations.fields.group" | transloco }}
+                </th>
+                <td *matCellDef="let row" mat-cell>
+                  @if (groupName(row); as name) {
+                    <span class="whitespace-nowrap">{{ name }}</span>
+                  } @else {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/15 text-amber-900 dark:text-amber-300"
+                      >{{ "registrations.noGroup" | transloco }}</span
+                    >
+                  }
+                </td>
+              </ng-container>
+
               <ng-container matColumnDef="manager">
                 <th *matHeaderCellDef mat-header-cell>
                   {{ "registrations.fields.manager" | transloco }}
@@ -183,8 +199,11 @@
                 </td>
               </ng-container>
 
-              <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-              <tr *matRowDef="let row; columns: columns" mat-row></tr>
+              <tr
+                *matHeaderRowDef="columns(); sticky: true"
+                mat-header-row
+              ></tr>
+              <tr *matRowDef="let row; columns: columns()" mat-row></tr>
             </table>
           </div>
 

@@ -1,0 +1,375 @@
+<app-secondary-toolbar [current]="'groups.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    @if (!leagueContext.activeLeague()) {
+      <app-league-required />
+    } @else {
+      <div class="flex flex-wrap items-start gap-4 mb-4">
+        <mat-form-field class="w-72">
+          <mat-label>{{ "groups.tournament" | transloco }}</mat-label>
+          <mat-select [formField]="pickerForm.tournament">
+            @for (item of tournaments(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (tournament()) {
+          <app-tournament-status-chip
+            [status]="tournament()!.status"
+            class="mt-4"
+          />
+        }
+      </div>
+
+      @if (!tournament()) {
+        <p class="py-10 px-6 text-center text-secondary">
+          {{
+            (tournamentsResource.hasValue() && tournaments().length === 0
+              ? "groups.noTournaments"
+              : "groups.pickTournament"
+            ) | transloco
+          }}
+        </p>
+      } @else {
+        <mat-progress-bar
+          [class.invisible]="!resource.isLoading()"
+          mode="indeterminate"
+        />
+
+        @if (lockedNotice(); as notice) {
+          <div
+            class="flex items-center gap-3 mb-4 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+            role="status"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <p class="m-0 text-sm">{{ notice | transloco }}</p>
+          </div>
+        }
+
+        @if (resource.error()) {
+          <div class="py-10 px-6 text-center" role="alert">
+            <p class="text-secondary mb-4">{{ "groups.error" | transloco }}</p>
+            <button
+              (click)="resource.reload()"
+              mat-stroked-button
+              type="button"
+            >
+              {{ "common.retry" | transloco }}
+            </button>
+          </div>
+        } @else if (view()) {
+          <section class="mb-8">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <h2 class="m-0 text-xl font-medium flex-1">
+                {{ "groups.regular.title" | transloco }}
+              </h2>
+              @if (editable()) {
+                @if (canRandomize()) {
+                  <button
+                    (click)="randomize()"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:shuffle" />
+                    {{ "groups.random.action" | transloco }}
+                  </button>
+                }
+                <button
+                  (click)="newGroup()"
+                  color="primary"
+                  mat-flat-button
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:add" />
+                  {{ "groups.new" | transloco }}
+                </button>
+              }
+            </div>
+
+            @if (single()) {
+              <p class="mt-0 mb-3 text-sm text-secondary">
+                {{ "groups.singleHint" | transloco }}
+              </p>
+            }
+
+            @if (unassigned().length) {
+              <div
+                class="mb-4 p-4 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+              >
+                <h3 class="m-0 mb-1 font-medium">
+                  {{ "groups.unassigned.title" | transloco }}
+                </h3>
+                <p class="mt-0 mb-2 text-sm">
+                  {{ "groups.unassigned.hint" | transloco }}
+                </p>
+                <ul class="m-0 p-0 list-none flex flex-col">
+                  @for (item of unassigned(); track item.id) {
+                    <ng-container
+                      *ngTemplateOutlet="
+                        teamRow;
+                        context: { $implicit: item, current: null }
+                      "
+                    />
+                  }
+                </ul>
+              </div>
+            }
+
+            <div class="flex items-start gap-4 overflow-x-auto pb-2">
+              @for (group of regular(); track group.id) {
+                <article
+                  [attr.aria-label]="group.name"
+                  class="bg-foreground rounded shadow p-4 shrink-0"
+                  style="flex-basis: max(18rem, calc((100% - 3rem) / 4))"
+                >
+                  <header class="flex items-center gap-1 mb-2">
+                    <div class="flex-1 min-w-0">
+                      <h3 class="m-0 font-medium truncate">{{ group.name }}</h3>
+                      <span class="text-sm text-secondary">
+                        {{
+                          (group.teams_count === 1
+                            ? "groups.teamsCount.one"
+                            : "groups.teamsCount.other"
+                          ) | transloco: { count: group.teams_count }
+                        }}
+                      </span>
+                    </div>
+                    @if (editable()) {
+                      <button
+                        (click)="rename(group)"
+                        [attr.aria-label]="
+                          'groups.actions.rename'
+                            | transloco: { name: group.name }
+                        "
+                        [matTooltip]="
+                          'groups.actions.rename'
+                            | transloco: { name: group.name }
+                        "
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:edit" />
+                      </button>
+                      <span
+                        [matTooltip]="
+                          canDelete(group)
+                            ? ''
+                            : ('groups.deleteBlocked' | transloco)
+                        "
+                      >
+                        <button
+                          (click)="remove(group)"
+                          [attr.aria-label]="
+                            'groups.actions.delete'
+                              | transloco: { name: group.name }
+                          "
+                          [disabled]="!canDelete(group)"
+                          mat-icon-button
+                          type="button"
+                        >
+                          <mat-icon color="warn" svgIcon="mat:delete" />
+                        </button>
+                      </span>
+                    }
+                  </header>
+
+                  <ul class="m-0 p-0 list-none flex flex-col">
+                    @for (item of group.teams; track item.id) {
+                      <ng-container
+                        *ngTemplateOutlet="
+                          teamRow;
+                          context: { $implicit: item, current: group }
+                        "
+                      />
+                    }
+                  </ul>
+                </article>
+              }
+            </div>
+          </section>
+
+          <section>
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              <h2 class="m-0 text-xl font-medium flex-1">
+                {{ "groups.playoffs.title" | transloco }}
+              </h2>
+              @if (playoffsOpen()) {
+                <button
+                  (click)="newPlayoff()"
+                  color="primary"
+                  mat-flat-button
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:add" />
+                  {{ "groups.playoffs.new" | transloco }}
+                </button>
+              }
+            </div>
+            <p class="mt-0 mb-3 text-sm text-secondary">
+              {{ "groups.playoffs.hint" | transloco }}
+            </p>
+
+            @if (!finalsAligned()) {
+              <div
+                class="flex items-center gap-3 mb-4 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+                role="status"
+              >
+                <mat-icon class="shrink-0" svgIcon="mat:warning" />
+                <p class="m-0 text-sm">
+                  {{ "groups.playoffs.finalsNotAligned" | transloco }}
+                </p>
+              </div>
+            }
+
+            @if (playoffs().length === 0) {
+              <p class="py-6 text-center text-secondary">
+                {{ "groups.playoffs.empty" | transloco }}
+              </p>
+            }
+
+            <div
+              class="grid gap-4"
+              style="
+                grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+              "
+            >
+              @for (playoff of playoffs(); track playoff.id) {
+                <article
+                  [attr.aria-label]="playoff.name"
+                  class="bg-foreground rounded shadow p-4"
+                >
+                  <header class="flex items-center gap-1 mb-2">
+                    <h3 class="m-0 font-medium flex-1 min-w-0 truncate">
+                      {{ playoff.name }}
+                    </h3>
+                    @if (playoffEditable(playoff)) {
+                      <button
+                        (click)="editPlayoff(playoff)"
+                        [attr.aria-label]="
+                          'groups.actions.edit'
+                            | transloco: { name: playoff.name }
+                        "
+                        [matTooltip]="
+                          'groups.actions.edit'
+                            | transloco: { name: playoff.name }
+                        "
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:edit" />
+                      </button>
+                      <button
+                        (click)="remove(playoff)"
+                        [attr.aria-label]="
+                          'groups.actions.delete'
+                            | transloco: { name: playoff.name }
+                        "
+                        [matTooltip]="
+                          'groups.actions.delete'
+                            | transloco: { name: playoff.name }
+                        "
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon color="warn" svgIcon="mat:delete" />
+                      </button>
+                    }
+                  </header>
+
+                  <ul class="m-0 mb-2 p-0 list-none text-sm">
+                    @for (source of playoff.sources; track source.id) {
+                      <li>
+                        {{
+                          (source.position_start === source.position_end
+                            ? "groups.playoffs.sourceOne"
+                            : "groups.playoffs.source"
+                          )
+                            | transloco
+                              : {
+                                  group: source.source_group_name,
+                                  from: source.position_start,
+                                  to: source.position_end,
+                                }
+                        }}
+                      </li>
+                    }
+                  </ul>
+                  <p class="m-0 text-sm font-medium">
+                    {{
+                      "groups.playoff.total"
+                        | transloco: { count: playoff.total_teams }
+                    }}
+                  </p>
+                  @if (hasDates(playoff)) {
+                    @for (round of playoff.rounds_detail ?? []; track $index) {
+                      <p class="m-0 text-sm text-secondary">
+                        {{ round.name }}{{ round.date ? ": " : ""
+                        }}{{
+                          round.date
+                            ? (parseDate(round.date) | date: "dd/MM/yyyy")
+                            : ""
+                        }}
+                      </p>
+                    }
+                  } @else {
+                    <p class="m-0 text-sm text-secondary">
+                      {{ "groups.playoff.rounds" | transloco }}:
+                      {{ roundNames(playoff) }}
+                    </p>
+                    <p class="m-0 text-sm text-secondary">
+                      {{ "groups.playoff.datesPending" | transloco }}
+                    </p>
+                  }
+                </article>
+              }
+            </div>
+          </section>
+        }
+      }
+    }
+  </app-page-layout-content>
+</app-page-layout>
+
+<ng-template #teamRow let-item let-current="current">
+  <li class="flex items-center gap-3 py-1">
+    <app-logo-image
+      [alt]="item.team.name"
+      [src]="item.team.logo_url"
+      class="w-8 h-8 rounded-full shrink-0"
+    />
+    <span class="flex-1 min-w-0 truncate">
+      <span class="font-medium">{{ item.team.name }}</span>
+      @if (item.team.manager; as manager) {
+        <span class="text-secondary"> ({{ manager.name }})</span>
+      }
+    </span>
+    @if (editable() && !single()) {
+      <button
+        [attr.aria-label]="
+          'groups.moveTeam' | transloco: { name: item.team.name }
+        "
+        [matMenuTriggerFor]="moveMenu"
+        [matMenuTriggerData]="{ item, current }"
+        mat-stroked-button
+        type="button"
+      >
+        {{ "groups.moveTo" | transloco }}
+        <mat-icon iconPositionEnd svgIcon="mat:arrow_drop_down" />
+      </button>
+    }
+  </li>
+</ng-template>
+
+<mat-menu #moveMenu="matMenu">
+  <ng-template let-item="item" let-current="current" matMenuContent>
+    @for (group of otherGroups(current); track group.id) {
+      <button (click)="move(item, group)" mat-menu-item type="button">
+        {{ group.name }}
+      </button>
+    }
+  </ng-template>
+</mat-menu>

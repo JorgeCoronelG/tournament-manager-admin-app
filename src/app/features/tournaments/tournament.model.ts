@@ -2,7 +2,8 @@ import { PageQuery } from "../../core/http/paginated-resource";
 
 export type TournamentGender = "male" | "female" | "mixed";
 
-export type TournamentStatus = "planning" | "in_progress" | "finished";
+export type TournamentStatus =
+  "planning" | "in_progress" | "playoffs" | "finished";
 
 export const TOURNAMENT_GENDERS: readonly TournamentGender[] = [
   "male",
@@ -13,6 +14,7 @@ export const TOURNAMENT_GENDERS: readonly TournamentGender[] = [
 export const TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
   "planning",
   "in_progress",
+  "playoffs",
   "finished",
 ];
 

@@ -47,6 +47,22 @@ test.describe("tournaments", () => {
     await expect(rows.nth(2).getByRole("button")).toHaveCount(0);
   });
 
+  test("shows the Liguilla status and offers it in the status filter", async ({
+    page,
+  }) => {
+    await mockTournamentsApi(page, {
+      tournaments: makeTournaments(1).map((t) => ({
+        ...t,
+        status: "playoffs" as const,
+      })),
+    });
+    await gotoApp(page, "/dashboard/torneos");
+
+    await expect(page.locator("tr[mat-row]").first()).toContainText("Liguilla");
+    await page.getByRole("combobox", { name: "Estado" }).click();
+    await expect(page.getByRole("option", { name: "Liguilla" })).toBeVisible();
+  });
+
   test("a tournament starts only after confirming", async ({ page }) => {
     const api = await mockTournamentsApi(page, {
       tournaments: makeTournaments(1),

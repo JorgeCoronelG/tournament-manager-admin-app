@@ -229,6 +229,8 @@ export class TournamentFormDialogComponent {
     switch (this.tournament?.status) {
       case "in_progress":
         return this.transloco.translate("tournaments.form.lockedInProgress");
+      case "playoffs":
+        return this.transloco.translate("tournaments.form.lockedInProgress");
       case "finished":
         return this.transloco.translate("tournaments.form.lockedFinished");
       default:
