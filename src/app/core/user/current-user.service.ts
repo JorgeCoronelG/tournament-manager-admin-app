@@ -1,5 +1,5 @@
 import { computed, Service, signal } from "@angular/core";
-import { writeActiveLeagueId } from "../league-context/league-context.storage";
+import { clearActiveLeagueIds } from "../league-context/league-context.storage";
 import { capabilitiesFor, Capability } from "../auth/role-capabilities";
 import { Role } from "../auth/role.model";
 
@@ -23,7 +23,7 @@ const ANONYMOUS_USER: AppUser = {
  * Holds the user shown in the sidenav and the toolbar, and what their roles
  * allow. `AuthSessionService` and the login call `setUser()` after signing in;
  * `clear()` runs when the session ends (sign out or an invalid token), and
- * forgets the league they had chosen so the next sign-in picks one again.
+ * forgets the league chosen in this browser so the next sign-in picks one again.
  */
 @Service()
 export class CurrentUserService {
@@ -41,12 +41,7 @@ export class CurrentUserService {
   }
 
   clear(): void {
-    const { id } = this._user();
-
-    if (id > 0) {
-      writeActiveLeagueId(id, null);
-    }
-
+    clearActiveLeagueIds();
     this._user.set(ANONYMOUS_USER);
   }
 }

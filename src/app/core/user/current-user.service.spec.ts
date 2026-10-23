@@ -34,7 +34,19 @@ describe("CurrentUserService", () => {
     service.clear();
 
     expect(localStorage.getItem("app.active-league.1")).toBeNull();
-    expect(localStorage.getItem("app.active-league.2")).toBe("6");
+    expect(localStorage.getItem("app.active-league.2")).toBeNull();
+    localStorage.clear();
+  });
+
+  it("forgets the saved league even when the user was never loaded (token rejected on reload)", () => {
+    const service = TestBed.inject(CurrentUserService);
+    localStorage.setItem("app.active-league.1", "4");
+    localStorage.setItem("app.other", "keep");
+
+    service.clear();
+
+    expect(localStorage.getItem("app.active-league.1")).toBeNull();
+    expect(localStorage.getItem("app.other")).toBe("keep");
     localStorage.clear();
   });
 
