@@ -1,8 +1,13 @@
 import {
   ChangeDetectionStrategy,
+  afterNextRender,
   Component,
+  computed,
+  ElementRef,
   inject,
+  Injector,
   signal,
+  viewChild,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDatepickerModule } from "@angular/material/datepicker";
@@ -11,6 +16,8 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { MatTabsModule } from "@angular/material/tabs";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatIconModule } from "@angular/material/icon";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
@@ -31,13 +38,22 @@ import { catchError, throwError } from "rxjs";
 import { fieldErrors } from "../../../core/http/api-errors";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import {
+  DEFAULT_MATCH_DURATION,
+  DEFAULT_ROUNDS,
+  DEFAULT_TIEBREAKERS,
   MAX_AGE,
+  MAX_MATCH_DURATION,
   MIN_AGE,
+  MIN_MATCH_DURATION,
   formatDate,
   parseDate,
+  TIEBREAKERS,
   TOURNAMENT_GENDERS,
+  TOURNAMENT_ROUNDS,
+  Tiebreaker,
   Tournament,
   TournamentGender,
+  TournamentRounds,
 } from "../tournament.model";
 import { TournamentsApi } from "../tournaments.api";
 
@@ -49,6 +65,9 @@ interface TournamentFormModel {
   start_date: Date | null;
   max_roster_size: number | null;
   min_matches_for_playoffs: number | null;
+  rounds: TournamentRounds;
+  match_duration_minutes: number | null;
+  tiebreakers: Tiebreaker[];
 }
 
 const NAME_MAX = 150;
@@ -71,6 +90,8 @@ const NAME_MAX = 150;
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    MatTabsModule,
+    MatTooltipModule,
     TranslocoPipe,
   ],
 })
@@ -80,6 +101,7 @@ export class TournamentFormDialogComponent {
     inject<MatDialogRef<TournamentFormDialogComponent, Tournament>>(
       MatDialogRef,
     );
+  private readonly injector = inject(Injector);
   private readonly formSubmit = inject(FormSubmitService);
   private readonly transloco = inject(TranslocoService);
 
@@ -88,7 +110,14 @@ export class TournamentFormDialogComponent {
     optional: true,
   });
 
+  private readonly tiebreakersError =
+    viewChild<ElementRef<HTMLElement>>("tiebreakersError");
+
+  /** 0 is General (required fields), 1 is Configuración (optional ones) */
+  readonly selectedTab = signal(0);
+
   readonly genders = TOURNAMENT_GENDERS;
+  readonly rounds = TOURNAMENT_ROUNDS;
 
   private readonly model = signal<TournamentFormModel>({
     name: this.tournament?.name ?? "",
@@ -98,6 +127,17 @@ export class TournamentFormDialogComponent {
     start_date: this.tournament ? parseDate(this.tournament.start_date) : null,
     max_roster_size: this.tournament?.max_roster_size ?? null,
     min_matches_for_playoffs: this.tournament?.min_matches_for_playoffs ?? null,
+    rounds: this.tournament?.rounds ?? DEFAULT_ROUNDS,
+    match_duration_minutes:
+      this.tournament?.match_duration_minutes ?? DEFAULT_MATCH_DURATION,
+    tiebreakers: [...(this.tournament?.tiebreakers ?? DEFAULT_TIEBREAKERS)],
+  });
+
+  /** Criteria not yet in the list, in their canonical order */
+  readonly availableTiebreakers = computed(() => {
+    const used = this.model().tiebreakers;
+
+    return TIEBREAKERS.filter((criterion) => !used.includes(criterion));
   });
 
   /**
@@ -151,6 +191,20 @@ export class TournamentFormDialogComponent {
       });
     }
 
+    validate(tournament.match_duration_minutes, ({ value }) => {
+      const minutes = value();
+
+      return minutes === null ||
+        !Number.isInteger(minutes) ||
+        minutes < MIN_MATCH_DURATION ||
+        minutes > MAX_MATCH_DURATION
+        ? { kind: "durationRange" }
+        : undefined;
+    });
+    validate(tournament.tiebreakers, ({ value }) =>
+      value().length === 0 ? { kind: "tiebreakersRequired" } : undefined,
+    );
+
     // In progress only the name changes (the backend rejects the rest)
     const locked = () => this.tournament?.status === "in_progress";
     disabled(tournament.gender, locked);
@@ -159,7 +213,86 @@ export class TournamentFormDialogComponent {
     disabled(tournament.start_date, locked);
     disabled(tournament.max_roster_size, locked);
     disabled(tournament.min_matches_for_playoffs, locked);
+
+    // A finished tournament is not edited at all; the new fields also stay
+    // closed once it is in progress (the form dialog explains why)
+    const closed = () =>
+      this.tournament?.status !== undefined &&
+      this.tournament.status !== "planning";
+    disabled(tournament.rounds, closed);
+    disabled(tournament.match_duration_minutes, closed);
+    disabled(tournament.tiebreakers, closed);
   });
+
+  /** Why the new rule fields cannot change, for the tooltip; null when they can */
+  readonly lockedReason = computed(() => {
+    switch (this.tournament?.status) {
+      case "in_progress":
+        return this.transloco.translate("tournaments.form.lockedInProgress");
+      case "finished":
+        return this.transloco.translate("tournaments.form.lockedFinished");
+      default:
+        return null;
+    }
+  });
+
+  /** An error in the hidden tab would block saving with nothing visible */
+  private showFirstInvalidTab(): void {
+    const form = this.tournamentForm;
+    const general = [
+      form.name,
+      form.gender,
+      form.start_date,
+      form.match_duration_minutes,
+    ];
+
+    if (general.some((field) => field().invalid())) {
+      this.selectedTab.set(0);
+    } else if (form().invalid()) {
+      this.selectedTab.set(1);
+
+      if (form.tiebreakers().invalid()) {
+        // After the tab renders, so the message is in the DOM to scroll to
+        afterNextRender(
+          () =>
+            this.tiebreakersError()?.nativeElement.scrollIntoView({
+              block: "nearest",
+              behavior: "smooth",
+            }),
+          { injector: this.injector },
+        );
+      }
+    }
+  }
+
+  moveTiebreaker(index: number, offset: -1 | 1): void {
+    this.model.update((model) => {
+      const target = index + offset;
+      const list = [...model.tiebreakers];
+
+      if (target < 0 || target >= list.length) {
+        return model;
+      }
+
+      [list[index], list[target]] = [list[target], list[index]];
+
+      return { ...model, tiebreakers: list };
+    });
+  }
+
+  removeTiebreaker(index: number): void {
+    this.model.update((model) => ({
+      ...model,
+      tiebreakers: model.tiebreakers.filter((_, i) => i !== index),
+    }));
+  }
+
+  addTiebreaker(criterion: Tiebreaker): void {
+    this.model.update((model) => ({
+      ...model,
+      tiebreakers: [...model.tiebreakers, criterion],
+    }));
+  }
 
   /** Server messages win over the generic text of the failed rule */
   errorText(errors: readonly ValidationError[]): string {
@@ -182,6 +315,13 @@ export class TournamentFormDialogComponent {
           min: MIN_AGE,
           max: MAX_AGE,
         });
+      case "durationRange":
+        return this.transloco.translate("tournaments.form.durationRange", {
+          min: MIN_MATCH_DURATION,
+          max: MAX_MATCH_DURATION,
+        });
+      case "tiebreakersRequired":
+        return this.transloco.translate("tournaments.form.tiebreakersRequired");
       case "ageRange":
         return this.transloco.translate("tournaments.form.ageRange");
       default:
@@ -190,6 +330,8 @@ export class TournamentFormDialogComponent {
   }
 
   save(): Promise<boolean> {
+    this.showFirstInvalidTab();
+
     return this.formSubmit.submit(this.tournamentForm, {
       errors: "form",
       ignoreFields: ["name"],
@@ -202,6 +344,9 @@ export class TournamentFormDialogComponent {
           start_date,
           max_roster_size,
           min_matches_for_playoffs,
+          rounds,
+          match_duration_minutes,
+          tiebreakers,
         } = this.model();
         const body = {
           name: name.trim(),
@@ -211,6 +356,9 @@ export class TournamentFormDialogComponent {
           start_date: formatDate(start_date as Date),
           max_roster_size,
           min_matches_for_playoffs,
+          rounds,
+          match_duration_minutes: match_duration_minutes as number,
+          tiebreakers,
         };
 
         const request = this.tournament

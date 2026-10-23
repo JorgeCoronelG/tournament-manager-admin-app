@@ -16,6 +16,40 @@ export const TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
   "finished",
 ];
 
+export type TournamentRounds = 1 | 2;
+
+export type Tiebreaker =
+  | "points"
+  | "goal_difference"
+  | "goals_for"
+  | "goals_against"
+  | "head_to_head"
+  | "wins";
+
+export const TOURNAMENT_ROUNDS: readonly TournamentRounds[] = [1, 2];
+
+export const TIEBREAKERS: readonly Tiebreaker[] = [
+  "points",
+  "goal_difference",
+  "goals_for",
+  "goals_against",
+  "head_to_head",
+  "wins",
+];
+
+export const DEFAULT_ROUNDS: TournamentRounds = 1;
+export const DEFAULT_MATCH_DURATION = 60;
+export const DEFAULT_TIEBREAKERS: readonly Tiebreaker[] = [
+  "points",
+  "goal_difference",
+  "goals_for",
+  "head_to_head",
+];
+
+/** Match length (minutes) the backend accepts */
+export const MIN_MATCH_DURATION = 20;
+export const MAX_MATCH_DURATION = 180;
+
 /** Ages the backend accepts */
 export const MIN_AGE = 18;
 export const MAX_AGE = 99;
@@ -31,6 +65,10 @@ export interface Tournament {
   start_date: string;
   max_roster_size: number | null;
   min_matches_for_playoffs: number | null;
+  rounds: TournamentRounds;
+  match_duration_minutes: number;
+  /** In the order they are applied */
+  tiebreakers: Tiebreaker[];
   /** Once the playoffs start, rosters are closed */
   playoffs_started: boolean;
   status: TournamentStatus;
@@ -48,6 +86,9 @@ export interface NewTournament {
   start_date: string;
   max_roster_size: number | null;
   min_matches_for_playoffs: number | null;
+  rounds: TournamentRounds;
+  match_duration_minutes: number;
+  tiebreakers: Tiebreaker[];
 }
 
 export type TournamentSortField = "name" | "start_date" | "created_at";

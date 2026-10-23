@@ -113,8 +113,6 @@ test.describe("tournaments", () => {
     await dialog.getByLabel("Nombre").fill("Apertura");
     await dialog.getByRole("combobox", { name: "Género" }).click();
     await page.getByRole("option", { name: "Mixto" }).click();
-    await dialog.getByLabel("Edad mínima").fill("40");
-    await dialog.getByLabel("Edad máxima").fill("30");
     // Read only: the date comes from the calendar (in Spanish), opened by clicking the field
     const date = dialog.getByLabel("Fecha de inicio");
     await date.click();
@@ -131,6 +129,10 @@ test.describe("tournaments", () => {
     await date.press("Backspace");
     await date.pressSequentially("1");
     await expect(date).toHaveValue("20/09/2026");
+
+    await dialog.getByRole("tab", { name: "Configuración" }).click();
+    await dialog.getByLabel("Edad mínima").fill("40");
+    await dialog.getByLabel("Edad máxima").fill("30");
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(
       dialog.getByText("La edad máxima no puede ser menor que la mínima"),
@@ -148,7 +150,105 @@ test.describe("tournaments", () => {
         start_date: "2026-09-20",
         max_roster_size: null,
         min_matches_for_playoffs: null,
+        rounds: 1,
+        match_duration_minutes: 60,
+        tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
       },
     ]);
+  });
+
+  test("the rules fields validate the duration and the tiebreakers", async ({
+    page,
+  }) => {
+    const api = await mockTournamentsApi(page);
+    await gotoApp(page, "/dashboard/torneos");
+
+    await page.getByRole("button", { name: "Nuevo torneo" }).click();
+    const dialog = page.getByRole("dialog");
+
+    await dialog.getByLabel("Duración del partido (minutos)").fill("10");
+    await expect(
+      dialog.getByText("Ingresa una duración entre 20 y 180 minutos"),
+    ).toBeVisible();
+    await dialog.getByLabel("Duración del partido (minutos)").fill("90");
+
+    await dialog.getByRole("tab", { name: "Configuración" }).click();
+    await dialog.getByRole("combobox", { name: "Vueltas" }).click();
+    await page.getByRole("option", { name: /Doble vuelta/ }).click();
+
+    await dialog
+      .getByRole("button", { name: "Subir Diferencia de goles" })
+      .click();
+    await dialog
+      .getByRole("button", { name: "Agregar Partidos ganados" })
+      .click();
+    for (let i = 0; i < 5; i++) {
+      await dialog
+        .getByRole("button", { name: /^Quitar / })
+        .first()
+        .click();
+    }
+    await expect(
+      dialog.getByText("Selecciona al menos un criterio"),
+    ).toBeVisible();
+    await dialog.getByRole("button", { name: "Agregar Puntos" }).click();
+
+    await dialog.getByRole("tab", { name: "General" }).click();
+    await dialog.getByLabel("Nombre").fill("Apertura");
+    await dialog.getByRole("combobox", { name: "Género" }).click();
+    await page.getByRole("option", { name: "Mixto" }).click();
+    const date = dialog.getByLabel("Fecha de inicio");
+    await date.click();
+    await page
+      .locator(".mat-calendar-body-cell")
+      .getByText("20", { exact: true })
+      .click();
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog).toBeHidden();
+
+    expect(api.created[0]).toMatchObject({
+      rounds: 2,
+      match_duration_minutes: 90,
+      tiebreakers: ["points"],
+    });
+  });
+
+  test("saving with no tiebreakers goes to the settings tab", async ({
+    page,
+  }) => {
+    const api = await mockTournamentsApi(page);
+    await gotoApp(page, "/dashboard/torneos");
+
+    await page.getByRole("button", { name: "Nuevo torneo" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Nombre").fill("Apertura");
+    await dialog.getByRole("combobox", { name: "Género" }).click();
+    await page.getByRole("option", { name: "Mixto" }).click();
+    await dialog.getByLabel("Fecha de inicio").click();
+    await page
+      .locator(".mat-calendar-body-cell")
+      .getByText("20", { exact: true })
+      .click();
+    await dialog.getByLabel("Duración del partido (minutos)").fill("");
+
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(
+      dialog.getByText("Ingresa una duración entre 20 y 180 minutos"),
+    ).toBeVisible();
+
+    await dialog.getByLabel("Duración del partido (minutos)").fill("60");
+    await dialog.getByRole("tab", { name: "Configuración" }).click();
+    for (let i = 0; i < 4; i++) {
+      await dialog
+        .getByRole("button", { name: /^Quitar / })
+        .first()
+        .click();
+    }
+    await dialog.getByRole("tab", { name: "General" }).click();
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(
+      dialog.getByText("Selecciona al menos un criterio"),
+    ).toBeInViewport();
+    expect(api.created).toEqual([]);
   });
 });

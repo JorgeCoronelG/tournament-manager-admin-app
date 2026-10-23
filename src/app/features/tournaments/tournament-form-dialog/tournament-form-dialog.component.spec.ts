@@ -18,6 +18,9 @@ const existing = (status: Tournament["status"] = "planning"): Tournament => ({
   start_date: "2026-03-01",
   max_roster_size: 12,
   min_matches_for_playoffs: null,
+  rounds: 1,
+  match_duration_minutes: 60,
+  tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
   playoffs_started: false,
   status,
   created_at: "2026-01-01T00:00:00.000Z",
@@ -125,6 +128,9 @@ describe("TournamentFormDialogComponent", () => {
       start_date: "2026-05-09",
       max_roster_size: null,
       min_matches_for_playoffs: null,
+      rounds: 1,
+      match_duration_minutes: 60,
+      tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
     });
     expect(close).toHaveBeenCalledWith({ id: 1 });
   });
@@ -145,7 +151,52 @@ describe("TournamentFormDialogComponent", () => {
       start_date: "2026-03-01",
       max_roster_size: 12,
       min_matches_for_playoffs: null,
+      rounds: 1,
+      match_duration_minutes: 60,
+      tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
     });
+  });
+
+  it("keeps the match duration between 20 and 180 minutes", () => {
+    const component = setup();
+    const { match_duration_minutes } = component.tournamentForm;
+
+    for (const bad of [19, 181, 45.5, null]) {
+      match_duration_minutes().value.set(bad);
+      expect(match_duration_minutes().invalid()).toBe(true);
+    }
+    expect(component.errorText(match_duration_minutes().errors())).toBe(
+      "Ingresa una duración entre 20 y 180 minutos",
+    );
+
+    match_duration_minutes().value.set(20);
+    expect(match_duration_minutes().invalid()).toBe(false);
+  });
+
+  it("reorders, removes and adds tiebreakers, keeping at least one", () => {
+    const component = setup();
+    const { tiebreakers } = component.tournamentForm;
+
+    component.moveTiebreaker(1, -1);
+    expect(tiebreakers().value().slice(0, 2)).toEqual([
+      "goal_difference",
+      "points",
+    ]);
+    component.moveTiebreaker(0, -1);
+    expect(tiebreakers().value()[0]).toBe("goal_difference");
+
+    component.addTiebreaker("wins");
+    expect(tiebreakers().value().at(-1)).toBe("wins");
+    expect(component.availableTiebreakers()).toEqual(["goals_against"]);
+
+    for (let i = 0; i < 5; i++) {
+      component.removeTiebreaker(0);
+    }
+    expect(tiebreakers().value()).toEqual([]);
+    expect(tiebreakers().invalid()).toBe(true);
+    expect(component.errorText(tiebreakers().errors())).toBe(
+      "Selecciona al menos un criterio",
+    );
   });
 
   it("requires roster fields to be positive integers", () => {
@@ -187,6 +238,17 @@ describe("TournamentFormDialogComponent", () => {
     expect(f.start_date().disabled()).toBe(true);
     expect(f.max_roster_size().disabled()).toBe(true);
     expect(f.min_matches_for_playoffs().disabled()).toBe(true);
+    expect(f.rounds().disabled()).toBe(true);
+    expect(f.match_duration_minutes().disabled()).toBe(true);
+    expect(f.tiebreakers().disabled()).toBe(true);
+  });
+
+  it("disables the new fields in a finished tournament", () => {
+    const f = setup(existing("finished")).tournamentForm;
+
+    expect(f.rounds().disabled()).toBe(true);
+    expect(f.match_duration_minutes().disabled()).toBe(true);
+    expect(f.tiebreakers().disabled()).toBe(true);
   });
 
   it("maps 422 errors to their fields and keeps the dialog open", async () => {

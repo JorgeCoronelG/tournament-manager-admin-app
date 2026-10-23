@@ -19,131 +19,351 @@
       </div>
     }
 
-    <mat-form-field>
-      <mat-label>{{ "tournaments.fields.name" | transloco }}</mat-label>
-      <input [formField]="tournamentForm.name" autocomplete="off" matInput />
-      @if (tournamentForm.name().errors().length) {
-        <mat-error>{{ errorText(tournamentForm.name().errors()) }}</mat-error>
-      }
-    </mat-form-field>
+    <mat-tab-group [(selectedIndex)]="selectedTab" animationDuration="0ms">
+      <mat-tab [label]="'tournaments.form.tabGeneral' | transloco">
+        <div class="flex flex-col gap-2 pt-4">
+          <mat-form-field>
+            <mat-label>{{ "tournaments.fields.name" | transloco }}</mat-label>
+            <input
+              [formField]="tournamentForm.name"
+              autocomplete="off"
+              cdkFocusInitial
+              matInput
+            />
+            @if (tournamentForm.name().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.name().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>{{ "tournaments.fields.gender" | transloco }}</mat-label>
-      <mat-select [formField]="tournamentForm.gender">
-        @for (gender of genders; track gender) {
-          <mat-option [value]="gender">{{
-            "tournaments.gender." + gender | transloco
-          }}</mat-option>
-        }
-      </mat-select>
-      @if (tournamentForm.gender().errors().length) {
-        <mat-error>{{ errorText(tournamentForm.gender().errors()) }}</mat-error>
-      }
-    </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{ "tournaments.fields.gender" | transloco }}</mat-label>
+            <mat-select [formField]="tournamentForm.gender">
+              @for (gender of genders; track gender) {
+                <mat-option [value]="gender">{{
+                  "tournaments.gender." + gender | transloco
+                }}</mat-option>
+              }
+            </mat-select>
+            @if (tournamentForm.gender().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.gender().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
 
-    <div class="flex gap-4">
-      <mat-form-field class="flex-1">
-        <mat-label>{{ "tournaments.fields.minAge" | transloco }}</mat-label>
-        <input
-          [formField]="tournamentForm.min_age"
-          autocomplete="off"
-          inputmode="numeric"
-          matInput
-          type="number"
-        />
-        @if (tournamentForm.min_age().errors().length) {
-          <mat-error>{{
-            errorText(tournamentForm.min_age().errors())
-          }}</mat-error>
-        } @else {
-          <mat-hint>{{ "tournaments.form.optional" | transloco }}</mat-hint>
-        }
-      </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{
+              "tournaments.fields.startDate" | transloco
+            }}</mat-label>
+            <input
+              (beforeinput)="$event.preventDefault()"
+              (click)="picker.open()"
+              (keydown.enter)="picker.open()"
+              aria-readonly="true"
+              [formField]="tournamentForm.start_date"
+              [matDatepicker]="picker"
+              autocomplete="off"
+              class="cursor-pointer"
+              matInput
+            />
+            <mat-datepicker-toggle
+              [for]="picker"
+              class="[&_.mat-mdc-button-touch-target]:hidden"
+              matIconSuffix
+            />
+            <mat-datepicker #picker />
+            @if (tournamentForm.start_date().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.start_date().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
 
-      <mat-form-field class="flex-1">
-        <mat-label>{{ "tournaments.fields.maxAge" | transloco }}</mat-label>
-        <input
-          [formField]="tournamentForm.max_age"
-          autocomplete="off"
-          inputmode="numeric"
-          matInput
-          type="number"
-        />
-        @if (tournamentForm.max_age().errors().length) {
-          <mat-error>{{
-            errorText(tournamentForm.max_age().errors())
-          }}</mat-error>
-        } @else {
-          <mat-hint>{{ "tournaments.form.optional" | transloco }}</mat-hint>
-        }
-      </mat-form-field>
-    </div>
+          <mat-form-field
+            [matTooltip]="lockedReason() ?? ''"
+            [matTooltipDisabled]="
+              !tournamentForm.match_duration_minutes().disabled()
+            "
+          >
+            <mat-label>{{
+              "tournaments.fields.matchDuration" | transloco
+            }}</mat-label>
+            <input
+              [formField]="tournamentForm.match_duration_minutes"
+              autocomplete="off"
+              inputmode="numeric"
+              matInput
+              type="number"
+            />
+            <button
+              [attr.aria-label]="
+                'tournaments.form.matchDurationHint' | transloco
+              "
+              [matTooltip]="'tournaments.form.matchDurationHint' | transloco"
+              matTooltipPosition="above"
+              class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+              matIconButton
+              matSuffix
+              type="button"
+            >
+              <mat-icon svgIcon="mat:info" />
+            </button>
+            @if (tournamentForm.match_duration_minutes().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.match_duration_minutes().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </mat-tab>
+      <mat-tab [label]="'tournaments.form.tabSettings' | transloco">
+        <div class="flex flex-col gap-2 pt-4">
+          <div class="flex gap-4">
+            <mat-form-field class="flex-1">
+              <mat-label>{{
+                "tournaments.fields.minAge" | transloco
+              }}</mat-label>
+              <input
+                [formField]="tournamentForm.min_age"
+                autocomplete="off"
+                inputmode="numeric"
+                matInput
+                type="number"
+              />
+              @if (tournamentForm.min_age().errors().length) {
+                <mat-error>{{
+                  errorText(tournamentForm.min_age().errors())
+                }}</mat-error>
+              } @else {
+                <mat-hint>{{
+                  "tournaments.form.optional" | transloco
+                }}</mat-hint>
+              }
+            </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>{{ "tournaments.fields.startDate" | transloco }}</mat-label>
-      <input
-        (beforeinput)="$event.preventDefault()"
-        (click)="picker.open()"
-        (keydown.enter)="picker.open()"
-        aria-readonly="true"
-        [formField]="tournamentForm.start_date"
-        [matDatepicker]="picker"
-        autocomplete="off"
-        class="cursor-pointer"
-        matInput
-      />
-      <mat-datepicker-toggle [for]="picker" matIconSuffix />
-      <mat-datepicker #picker />
-      @if (tournamentForm.start_date().errors().length) {
-        <mat-error>{{
-          errorText(tournamentForm.start_date().errors())
-        }}</mat-error>
-      }
-    </mat-form-field>
+            <mat-form-field class="flex-1">
+              <mat-label>{{
+                "tournaments.fields.maxAge" | transloco
+              }}</mat-label>
+              <input
+                [formField]="tournamentForm.max_age"
+                autocomplete="off"
+                inputmode="numeric"
+                matInput
+                type="number"
+              />
+              @if (tournamentForm.max_age().errors().length) {
+                <mat-error>{{
+                  errorText(tournamentForm.max_age().errors())
+                }}</mat-error>
+              } @else {
+                <mat-hint>{{
+                  "tournaments.form.optional" | transloco
+                }}</mat-hint>
+              }
+            </mat-form-field>
+          </div>
 
-    <mat-form-field subscriptSizing="dynamic">
-      <mat-label>{{
-        "tournaments.fields.maxRosterSize" | transloco
-      }}</mat-label>
-      <input
-        [formField]="tournamentForm.max_roster_size"
-        autocomplete="off"
-        inputmode="numeric"
-        matInput
-        type="number"
-      />
-      @if (tournamentForm.max_roster_size().errors().length) {
-        <mat-error>{{
-          errorText(tournamentForm.max_roster_size().errors())
-        }}</mat-error>
-      } @else {
-        <mat-hint>{{
-          "tournaments.form.maxRosterSizeHint" | transloco
-        }}</mat-hint>
-      }
-    </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{
+              "tournaments.fields.maxRosterSize" | transloco
+            }}</mat-label>
+            <input
+              [formField]="tournamentForm.max_roster_size"
+              autocomplete="off"
+              inputmode="numeric"
+              matInput
+              type="number"
+            />
+            <button
+              [attr.aria-label]="
+                'tournaments.form.maxRosterSizeHint' | transloco
+              "
+              [matTooltip]="'tournaments.form.maxRosterSizeHint' | transloco"
+              matTooltipPosition="above"
+              class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+              matIconButton
+              matSuffix
+              type="button"
+            >
+              <mat-icon svgIcon="mat:info" />
+            </button>
+            @if (tournamentForm.max_roster_size().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.max_roster_size().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
 
-    <mat-form-field subscriptSizing="dynamic">
-      <mat-label>{{
-        "tournaments.fields.minMatchesForPlayoffs" | transloco
-      }}</mat-label>
-      <input
-        [formField]="tournamentForm.min_matches_for_playoffs"
-        autocomplete="off"
-        inputmode="numeric"
-        matInput
-        type="number"
-      />
-      @if (tournamentForm.min_matches_for_playoffs().errors().length) {
-        <mat-error>{{
-          errorText(tournamentForm.min_matches_for_playoffs().errors())
-        }}</mat-error>
-      } @else {
-        <mat-hint>{{
-          "tournaments.form.minMatchesForPlayoffsHint" | transloco
-        }}</mat-hint>
-      }
-    </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{
+              "tournaments.fields.minMatchesForPlayoffs" | transloco
+            }}</mat-label>
+            <input
+              [formField]="tournamentForm.min_matches_for_playoffs"
+              autocomplete="off"
+              inputmode="numeric"
+              matInput
+              type="number"
+            />
+            <button
+              [attr.aria-label]="
+                'tournaments.form.minMatchesForPlayoffsHint' | transloco
+              "
+              [matTooltip]="
+                'tournaments.form.minMatchesForPlayoffsHint' | transloco
+              "
+              matTooltipPosition="above"
+              class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+              matIconButton
+              matSuffix
+              type="button"
+            >
+              <mat-icon svgIcon="mat:info" />
+            </button>
+            @if (tournamentForm.min_matches_for_playoffs().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.min_matches_for_playoffs().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="lockedReason() ?? ''"
+            [matTooltipDisabled]="!tournamentForm.rounds().disabled()"
+          >
+            <mat-label>{{ "tournaments.fields.rounds" | transloco }}</mat-label>
+            <mat-select [formField]="tournamentForm.rounds">
+              @for (rounds of rounds; track rounds) {
+                <mat-option [value]="rounds">{{
+                  "tournaments.rounds." + rounds | transloco
+                }}</mat-option>
+              }
+            </mat-select>
+            <button
+              [attr.aria-label]="'tournaments.form.roundsHint' | transloco"
+              [matTooltip]="'tournaments.form.roundsHint' | transloco"
+              matTooltipPosition="above"
+              class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+              matIconButton
+              matSuffix
+              type="button"
+            >
+              <mat-icon svgIcon="mat:info" />
+            </button>
+          </mat-form-field>
+
+          <fieldset
+            [matTooltip]="lockedReason() ?? ''"
+            [matTooltipDisabled]="!tournamentForm.tiebreakers().disabled()"
+            class="m-0 mb-2 p-0 border-0 min-w-0"
+          >
+            <legend
+              class="flex items-center gap-1 p-0 mb-1 text-sm font-medium"
+            >
+              {{ "tournaments.fields.tiebreakers" | transloco }}
+              <mat-icon
+                [attr.aria-label]="
+                  'tournaments.form.tiebreakersHint' | transloco
+                "
+                [matTooltip]="'tournaments.form.tiebreakersHint' | transloco"
+                matTooltipPosition="above"
+                class="!size-4 !text-base cursor-help"
+                svgIcon="mat:info"
+                tabindex="0"
+              />
+            </legend>
+            <ol class="m-0 p-0 list-none flex flex-col gap-1">
+              @for (
+                criterion of tournamentForm.tiebreakers().value();
+                track criterion;
+                let i = $index;
+                let last = $last
+              ) {
+                @let label = "tournaments.tiebreaker." + criterion | transloco;
+                <li class="flex items-center gap-1 rounded border px-2 py-1">
+                  <span class="w-6 text-sm">{{ i + 1 }}.</span>
+                  <span class="flex-1">{{ label }}</span>
+                  <button
+                    (click)="moveTiebreaker(i, -1)"
+                    [attr.aria-label]="
+                      'tournaments.form.moveUp' | transloco: { name: label }
+                    "
+                    [disabled]="
+                      i === 0 || tournamentForm.tiebreakers().disabled()
+                    "
+                    mat-icon-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:arrow_upward" />
+                  </button>
+                  <button
+                    (click)="moveTiebreaker(i, 1)"
+                    [attr.aria-label]="
+                      'tournaments.form.moveDown' | transloco: { name: label }
+                    "
+                    [disabled]="last || tournamentForm.tiebreakers().disabled()"
+                    mat-icon-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:arrow_downward" />
+                  </button>
+                  <button
+                    (click)="removeTiebreaker(i)"
+                    [attr.aria-label]="
+                      'tournaments.form.removeTiebreaker'
+                        | transloco: { name: label }
+                    "
+                    [disabled]="tournamentForm.tiebreakers().disabled()"
+                    mat-icon-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:close" />
+                  </button>
+                </li>
+              }
+            </ol>
+            @if (
+              availableTiebreakers().length &&
+              !tournamentForm.tiebreakers().disabled()
+            ) {
+              <div class="flex flex-wrap gap-2 mt-2">
+                @for (criterion of availableTiebreakers(); track criterion) {
+                  <button
+                    (click)="addTiebreaker(criterion)"
+                    [attr.aria-label]="
+                      'tournaments.form.addTiebreaker'
+                        | transloco
+                          : {
+                              name:
+                                'tournaments.tiebreaker.' + criterion
+                                | transloco,
+                            }
+                    "
+                    mat-stroked-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:add" />
+                    {{ "tournaments.tiebreaker." + criterion | transloco }}
+                  </button>
+                }
+              </div>
+            }
+            @if (tournamentForm.tiebreakers().errors().length) {
+              <p
+                #tiebreakersError
+                class="m-0 mt-1 text-xs text-red-600"
+                role="alert"
+              >
+                {{ errorText(tournamentForm.tiebreakers().errors()) }}
+              </p>
+            }
+          </fieldset>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

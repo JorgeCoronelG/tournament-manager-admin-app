@@ -248,6 +248,9 @@
       "startDate": "Fecha de inicio",
       "maxRosterSize": "Máximo de jugadores por equipo",
       "minMatchesForPlayoffs": "Partidos mínimos para liguilla",
+      "rounds": "Vueltas",
+      "matchDuration": "Duración del partido (minutos)",
+      "tiebreakers": "Criterios de desempate",
       "status": "Estado",
       "actions": "Acciones"
     },
@@ -260,6 +263,18 @@
       "planning": "Planeación",
       "in_progress": "En curso",
       "finished": "Finalizado"
+    },
+    "rounds": {
+      "1": "Una vuelta",
+      "2": "Doble vuelta (ida y vuelta)"
+    },
+    "tiebreaker": {
+      "points": "Puntos",
+      "goal_difference": "Diferencia de goles",
+      "goals_for": "Goles a favor",
+      "goals_against": "Goles en contra",
+      "head_to_head": "Resultado directo",
+      "wins": "Partidos ganados"
     },
     "age": {
       "from": "Desde {{min}}",
@@ -294,12 +309,25 @@
     "form": {
       "newTitle": "Nuevo torneo",
       "editTitle": "Editar torneo",
+      "tabGeneral": "General",
+      "tabSettings": "Configuración",
       "optional": "Opcional",
       "ageBounds": "Ingresa una edad entre {{min}} y {{max}}",
       "ageRange": "La edad máxima no puede ser menor que la mínima",
       "positiveInteger": "Debe ser un número entero mayor a 0",
       "maxRosterSizeHint": "Cuentan los jugadores activos y las solicitudes pendientes. Déjalo vacío si no hay límite.",
       "minMatchesForPlayoffsHint": "Partidos de la fase regular en los que el jugador debe tener asistencia para jugar la liguilla. Déjalo vacío si no aplica.",
+      "roundsHint": "Cuántas veces se enfrentan todos los equipos en la fase regular.",
+      "matchDurationHint": "Incluye los medios tiempos y descansos. Cómo se reparte la hora lo define el reglamento del torneo.",
+      "durationRange": "Ingresa una duración entre {{min}} y {{max}} minutos",
+      "tiebreakersHint": "Se aplican en este orden cuando hay empate en la tabla de posiciones. Si el empate continúa, el administrador define el orden.",
+      "tiebreakersRequired": "Selecciona al menos un criterio",
+      "moveUp": "Subir {{name}}",
+      "moveDown": "Bajar {{name}}",
+      "addTiebreaker": "Agregar {{name}}",
+      "removeTiebreaker": "Quitar {{name}}",
+      "lockedInProgress": "No se puede cambiar porque el torneo ya está en curso.",
+      "lockedFinished": "No se puede cambiar porque el torneo ya terminó.",
       "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre."
     }
   },
