@@ -1,0 +1,84 @@
+<h2 mat-dialog-title>
+  {{
+    (data.regenerate ? "matches.regenerate.title" : "matches.generate.title")
+      | transloco
+  }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-3 !pt-2 min-w-[320px]">
+    @if (data.regenerate) {
+      <div
+        class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:warning" />
+        <p class="m-0 text-sm">
+          {{ "matches.regenerate.warning" | transloco }}
+        </p>
+      </div>
+    }
+
+    @if (formError(); as message) {
+      <div
+        class="flex items-center gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm">{{ message }}</p>
+      </div>
+    }
+
+    <section>
+      <h3 class="m-0 mb-1 text-sm font-medium">
+        {{ "matches.generate.summary" | transloco }}
+      </h3>
+      <mat-progress-bar [class.invisible]="!loading()" mode="indeterminate" />
+      <ul class="m-0 p-0 list-none">
+        @for (group of summary(); track group.name) {
+          <li class="py-1 text-sm">
+            <span class="font-medium">{{ group.name }}</span>
+            <span class="text-secondary">
+              ·
+              {{
+                "matches.generate.groupSummary"
+                  | transloco
+                    : {
+                        teams: group.teams,
+                        matchdays: group.matchdays,
+                        matches: group.matches,
+                      }
+              }}
+            </span>
+          </li>
+        }
+      </ul>
+      <p class="m-0 mt-1 text-xs text-secondary">
+        {{ "matches.generate.estimated" | transloco }}
+      </p>
+    </section>
+
+    <mat-checkbox [formField]="generateForm.shuffle">
+      {{ "matches.generate.shuffle" | transloco }}
+    </mat-checkbox>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="generateForm().submitting()"
+      [color]="data.regenerate ? 'warn' : 'primary'"
+      mat-flat-button
+      type="submit"
+    >
+      {{
+        (data.regenerate
+          ? "matches.regenerate.confirm"
+          : "matches.generate.confirm"
+        ) | transloco
+      }}
+    </button>
+  </mat-dialog-actions>
+</form>

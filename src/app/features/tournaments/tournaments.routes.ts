@@ -29,6 +29,15 @@ export const tournamentsRoutes: Routes = [
       ),
   },
   {
+    path: "calendario",
+    title: "matches.title",
+    canActivate: [capabilityGuard("groups.manage")],
+    loadComponent: () =>
+      import("../matches/matches-page/matches-page.component").then(
+        (m) => m.MatchesPageComponent,
+      ),
+  },
+  {
     path: "plantillas",
     title: "rosters.title",
     canActivate: [capabilityGuard("rosters.manage")],

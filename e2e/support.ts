@@ -1305,3 +1305,184 @@ export async function mockGroupsApi(
 
   return api;
 }
+
+export interface MockScheduleGroup {
+  id: number;
+  name: string;
+  teams: string[];
+}
+
+export interface MatchesApiOptions {
+  groups?: MockScheduleGroup[];
+  /** 1 or 2 rounds, as the tournament has them */
+  rounds?: 1 | 2;
+  /** Start with a calendar already generated */
+  generated?: boolean;
+  /** The first match is already played: the calendar is frozen */
+  played?: boolean;
+  /** Refuses generate and delete with this 422 message */
+  refuse?: string;
+}
+
+export interface MatchesApi {
+  /** `[method, path, body]` of every write so far */
+  writes: [string, string, unknown][];
+}
+
+/**
+ * Stubs `/leagues/1/tournaments/{id}/matches` (schedule, generate, delete) with
+ * a real round-robin per group, so the matchdays, rests and second round the
+ * screen shows are the ones the backend would give.
+ */
+export async function mockMatchesApi(
+  page: Page,
+  {
+    groups = [
+      { id: 1, name: "Grupo A", teams: ["Águilas", "Búhos", "Cóndores"] },
+    ],
+    rounds = 1,
+    generated = false,
+    played = false,
+    refuse,
+  }: MatchesApiOptions = {},
+): Promise<MatchesApi> {
+  const api: MatchesApi = { writes: [] };
+  const state = { generated };
+  let nextId = 1;
+
+  const side = (name: string, id: number) => ({
+    registration_id: id,
+    team_id: id * 10,
+    team_name: name,
+    logo_url: null,
+  });
+  const build = (group: MockScheduleGroup) => {
+    // Circle method; an odd number gets a bye (null) so one team rests each day
+    const ids: (number | null)[] = group.teams.map((_, i) => i + 1);
+
+    if (ids.length % 2 === 1) {
+      ids.push(null);
+    }
+
+    const perRound = ids.length - 1;
+    const days: {
+      round: number;
+      pairs: [number, number][];
+      resting: number[];
+    }[] = [];
+
+    for (let round = 1; round <= rounds; round++) {
+      const ring = [...ids];
+
+      for (let d = 0; d < perRound; d++) {
+        const pairs: [number, number][] = [];
+        const resting: number[] = [];
+
+        for (let i = 0; i < ring.length / 2; i++) {
+          const home = ring[i];
+          const away = ring[ring.length - 1 - i];
+
+          if (home === null || away === null) {
+            resting.push((home ?? away) as number);
+          } else {
+            pairs.push(round === 2 ? [away, home] : [home, away]);
+          }
+        }
+
+        days.push({ round, pairs, resting });
+        ring.splice(1, 0, ring.pop() as number | null);
+      }
+    }
+
+    return {
+      group_id: group.id,
+      group_name: group.name,
+      matchdays: days.map((day, index) => ({
+        matchday: index + 1,
+        round_number: day.round,
+        matches: day.pairs.map(([home, away]) => ({
+          id: nextId++,
+          group_id: group.id,
+          group_name: group.name,
+          matchday: index + 1,
+          round_number: day.round,
+          phase: "regular_stage",
+          status: "scheduled",
+          match_datetime: null,
+          home: side(group.teams[home - 1], home),
+          away: side(group.teams[away - 1], away),
+          home_score: null,
+          away_score: null,
+        })),
+        resting: day.resting.map((id) => ({
+          registration_id: id,
+          team_name: group.teams[id - 1],
+        })),
+      })),
+    };
+  };
+  const schedule = () => {
+    const built = state.generated
+      ? groups.map(build)
+      : groups.map((g) => ({
+          group_id: g.id,
+          group_name: g.name,
+          matchdays: [],
+        }));
+
+    if (played && state.generated) {
+      built[0].matchdays[0].matches[0].status = "played";
+      (built[0].matchdays[0].matches[0] as Record<string, unknown>)[
+        "home_score"
+      ] = 2;
+      (built[0].matchdays[0].matches[0] as Record<string, unknown>)[
+        "away_score"
+      ] = 1;
+    }
+
+    return { generated: state.generated, groups: built };
+  };
+  const unprocessable = (message: string) => ({
+    status: 422,
+    json: { code: 422, error: message },
+  });
+
+  await page.route(/\/tournaments\/\d+\/matches(\/.*)?$/, async (route) => {
+    const request = route.request();
+    const method = request.method();
+    const path = new URL(request.url()).pathname.replace(/^.*\/matches/, "");
+
+    if (method === "GET" && path === "/schedule") {
+      return route.fulfill({ json: schedule() });
+    }
+
+    api.writes.push([method, path, request.postDataJSON() ?? null]);
+
+    if (refuse) {
+      return route.fulfill(unprocessable(refuse));
+    }
+
+    if (method === "POST" && path === "/generate") {
+      state.generated = true;
+
+      return route.fulfill({
+        json: {
+          groups: groups.map((g) => ({
+            group_id: g.id,
+            group_name: g.name,
+            teams: g.teams.length,
+            matchdays: 0,
+            matches: 0,
+          })),
+          total_matches: 0,
+        },
+      });
+    }
+
+    state.generated = false;
+
+    return route.fulfill({ status: 204 });
+  });
+
+  return api;
+}

@@ -40,6 +40,7 @@
     "teams": "Equipos",
     "registrations": "Inscripciones",
     "groups": "Grupos",
+    "schedule": "Calendario",
     "rosters": "Plantillas",
     "players": "Jugadores",
     "list": "Listado"
@@ -603,6 +604,46 @@
       "title": "Autorizar reingreso",
       "message": "¿Autorizar que {{player}} se sume a otro equipo de este torneo?",
       "confirm": "Autorizar"
+    }
+  },
+  "matches": {
+    "title": "Calendario",
+    "tournament": "Torneo",
+    "pickTournament": "Elige un torneo para ver su calendario.",
+    "noTournaments": "Esta liga aún no tiene torneos.",
+    "planning": "Inicia el torneo para generar el calendario.",
+    "empty": "Aún no hay calendario",
+    "error": "No pudimos cargar el calendario.",
+    "lockedHint": "Ya hay partidos jugados: el calendario no se puede cambiar.",
+    "generated": "Calendario generado",
+    "regenerated": "Calendario regenerado",
+    "deleted": "Calendario borrado",
+    "count": "{{matches}} partidos en {{matchdays}} jornadas",
+    "matchday": "Jornada {{number}}",
+    "round": "Vuelta {{round}}",
+    "vs": "vs",
+    "toSchedule": "Por programar",
+    "resting": "Descansa: {{teams}}",
+    "generate": {
+      "action": "Generar calendario",
+      "title": "Generar calendario",
+      "summary": "Resumen por grupo",
+      "groupSummary": "{{teams}} equipos, {{matchdays}} jornadas, {{matches}} partidos",
+      "estimated": "Cifras estimadas: los equipos inactivos o vetados no juegan.",
+      "shuffle": "Sortear el orden de los equipos",
+      "confirm": "Generar"
+    },
+    "regenerate": {
+      "action": "Regenerar",
+      "title": "Regenerar calendario",
+      "warning": "Se reemplazarán todos los partidos. Esta acción no se puede deshacer.",
+      "confirm": "Regenerar"
+    },
+    "delete": {
+      "action": "Borrar calendario",
+      "title": "Borrar calendario",
+      "message": "¿Seguro que quieres borrar el calendario de {{name}}? Se eliminarán todos los partidos.",
+      "confirm": "Borrar"
     }
   },
   "groups": {

@@ -1,0 +1,231 @@
+<app-secondary-toolbar [current]="'matches.title' | transloco">
+  <app-breadcrumbs [crumbs]="crumbs()" [homeLabel]="'nav.home' | transloco" />
+</app-secondary-toolbar>
+
+<app-page-layout>
+  <app-page-layout-content>
+    @if (!leagueContext.activeLeague()) {
+      <app-league-required />
+    } @else {
+      <div class="flex flex-wrap items-start gap-4 mb-4">
+        <mat-form-field class="w-72">
+          <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
+          <mat-select [formField]="pickerForm.tournament">
+            @for (item of tournaments(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (tournament()) {
+          <app-tournament-status-chip
+            [status]="tournament()!.status"
+            class="mt-4"
+          />
+        }
+      </div>
+
+      @if (!tournament()) {
+        <p class="py-10 px-6 text-center text-secondary">
+          {{
+            (tournamentsResource.hasValue() && tournaments().length === 0
+              ? "matches.noTournaments"
+              : "matches.pickTournament"
+            ) | transloco
+          }}
+        </p>
+      } @else if (!started()) {
+        <p class="py-10 px-6 text-center text-secondary">
+          {{ "matches.planning" | transloco }}
+        </p>
+      } @else {
+        <mat-progress-bar
+          [class.invisible]="!resource.isLoading()"
+          class="mb-4"
+          mode="indeterminate"
+        />
+
+        @if (resource.error()) {
+          <div class="py-10 px-6 text-center" role="alert">
+            <p class="text-secondary mb-4">{{ "matches.error" | transloco }}</p>
+            <button
+              (click)="resource.reload()"
+              mat-stroked-button
+              type="button"
+            >
+              {{ "common.retry" | transloco }}
+            </button>
+          </div>
+        } @else if (schedule()) {
+          @if (!generated()) {
+            <div class="py-10 px-6 text-center">
+              <p class="text-secondary mb-4">
+                {{ "matches.empty" | transloco }}
+              </p>
+              @if (editable()) {
+                <button
+                  (click)="generate()"
+                  color="primary"
+                  mat-flat-button
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:calendar_month" />
+                  {{ "matches.generate.action" | transloco }}
+                </button>
+              }
+            </div>
+          } @else {
+            @if (editable()) {
+              <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+                <span
+                  [matTooltip]="
+                    locked() ? ('matches.lockedHint' | transloco) : ''
+                  "
+                >
+                  <button
+                    (click)="regenerate()"
+                    [disabled]="locked()"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:autorenew" />
+                    {{ "matches.regenerate.action" | transloco }}
+                  </button>
+                </span>
+                <span
+                  [matTooltip]="
+                    locked() ? ('matches.lockedHint' | transloco) : ''
+                  "
+                >
+                  <button
+                    (click)="remove()"
+                    [disabled]="locked()"
+                    color="warn"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    <mat-icon svgIcon="mat:delete_sweep" />
+                    {{ "matches.delete.action" | transloco }}
+                  </button>
+                </span>
+              </div>
+            }
+
+            @if (groups().length === 1) {
+              <ng-container
+                *ngTemplateOutlet="
+                  groupView;
+                  context: { $implicit: groups()[0] }
+                "
+              />
+            } @else {
+              <mat-tab-group
+                [(selectedIndex)]="selectedTab"
+                animationDuration="0"
+              >
+                @for (group of groups(); track group.group_id) {
+                  <mat-tab [label]="group.group_name">
+                    <div class="pt-4">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          groupView;
+                          context: { $implicit: group }
+                        "
+                      />
+                    </div>
+                  </mat-tab>
+                }
+              </mat-tab-group>
+            }
+          }
+        }
+      }
+    }
+  </app-page-layout-content>
+</app-page-layout>
+
+<ng-template #groupView let-group>
+  <p class="m-0 mb-3 text-sm text-secondary">
+    {{
+      "matches.count"
+        | transloco
+          : { matches: matchesOf(group), matchdays: group.matchdays.length }
+    }}
+  </p>
+
+  @for (round of roundsOf(group); track round.round) {
+    @if (hasSeveralRounds(group)) {
+      <h2 class="mt-4 mb-2 text-lg font-medium">
+        {{ "matches.round" | transloco: { round: round.round } }}
+      </h2>
+    }
+
+    <mat-accordion multi>
+      @for (day of round.matchdays; track day.matchday) {
+        <mat-expansion-panel [expanded]="isOpen(group, day.matchday)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{ "matches.matchday" | transloco: { number: day.matchday } }}
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <ul class="m-0 p-0 list-none">
+            @for (match of day.matches; track match.id) {
+              <li
+                class="grid items-center gap-3 py-2 border-b last:border-b-0"
+                style="grid-template-columns: 1fr auto 1fr auto"
+              >
+                <span class="flex items-center gap-2 min-w-0 justify-end">
+                  <span class="truncate font-medium">{{
+                    match.home?.team_name ?? "—"
+                  }}</span>
+                  <app-logo-image
+                    [alt]="match.home?.team_name ?? ''"
+                    [src]="match.home?.logo_url ?? null"
+                    class="w-8 h-8 rounded-full shrink-0"
+                  />
+                </span>
+                <span class="text-secondary text-sm font-medium px-2">
+                  @if (match.status === "played") {
+                    {{ match.home_score }} - {{ match.away_score }}
+                  } @else {
+                    {{ "matches.vs" | transloco }}
+                  }
+                </span>
+                <span class="flex items-center gap-2 min-w-0">
+                  <app-logo-image
+                    [alt]="match.away?.team_name ?? ''"
+                    [src]="match.away?.logo_url ?? null"
+                    class="w-8 h-8 rounded-full shrink-0"
+                  />
+                  <span class="truncate font-medium">{{
+                    match.away?.team_name ?? "—"
+                  }}</span>
+                </span>
+                <span class="text-sm text-secondary whitespace-nowrap">
+                  @if (match.match_datetime) {
+                    {{ match.match_datetime | date: "dd/MM/yyyy HH:mm" }}
+                  } @else {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-800 dark:text-amber-400"
+                      >{{ "matches.toSchedule" | transloco }}</span
+                    >
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+
+          @if (day.resting.length) {
+            <p class="m-0 mt-2 text-sm text-secondary">
+              {{
+                "matches.resting"
+                  | transloco: { teams: restingNames(day.resting) }
+              }}
+            </p>
+          }
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+</ng-template>
