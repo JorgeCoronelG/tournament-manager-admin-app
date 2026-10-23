@@ -989,8 +989,10 @@ export interface MockGroup {
   type: "regular_stage" | "playoff";
   start_date?: string | null;
   round_interval_days?: number;
-  /** Dates sent by hand (Y-m-d per round); when absent they come from start and interval */
+  /** Dates sent by hand (Y-m-d per match); when absent they come from start and interval */
   round_dates?: string[];
+  /** Matches of each round (1 or 2); absent means one each */
+  round_legs?: (1 | 2)[];
   /** False when the backend locks the playoff; absent means editable */
   editable?: boolean;
   sources?: {
@@ -1042,14 +1044,22 @@ export async function mockGroupsApi(
     8: "Cuartos de final",
     16: "Octavos de final",
   };
-  const roundDates = (group: MockGroup): (string | null)[] => {
+  const legsOf = (group: MockGroup): (1 | 2)[] => {
     const rounds = Math.log2(totalOf(group));
 
-    if (group.round_dates) {
+    return group.round_legs?.length === rounds
+      ? group.round_legs
+      : Array.from({ length: rounds }, (): 1 | 2 => 1);
+  };
+  /** One date per match, first round to the final */
+  const roundDates = (group: MockGroup): (string | null)[] => {
+    const matches = legsOf(group).reduce<number>((sum, legs) => sum + legs, 0);
+
+    if (group.round_dates?.length === matches) {
       return group.round_dates;
     }
 
-    return Array.from({ length: rounds }, (_, index) => {
+    return Array.from({ length: matches }, (_, index) => {
       if (!group.start_date) {
         return null;
       }
@@ -1101,10 +1111,23 @@ export async function mockGroupsApi(
       rounds: Math.log2(total),
       round_dates: roundDates(group),
       ...(group.editable !== undefined && { editable: group.editable }),
-      rounds_detail: roundDates(group).map((date, index, all) => ({
-        name: ROUND_NAMES[2 ** (all.length - index)] ?? "Ronda",
-        date,
-      })),
+      round_legs: legsOf(group),
+      rounds_detail: (() => {
+        const dates = roundDates(group);
+        const legs = legsOf(group);
+        let offset = 0;
+
+        return legs.map((count, index) => {
+          const detail = {
+            name: ROUND_NAMES[2 ** (legs.length - index)] ?? "Ronda",
+            legs: count,
+            dates: dates.slice(offset, offset + count),
+          };
+          offset += count;
+
+          return detail;
+        });
+      })(),
       final_date: finalDate(group),
     };
   };
@@ -1281,6 +1304,7 @@ export async function mockGroupsApi(
           round_interval_days: body["round_interval_days"],
         }),
         round_dates: body?.["round_dates"] as string[] | undefined,
+        round_legs: body?.["round_legs"] as (1 | 2)[] | undefined,
         ...(sources && { sources }),
       });
 
@@ -1295,6 +1319,7 @@ export async function mockGroupsApi(
         start_date: (body["start_date"] as string | null) ?? null,
         round_interval_days: (body["round_interval_days"] as number) ?? 7,
         round_dates: body["round_dates"] as string[] | undefined,
+        round_legs: body["round_legs"] as (1 | 2)[] | undefined,
         sources,
       }),
     };
@@ -1318,10 +1343,12 @@ export interface MatchesApiOptions {
   rounds?: 1 | 2;
   /** Start with a calendar already generated */
   generated?: boolean;
-  /** The first match is already played: the calendar is frozen */
+  /** The first match is already played (2 - 1): the calendar is frozen */
   played?: boolean;
-  /** Refuses generate and delete with this 422 message */
+  /** Refuses every write with this 422 message */
   refuse?: string;
+  /** Tiebreakers the standings report, in order */
+  criteria?: string[];
 }
 
 export interface MatchesApi {
@@ -1329,10 +1356,28 @@ export interface MatchesApi {
   writes: [string, string, unknown][];
 }
 
+interface MockMatch {
+  id: number;
+  group_id: number;
+  group_name: string;
+  matchday: number;
+  round_number: number;
+  phase: string;
+  status: "scheduled" | "played";
+  match_datetime: string | null;
+  home: Record<string, unknown>;
+  away: Record<string, unknown>;
+  home_id: number;
+  away_id: number;
+  home_score: number | null;
+  away_score: number | null;
+}
+
 /**
- * Stubs `/leagues/1/tournaments/{id}/matches` (schedule, generate, delete) with
- * a real round-robin per group, so the matchdays, rests and second round the
- * screen shows are the ones the backend would give.
+ * Stubs `/leagues/1/tournaments/{id}/matches` and `/standings` over one
+ * in-memory tournament: a real round-robin per group (matchdays, rests, second
+ * round), results that become played matches, and tables computed from them
+ * (points, goal difference, goals for) with ties and manual order.
  */
 export async function mockMatchesApi(
   page: Page,
@@ -1344,19 +1389,21 @@ export async function mockMatchesApi(
     generated = false,
     played = false,
     refuse,
+    criteria = ["points", "goal_difference", "goals_for"],
   }: MatchesApiOptions = {},
 ): Promise<MatchesApi> {
   const api: MatchesApi = { writes: [] };
-  const state = { generated };
   let nextId = 1;
+  let matches: MockMatch[] = [];
+  const manual = new Map<number, number[]>();
 
-  const side = (name: string, id: number) => ({
+  const side = (group: MockScheduleGroup, id: number) => ({
     registration_id: id,
     team_id: id * 10,
-    team_name: name,
+    team_name: group.teams[id - 1],
     logo_url: null,
   });
-  const build = (group: MockScheduleGroup) => {
+  const build = (group: MockScheduleGroup): MockMatch[] => {
     // Circle method; an odd number gets a bye (null) so one team rests each day
     const ids: (number | null)[] = group.teams.map((_, i) => i + 1);
 
@@ -1364,84 +1411,196 @@ export async function mockMatchesApi(
       ids.push(null);
     }
 
-    const perRound = ids.length - 1;
-    const days: {
-      round: number;
-      pairs: [number, number][];
-      resting: number[];
-    }[] = [];
+    const result: MockMatch[] = [];
+    let matchday = 0;
 
     for (let round = 1; round <= rounds; round++) {
       const ring = [...ids];
 
-      for (let d = 0; d < perRound; d++) {
-        const pairs: [number, number][] = [];
-        const resting: number[] = [];
+      for (let d = 0; d < ids.length - 1; d++) {
+        matchday++;
 
         for (let i = 0; i < ring.length / 2; i++) {
-          const home = ring[i];
-          const away = ring[ring.length - 1 - i];
+          const first = ring[i];
+          const second = ring[ring.length - 1 - i];
 
-          if (home === null || away === null) {
-            resting.push((home ?? away) as number);
-          } else {
-            pairs.push(round === 2 ? [away, home] : [home, away]);
+          if (first !== null && second !== null) {
+            const [home, away] =
+              round === 2 ? [second, first] : [first, second];
+            result.push({
+              id: nextId++,
+              group_id: group.id,
+              group_name: group.name,
+              matchday,
+              round_number: round,
+              phase: "regular_stage",
+              status: "scheduled",
+              match_datetime: null,
+              home: side(group, home),
+              away: side(group, away),
+              home_id: home,
+              away_id: away,
+              home_score: null,
+              away_score: null,
+            });
           }
         }
 
-        days.push({ round, pairs, resting });
         ring.splice(1, 0, ring.pop() as number | null);
       }
     }
 
-    return {
-      group_id: group.id,
-      group_name: group.name,
-      matchdays: days.map((day, index) => ({
-        matchday: index + 1,
-        round_number: day.round,
-        matches: day.pairs.map(([home, away]) => ({
-          id: nextId++,
-          group_id: group.id,
-          group_name: group.name,
-          matchday: index + 1,
-          round_number: day.round,
-          phase: "regular_stage",
-          status: "scheduled",
-          match_datetime: null,
-          home: side(group.teams[home - 1], home),
-          away: side(group.teams[away - 1], away),
-          home_score: null,
-          away_score: null,
-        })),
-        resting: day.resting.map((id) => ({
-          registration_id: id,
-          team_name: group.teams[id - 1],
-        })),
-      })),
-    };
+    return result;
   };
-  const schedule = () => {
-    const built = state.generated
-      ? groups.map(build)
-      : groups.map((g) => ({
-          group_id: g.id,
-          group_name: g.name,
-          matchdays: [],
-        }));
+  const generate = () => {
+    nextId = 1;
+    matches = groups.flatMap(build);
+  };
+  const strip = ({ home_id, away_id, ...match }: MockMatch) => {
+    void home_id;
+    void away_id;
 
-    if (played && state.generated) {
-      built[0].matchdays[0].matches[0].status = "played";
-      (built[0].matchdays[0].matches[0] as Record<string, unknown>)[
-        "home_score"
-      ] = 2;
-      (built[0].matchdays[0].matches[0] as Record<string, unknown>)[
-        "away_score"
-      ] = 1;
+    return match;
+  };
+
+  if (generated) {
+    generate();
+
+    if (played) {
+      matches[0].status = "played";
+      matches[0].home_score = 2;
+      matches[0].away_score = 1;
     }
+  }
 
-    return { generated: state.generated, groups: built };
-  };
+  const schedule = () => ({
+    generated: matches.length > 0,
+    groups: groups.map((group) => {
+      const own = matches.filter((m) => m.group_id === group.id);
+      const days = [...new Set(own.map((m) => m.matchday))];
+
+      return {
+        group_id: group.id,
+        group_name: group.name,
+        matchdays: days.map((day) => {
+          const today = own.filter((m) => m.matchday === day);
+          const busy = today.flatMap((m) => [m.home_id, m.away_id]);
+
+          return {
+            matchday: day,
+            round_number: today[0].round_number,
+            matches: today.map(strip),
+            resting: group.teams
+              .map((name, i) => ({ registration_id: i + 1, team_name: name }))
+              .filter((team) => !busy.includes(team.registration_id)),
+          };
+        }),
+      };
+    }),
+  });
+
+  const standings = () => ({
+    groups: groups.map((group) => {
+      const stats = group.teams.map((name, i) => ({
+        position: 0,
+        registration_id: i + 1,
+        team_id: (i + 1) * 10,
+        team_name: name,
+        logo_url: null,
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        goals_for: 0,
+        goals_against: 0,
+        goal_difference: 0,
+        points: 0,
+        tied: false,
+      }));
+
+      for (const m of matches.filter(
+        (x) => x.group_id === group.id && x.status === "played",
+      )) {
+        const home = stats[m.home_id - 1];
+        const away = stats[m.away_id - 1];
+        const [hs, as] = [m.home_score as number, m.away_score as number];
+        home.played++;
+        away.played++;
+        home.goals_for += hs;
+        home.goals_against += as;
+        away.goals_for += as;
+        away.goals_against += hs;
+        if (hs === as) {
+          home.drawn++;
+          away.drawn++;
+          home.points++;
+          away.points++;
+        } else {
+          const [winner, loser] = hs > as ? [home, away] : [away, home];
+          winner.won++;
+          winner.points += 3;
+          loser.lost++;
+        }
+      }
+
+      stats.forEach((row) => {
+        row.goal_difference = row.goals_for - row.goals_against;
+      });
+
+      const key = (row: (typeof stats)[number]) =>
+        `${row.points}|${row.goal_difference}|${row.goals_for}`;
+      const sorted = [...stats].sort(
+        (a, b) =>
+          b.points - a.points ||
+          b.goal_difference - a.goal_difference ||
+          b.goals_for - a.goals_for ||
+          a.registration_id - b.registration_id,
+      );
+      const order = manual.get(group.id);
+      const ties: number[][] = [];
+      const rows: typeof stats = [];
+
+      for (let i = 0; i < sorted.length;) {
+        let j = i;
+        while (j + 1 < sorted.length && key(sorted[j + 1]) === key(sorted[i])) {
+          j++;
+        }
+
+        let set = sorted.slice(i, j + 1);
+        const resolved =
+          set.length > 1 &&
+          !!order &&
+          set.every((r) => order.includes(r.registration_id));
+
+        if (resolved) {
+          set = [...set].sort(
+            (a, b) =>
+              (order as number[]).indexOf(a.registration_id) -
+              (order as number[]).indexOf(b.registration_id),
+          );
+        } else if (set.length > 1) {
+          ties.push(set.map((r) => r.registration_id));
+        }
+
+        set.forEach((row, index) => {
+          row.position = resolved ? i + index + 1 : i + 1;
+          row.tied = set.length > 1 && !resolved;
+          rows.push(row);
+        });
+        i = j + 1;
+      }
+
+      return {
+        group_id: group.id,
+        group_name: group.name,
+        criteria,
+        rows,
+        ties,
+        has_manual_order: manual.has(group.id),
+      };
+    }),
+  });
+
   const unprocessable = (message: string) => ({
     status: 422,
     json: { code: 422, error: message },
@@ -1462,8 +1621,28 @@ export async function mockMatchesApi(
       return route.fulfill(unprocessable(refuse));
     }
 
+    const result = /^\/(\d+)\/result$/.exec(path);
+
+    if (result) {
+      const found = matches.find((m) => m.id === Number(result[1]));
+
+      if (!found) {
+        return route.fulfill({ status: 404, json: { code: 404 } });
+      }
+
+      const body = request.postDataJSON() as {
+        home_score: number;
+        away_score: number;
+      } | null;
+      found.status = body ? "played" : "scheduled";
+      found.home_score = body?.home_score ?? null;
+      found.away_score = body?.away_score ?? null;
+
+      return route.fulfill({ json: strip(found) });
+    }
+
     if (method === "POST" && path === "/generate") {
-      state.generated = true;
+      generate();
 
       return route.fulfill({
         json: {
@@ -1474,12 +1653,49 @@ export async function mockMatchesApi(
             matchdays: 0,
             matches: 0,
           })),
-          total_matches: 0,
+          total_matches: matches.length,
         },
       });
     }
 
-    state.generated = false;
+    matches = [];
+
+    return route.fulfill({ status: 204 });
+  });
+
+  await page.route(/\/tournaments\/\d+\/standings(\/.*)?$/, async (route) => {
+    const request = route.request();
+    const method = request.method();
+    const url = new URL(request.url());
+
+    if (method === "GET") {
+      return route.fulfill({ json: standings() });
+    }
+
+    api.writes.push([
+      method,
+      "/standings" + url.pathname.replace(/^.*\/standings/, ""),
+      request.postDataJSON() ?? Object.fromEntries(url.searchParams),
+    ]);
+
+    if (refuse) {
+      return route.fulfill(unprocessable(refuse));
+    }
+
+    if (method === "PUT") {
+      const body = request.postDataJSON() as {
+        group_id: number;
+        registration_ids: number[];
+      };
+      manual.set(body.group_id, [
+        ...(manual.get(body.group_id) ?? []),
+        ...body.registration_ids,
+      ]);
+
+      return route.fulfill({ json: standings() });
+    }
+
+    manual.delete(Number(url.searchParams.get("group_id")));
 
     return route.fulfill({ status: 204 });
   });

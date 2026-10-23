@@ -116,3 +116,47 @@ export function byRound(matchdays: readonly Matchday[]): RoundSchedule[] {
     .sort(([a], [b]) => a - b)
     .map(([round, days]) => ({ round, matchdays: days }));
 }
+
+/** Matches of a group with a result */
+export function playedCount(group: GroupSchedule): number {
+  return group.matchdays.reduce(
+    (sum, day) =>
+      sum + day.matches.filter((match) => match.status === "played").length,
+    0,
+  );
+}
+
+/** A row of a group's table; `tied` while the criteria cannot tell it from a neighbour */
+export interface StandingRow {
+  position: number;
+  registration_id: number;
+  team_id: number;
+  team_name: string;
+  logo_url: string | null;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goals_for: number;
+  goals_against: number;
+  goal_difference: number;
+  points: number;
+  tied: boolean;
+}
+
+export interface StandingGroup {
+  group_id: number;
+  group_name: string;
+  /** The tournament's tiebreakers, in order */
+  criteria: string[];
+  rows: StandingRow[];
+  /** Registration ids of each set of teams that are still tied */
+  ties: number[][];
+  /** True when the backend keeps a manual order for the group (absent if it does not say) */
+  has_manual_order?: boolean;
+}
+
+/** `GET /standings` */
+export interface Standings {
+  groups: StandingGroup[];
+}

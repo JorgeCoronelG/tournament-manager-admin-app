@@ -2,7 +2,7 @@ import { HttpClient, HttpContext, httpResource } from "@angular/common/http";
 import { inject, Service, Signal } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../../core/http/error.interceptor";
 import { LeagueContextService } from "../../core/league-context/league-context.service";
-import { GenerateResult, Schedule } from "./match.model";
+import { GenerateResult, Match, Schedule } from "./match.model";
 
 /**
  * Regular-phase calendar of a tournament of the active league
@@ -37,6 +37,28 @@ export class MatchesApi {
     return this.http.post<GenerateResult>(
       this.url(tournamentId, "/generate") ?? "",
       { shuffle },
+      this.ownErrors,
+    );
+  }
+
+  /** Captures the score of a match (it becomes played) */
+  setResult(
+    tournamentId: number,
+    matchId: number,
+    homeScore: number,
+    awayScore: number,
+  ) {
+    return this.http.patch<Match>(
+      this.url(tournamentId, `/${matchId}/result`) ?? "",
+      { home_score: homeScore, away_score: awayScore },
+      this.ownErrors,
+    );
+  }
+
+  /** Voids the score: the match goes back to scheduled */
+  clearResult(tournamentId: number, matchId: number) {
+    return this.http.delete<Match>(
+      this.url(tournamentId, `/${matchId}/result`) ?? "",
       this.ownErrors,
     );
   }

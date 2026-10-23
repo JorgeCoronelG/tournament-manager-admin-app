@@ -116,13 +116,46 @@ export class GroupsPageComponent {
     return this.playoffsOpen() && playoff.editable !== false;
   }
 
-  /** Rounds have a date only when the playoff was given them */
+  /** Matches have a date only when the playoff was given them */
   hasDates(playoff: Group): boolean {
-    return !!playoff.rounds_detail?.some((round) => round.date);
+    return !!playoff.rounds_detail?.some((round) =>
+      round.dates.some((date) => date),
+    );
   }
 
+  /** The rounds as text; a round of two matches says so: "Semifinal (ida y vuelta)" */
   roundNames(playoff: Group): string {
-    return (playoff.rounds_detail ?? []).map((round) => round.name).join(", ");
+    return (playoff.rounds_detail ?? [])
+      .map((round) =>
+        round.legs === 2
+          ? this.transloco.translate("groups.playoff.twoLegs", {
+              name: round.name,
+            })
+          : round.name,
+      )
+      .join(", ");
+  }
+
+  /** One line per match with its date: "Semifinal (ida)", "Semifinal (vuelta)", "Final" */
+  matchLines(playoff: Group): Array<{ label: string; date: string | null }> {
+    return (playoff.rounds_detail ?? []).flatMap((round) =>
+      round.legs === 2
+        ? [
+            {
+              label: this.transloco.translate("groups.playoff.legFirst", {
+                name: round.name,
+              }),
+              date: round.dates[0] ?? null,
+            },
+            {
+              label: this.transloco.translate("groups.playoff.legSecond", {
+                name: round.name,
+              }),
+              date: round.dates[1] ?? null,
+            },
+          ]
+        : [{ label: round.name, date: round.dates[0] ?? null }],
+    );
   }
 
   // A tournament that is no longer in the league (another league was picked) is dropped

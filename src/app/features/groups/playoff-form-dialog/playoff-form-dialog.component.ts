@@ -40,9 +40,11 @@ import {
   DEFAULT_ROUND_INTERVAL_DAYS,
   Group,
   isValidPlayoffTotal,
+  matchTotal,
   playoffRounds,
   playoffTotal,
   roundLabel,
+  RoundLegs,
 } from "../group.model";
 import { GroupsApi } from "../groups.api";
 
@@ -64,7 +66,9 @@ interface PlayoffFormModel {
   name: string;
   start_date: Date | null;
   round_interval_days: number | null;
-  /** One row per round, first round to the final */
+  /** One row per round: played over one match or two (home and away) */
+  round_legs: Array<{ legs: RoundLegs }>;
+  /** One row per match, first round to the final */
   round_dates: Array<{ date: Date | null }>;
   sources: SourceRow[];
 }
@@ -115,9 +119,14 @@ export class PlayoffFormDialogComponent {
       : null,
     round_interval_days:
       this.data.playoff?.round_interval_days ?? DEFAULT_ROUND_INTERVAL_DAYS,
-    round_dates: (this.data.playoff?.rounds_detail ?? []).map((round) => ({
-      date: round.date ? parseDate(round.date) : null,
-    })),
+    round_legs: (
+      this.data.playoff?.round_legs ??
+      this.data.playoff?.rounds_detail?.map((round) => round.legs) ??
+      []
+    ).map((legs) => ({ legs })),
+    round_dates: (this.data.playoff?.rounds_detail ?? [])
+      .flatMap((round) => round.dates)
+      .map((date) => ({ date: date ? parseDate(date) : null })),
     sources: this.data.playoff?.sources?.length
       ? this.data.playoff.sources.map((source) => ({
           source_group_id: source.source_group_id,
@@ -191,28 +200,32 @@ export class PlayoffFormDialogComponent {
   );
 
   /** Rows (after the first) whose date the admin set by hand: the automatic calculation keeps them */
-  private readonly edited = signal<ReadonlySet<number>>(
-    new Set(
-      (this.data.playoff?.rounds_detail ?? [])
-        .map((round, index) => ({ round, index }))
-        .filter(({ round, index }) => {
-          const start = this.data.playoff?.start_date;
-          const interval = this.data.playoff?.round_interval_days ?? null;
-          const auto = autoRoundDates(
-            start ? parseDate(start) : null,
-            interval,
-            index + 1,
-          )[index];
+  private readonly edited = signal<ReadonlySet<number>>(this.initialEdited());
 
-          return (
+  /** Saved dates that differ from start + interval were picked by hand */
+  private initialEdited(): ReadonlySet<number> {
+    const playoff = this.data.playoff;
+    const saved = (playoff?.rounds_detail ?? []).flatMap(
+      (round) => round.dates,
+    );
+    const auto = autoRoundDates(
+      playoff?.start_date ? parseDate(playoff.start_date) : null,
+      playoff?.round_interval_days ?? null,
+      saved.length,
+    );
+
+    return new Set(
+      saved
+        .map((date, index) => ({ date, index }))
+        .filter(
+          ({ date, index }) =>
             index > 0 &&
-            !!round.date &&
-            (!auto || formatDate(auto) !== round.date)
-          );
-        })
+            !!date &&
+            (!auto[index] || formatDate(auto[index] as Date) !== date),
+        )
         .map(({ index }) => index),
-    ),
-  );
+    );
+  }
 
   /** The list of dates only exists with a start date */
   readonly hasStart = computed(() => this.model().start_date !== null);
@@ -220,20 +233,46 @@ export class PlayoffFormDialogComponent {
   /** Shown after the number of rounds changed and the dates were recalculated */
   readonly roundsChanged = signal(false);
 
-  /** The last number of rounds the dates were calculated for */
-  private lastCount = this.roundCount();
+  /** Matches of each round as text ("1,2,1"): changes whenever the rounds or their legs do */
+  private readonly layout = computed(() =>
+    this.model()
+      .round_legs.map((row) => row.legs)
+      .join(","),
+  );
+
+  /** The layout the dates were last calculated for; empty before the first one */
+  private lastLayout = this.layout();
+
+  /** Name of every match to date: a two-legged round has an "(ida)" and a "(vuelta)" */
+  readonly matchLabels = computed(() => {
+    const legs = this.model().round_legs;
+
+    return this.rounds().flatMap((name, index) =>
+      legs[index]?.legs === 2
+        ? [
+            this.transloco.translate("groups.playoff.legFirst", { name }),
+            this.transloco.translate("groups.playoff.legSecond", { name }),
+          ]
+        : [name],
+    );
+  });
 
   constructor() {
     effect(() => {
       const start = this.playoffForm.start_date().value();
       const interval = this.playoffForm.round_interval_days().value();
       const count = this.roundCount();
+      this.layout();
 
       untracked(() => this.syncRoundDates(start, interval, count));
     });
   }
 
-  /** Start date and interval fill the rounds the admin did not edit; a new number of rounds starts over */
+  /**
+   * Start date and interval fill the matches the admin did not date by hand. A
+   * new number of rounds (every round goes back to one match) or of matches in
+   * a round starts the dates over.
+   */
   private syncRoundDates(
     start: Date | null,
     interval: number | null,
@@ -243,29 +282,32 @@ export class PlayoffFormDialogComponent {
       return;
     }
 
-    if (!start) {
-      this.lastCount = count;
-      this.edited.set(new Set());
-      this.roundsChanged.set(false);
+    let legs = this.model().round_legs.map((row) => row.legs);
+
+    if (legs.length !== count) {
+      legs = Array.from({ length: count }, (): RoundLegs => 1);
       this.model.update((model) => ({
         ...model,
-        round_dates: autoRoundDates(null, interval, count).map((date) => ({
-          date,
-        })),
+        round_legs: legs.map((value) => ({ legs: value })),
       }));
-
-      return;
     }
 
-    const restart = count !== this.lastCount;
+    const layout = legs.join(",");
+    const restart = layout !== this.lastLayout;
 
     if (restart) {
-      this.roundsChanged.set(this.lastCount > 0);
+      this.roundsChanged.set(this.lastLayout !== "");
       this.edited.set(new Set());
-      this.lastCount = count;
+      this.lastLayout = layout;
     }
 
-    const auto = autoRoundDates(start, interval, count);
+    const auto = autoRoundDates(start, interval, matchTotal(legs));
+
+    if (!start) {
+      this.edited.set(new Set());
+      this.roundsChanged.set(false);
+    }
+
     const edited = this.edited();
 
     this.model.update((model) => ({
@@ -372,8 +414,14 @@ export class PlayoffFormDialogComponent {
       errors: "form",
       onFormError: (message) => this.formError.set(message),
       send: () => {
-        const { name, start_date, round_interval_days, round_dates, sources } =
-          this.model();
+        const {
+          name,
+          start_date,
+          round_interval_days,
+          round_legs,
+          round_dates,
+          sources,
+        } = this.model();
         const dates = round_dates.map((row) => row.date);
         const manual =
           start_date !== null &&
@@ -389,6 +437,12 @@ export class PlayoffFormDialogComponent {
             round_dates: dates.map((date) => formatDate(date as Date)),
           }),
           ...(!start_date && { round_dates: null }),
+          ...(this.totalValid() && {
+            round_legs:
+              round_legs.length === this.roundCount()
+                ? round_legs.map((row) => row.legs)
+                : Array.from({ length: this.roundCount() }, (): RoundLegs => 1),
+          }),
           sources: sources.map((source) => ({
             source_group_id: source.source_group_id as number,
             position_start: source.position_start as number,

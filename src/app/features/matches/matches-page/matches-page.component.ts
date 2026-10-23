@@ -34,13 +34,21 @@ import {
   GenerateMatchesDialogData,
 } from "../generate-matches-dialog/generate-matches-dialog.component";
 import {
+  MatchResultDialogComponent,
+  MatchResultDialogData,
+} from "../match-result-dialog/match-result-dialog.component";
+import {
   byRound,
   GenerateResult,
   GroupSchedule,
   hasPlayedMatches,
+  Match,
   matchCount,
+  playedCount,
 } from "../match.model";
 import { MatchesApi } from "../matches.api";
+import { StandingsViewComponent } from "../standings-view/standings-view.component";
+import { StandingsApi } from "../standings.api";
 
 /** Up to this many matchdays every section starts open; with more, only the first */
 const OPEN_ALL_UP_TO = 4;
@@ -68,12 +76,14 @@ const OPEN_ALL_UP_TO = 4;
     MatTabsModule,
     MatTooltipModule,
     NgTemplateOutlet,
+    StandingsViewComponent,
     TournamentStatusChipComponent,
     TranslocoPipe,
   ],
 })
 export class MatchesPageComponent {
   private readonly api = inject(MatchesApi);
+  private readonly standingsApi = inject(StandingsApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(SnackbarService);
@@ -124,6 +134,21 @@ export class MatchesPageComponent {
   readonly resource = this.api.schedule(
     computed(() => (this.started() ? this.tournament()?.id : undefined)),
   );
+  readonly standingsResource = this.standingsApi.standings(
+    computed(() => (this.started() ? this.tournament()?.id : undefined)),
+  );
+  readonly standings = computed(() =>
+    this.standingsResource.hasValue()
+      ? this.standingsResource.value().groups
+      : [],
+  );
+
+  /** The calendar and the tables change together: a result moves both */
+  private reloadAll(): void {
+    this.resource.reload();
+    this.standingsResource.reload();
+  }
+
   readonly schedule = computed(() =>
     this.resource.hasValue() ? this.resource.value() : undefined,
   );
@@ -138,12 +163,19 @@ export class MatchesPageComponent {
     this.transloco.translate("nav.schedule"),
   ]);
 
+  /** The section tab: the calendar or the standings table */
+  readonly selectedSection = signal(0);
+
   /** The group tab (by position) the user has open; the first one by default */
   readonly selectedTab = signal(0);
 
   /** A group's matchdays split by round, with the counters shown above them */
   roundsOf(group: GroupSchedule) {
     return byRound(group.matchdays);
+  }
+
+  playedOf(group: GroupSchedule): number {
+    return playedCount(group);
   }
 
   matchesOf(group: GroupSchedule): number {
@@ -199,7 +231,7 @@ export class MatchesPageComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this.resource.reload();
+          this.reloadAll();
           this.selectedTab.set(0);
           this.snackbar.notifySuccess(
             regenerate ? "matches.regenerated" : "matches.generated",
@@ -224,11 +256,37 @@ export class MatchesPageComponent {
 
         this.api.remove(tournament.id).subscribe({
           next: () => {
-            this.resource.reload();
+            this.reloadAll();
             this.snackbar.notifySuccess("matches.deleted");
           },
           error: (error: unknown) => this.snackbar.notifyFailure(error),
         });
+      });
+  }
+
+  /** Opens the score of a match to capture, change or void it */
+  editResult(match: Match): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.editable()) {
+      return;
+    }
+
+    this.dialog
+      .open<MatchResultDialogComponent, MatchResultDialogData, boolean>(
+        MatchResultDialogComponent,
+        {
+          data: { tournamentId: tournament.id, match },
+          width: "560px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((saved) => {
+        if (saved) {
+          this.reloadAll();
+          this.snackbar.notifySuccess("matches.result.saved");
+        }
       });
   }
 }

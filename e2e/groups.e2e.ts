@@ -373,12 +373,14 @@ test.describe("groups", () => {
     await fillEightTeams(page);
     await pickStart(page, "7");
     await pickDay(page, "Semifinal", "9");
-    await expect(dialog.getByText("Cambió el número de rondas")).toHaveCount(0);
+    await expect(dialog.getByText("Cambió el número de partidos")).toHaveCount(
+      0,
+    );
 
     await dialog.getByLabel("Hasta la posición").fill("4");
     await expect(
       dialog.getByText(
-        "Cambió el número de rondas; se recalcularon las fechas.",
+        "Cambió el número de partidos; se recalcularon las fechas.",
       ),
     ).toBeVisible();
     await expect(
@@ -432,6 +434,87 @@ test.describe("groups", () => {
     await expect(
       dialog.getByRole("textbox", { name: "Final", exact: true }),
     ).toHaveValue(/8\/10\/2026/);
+  });
+
+  test("a round can be played over home and away, with a date for each match", async ({
+    page,
+  }) => {
+    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+
+    await page.getByRole("button", { name: "Nueva liguilla" }).click();
+    const dialog = page.getByRole("dialog");
+    await fillEightTeams(page);
+
+    // The legs are chosen even without a start date
+    await dialog.getByRole("combobox", { name: "Semifinal" }).click();
+    await page.getByRole("option", { name: "Ida y vuelta" }).click();
+    await expect(
+      dialog.getByText("Las fechas se definirán al cerrar la fase regular."),
+    ).toBeVisible();
+
+    await pickStart(page, "7");
+    await expect(
+      dialog.getByRole("textbox", { name: "Semifinal (ida)" }),
+    ).toHaveValue(/14\/0?9\/2026/);
+    await expect(
+      dialog.getByRole("textbox", { name: "Semifinal (vuelta)" }),
+    ).toHaveValue(/21\/0?9\/2026/);
+    await expect(
+      dialog.getByRole("textbox", { name: "Final", exact: true }),
+    ).toHaveValue(/28\/0?9\/2026/);
+
+    // Changing the matches of a round starts the dates over, with a notice
+    await dialog.getByRole("combobox", { name: "Cuartos de final" }).click();
+    await page.getByRole("option", { name: "Ida y vuelta" }).click();
+    await expect(
+      dialog.getByText(
+        "Cambió el número de partidos; se recalcularon las fechas.",
+      ),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole("textbox", { name: "Cuartos de final (vuelta)" }),
+    ).toHaveValue(/14\/0?9\/2026/);
+
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog).toBeHidden();
+
+    expect(api.writes[0][2]).toMatchObject({
+      start_date: "2026-09-07",
+      round_legs: [2, 2, 1],
+    });
+    const oro = card(page, "Oro");
+    await expect(oro).toContainText("Cuartos de final (ida): 07/09/2026");
+    await expect(oro).toContainText("Semifinal (vuelta): 28/09/2026");
+    await expect(oro).toContainText("Final: 05/10/2026");
+
+    // Editing restores the legs
+    await page.getByRole("button", { name: "Editar Oro" }).click();
+    await expect(
+      dialog.getByRole("combobox", { name: "Semifinal" }),
+    ).toContainText("Ida y vuelta");
+  });
+
+  test("a playoff without dates names its two-legged rounds", async ({
+    page,
+  }) => {
+    await open(page, {
+      groups: [
+        ...TWO_GROUPS,
+        {
+          id: 10,
+          name: "Oro",
+          type: "playoff",
+          round_legs: [1, 2, 1],
+          sources: [{ source_group_id: 1, position_start: 1, position_end: 8 }],
+        },
+      ],
+      teams: TEAMS,
+    });
+
+    await expect(card(page, "Oro")).toContainText(
+      "Rondas: Cuartos de final, Semifinal (ida y vuelta), Final",
+    );
+    await expect(card(page, "Oro")).toContainText("Fechas por definir");
   });
 
   test("warns when the finals do not share a date", async ({ page }) => {

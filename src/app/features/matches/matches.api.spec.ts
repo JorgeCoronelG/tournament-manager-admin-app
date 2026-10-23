@@ -66,4 +66,18 @@ describe("MatchesApi", () => {
     expect(request.request.method).toBe("DELETE");
     request.flush(null, { status: 204, statusText: "No Content" });
   });
+
+  it("captures and voids a result, keeping the errors for the dialog", () => {
+    api.setResult(7, 5, 2, 1).subscribe();
+    const patch = controller.expectOne(`${URL}/5/result`);
+    expect(patch.request.method).toBe("PATCH");
+    expect(patch.request.body).toEqual({ home_score: 2, away_score: 1 });
+    expect(patch.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+    patch.flush({});
+
+    api.clearResult(7, 5).subscribe();
+    const remove = controller.expectOne(`${URL}/5/result`);
+    expect(remove.request.method).toBe("DELETE");
+    remove.flush({});
+  });
 });

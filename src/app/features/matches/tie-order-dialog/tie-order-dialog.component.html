@@ -1,0 +1,86 @@
+<h2 mat-dialog-title>
+  {{ "matches.standings.order.title" | transloco: { group: data.groupName } }}
+</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-4 !pt-2 min-w-[320px]">
+    @if (formError(); as message) {
+      <div
+        class="flex items-center gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm">{{ message }}</p>
+      </div>
+    }
+
+    <p class="m-0 text-sm text-secondary">
+      {{ "matches.standings.order.hint" | transloco }}
+    </p>
+
+    @for (set of sets(); track $index; let s = $index) {
+      <section>
+        @if (sets().length > 1) {
+          <h3 class="m-0 mb-1 text-sm font-medium">
+            {{ "matches.standings.order.set" | transloco: { number: s + 1 } }}
+          </h3>
+        }
+        <ol class="m-0 p-0 list-none flex flex-col gap-1">
+          @for (
+            row of set;
+            track row.registration_id;
+            let i = $index;
+            let last = $last
+          ) {
+            <li class="flex items-center gap-2 rounded border px-2 py-1">
+              <span class="w-6 text-sm">{{ i + 1 }}.</span>
+              <app-logo-image
+                [alt]="row.team_name"
+                [src]="row.logo_url"
+                class="w-6 h-6 rounded-full shrink-0"
+              />
+              <span class="flex-1 truncate">{{ row.team_name }}</span>
+              <button
+                (click)="move(s, i, -1)"
+                [attr.aria-label]="
+                  'tournaments.form.moveUp' | transloco: { name: row.team_name }
+                "
+                [disabled]="i === 0"
+                mat-icon-button
+                type="button"
+              >
+                <mat-icon svgIcon="mat:arrow_upward" />
+              </button>
+              <button
+                (click)="move(s, i, 1)"
+                [attr.aria-label]="
+                  'tournaments.form.moveDown'
+                    | transloco: { name: row.team_name }
+                "
+                [disabled]="last"
+                mat-icon-button
+                type="button"
+              >
+                <mat-icon svgIcon="mat:arrow_downward" />
+              </button>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="orderForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

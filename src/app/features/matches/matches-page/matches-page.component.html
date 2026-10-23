@@ -41,7 +41,6 @@
       } @else {
         <mat-progress-bar
           [class.invisible]="!resource.isLoading()"
-          class="mb-4"
           mode="indeterminate"
         />
 
@@ -57,92 +56,113 @@
             </button>
           </div>
         } @else if (schedule()) {
-          @if (!generated()) {
-            <div class="py-10 px-6 text-center">
-              <p class="text-secondary mb-4">
-                {{ "matches.empty" | transloco }}
-              </p>
-              @if (editable()) {
-                <button
-                  (click)="generate()"
-                  color="primary"
-                  mat-flat-button
-                  type="button"
-                >
-                  <mat-icon svgIcon="mat:calendar_month" />
-                  {{ "matches.generate.action" | transloco }}
-                </button>
-              }
-            </div>
-          } @else {
-            @if (editable()) {
-              <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-                <span
-                  [matTooltip]="
-                    locked() ? ('matches.lockedHint' | transloco) : ''
-                  "
-                >
-                  <button
-                    (click)="regenerate()"
-                    [disabled]="locked()"
-                    mat-stroked-button
-                    type="button"
-                  >
-                    <mat-icon svgIcon="mat:autorenew" />
-                    {{ "matches.regenerate.action" | transloco }}
-                  </button>
-                </span>
-                <span
-                  [matTooltip]="
-                    locked() ? ('matches.lockedHint' | transloco) : ''
-                  "
-                >
-                  <button
-                    (click)="remove()"
-                    [disabled]="locked()"
-                    color="warn"
-                    mat-stroked-button
-                    type="button"
-                  >
-                    <mat-icon svgIcon="mat:delete_sweep" />
-                    {{ "matches.delete.action" | transloco }}
-                  </button>
-                </span>
+          <mat-tab-group
+            [(selectedIndex)]="selectedSection"
+            animationDuration="0"
+          >
+            <mat-tab [label]="'matches.tabs.schedule' | transloco">
+              <div class="pt-4">
+                <ng-container *ngTemplateOutlet="scheduleTab" />
               </div>
-            }
-
-            @if (groups().length === 1) {
-              <ng-container
-                *ngTemplateOutlet="
-                  groupView;
-                  context: { $implicit: groups()[0] }
-                "
-              />
-            } @else {
-              <mat-tab-group
-                [(selectedIndex)]="selectedTab"
-                animationDuration="0"
-              >
-                @for (group of groups(); track group.group_id) {
-                  <mat-tab [label]="group.group_name">
-                    <div class="pt-4">
-                      <ng-container
-                        *ngTemplateOutlet="
-                          groupView;
-                          context: { $implicit: group }
-                        "
-                      />
-                    </div>
-                  </mat-tab>
+            </mat-tab>
+            <mat-tab [label]="'matches.tabs.standings' | transloco">
+              <div class="pt-4">
+                @if (standingsResource.error()) {
+                  <div class="py-10 px-6 text-center" role="alert">
+                    <p class="text-secondary mb-4">
+                      {{ "matches.standings.error" | transloco }}
+                    </p>
+                    <button
+                      (click)="standingsResource.reload()"
+                      mat-stroked-button
+                      type="button"
+                    >
+                      {{ "common.retry" | transloco }}
+                    </button>
+                  </div>
+                } @else {
+                  <app-standings-view
+                    (changed)="standingsResource.reload()"
+                    [editable]="editable()"
+                    [groups]="standings()"
+                    [tournamentId]="tournament()!.id"
+                  />
                 }
-              </mat-tab-group>
-            }
-          }
+              </div>
+            </mat-tab>
+          </mat-tab-group>
         }
       }
     }
   </app-page-layout-content>
 </app-page-layout>
+
+<ng-template #scheduleTab>
+  @if (!generated()) {
+    <div class="py-10 px-6 text-center">
+      <p class="text-secondary mb-4">
+        {{ "matches.empty" | transloco }}
+      </p>
+      @if (editable()) {
+        <button
+          (click)="generate()"
+          color="primary"
+          mat-flat-button
+          type="button"
+        >
+          <mat-icon svgIcon="mat:calendar_month" />
+          {{ "matches.generate.action" | transloco }}
+        </button>
+      }
+    </div>
+  } @else {
+    @if (editable()) {
+      <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <span [matTooltip]="locked() ? ('matches.lockedHint' | transloco) : ''">
+          <button
+            (click)="regenerate()"
+            [disabled]="locked()"
+            mat-stroked-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:autorenew" />
+            {{ "matches.regenerate.action" | transloco }}
+          </button>
+        </span>
+        <span [matTooltip]="locked() ? ('matches.lockedHint' | transloco) : ''">
+          <button
+            (click)="remove()"
+            [disabled]="locked()"
+            color="warn"
+            mat-stroked-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:delete_sweep" />
+            {{ "matches.delete.action" | transloco }}
+          </button>
+        </span>
+      </div>
+    }
+
+    @if (groups().length === 1) {
+      <ng-container
+        *ngTemplateOutlet="groupView; context: { $implicit: groups()[0] }"
+      />
+    } @else {
+      <mat-tab-group [(selectedIndex)]="selectedTab" animationDuration="0">
+        @for (group of groups(); track group.group_id) {
+          <mat-tab [label]="group.group_name">
+            <div class="pt-4">
+              <ng-container
+                *ngTemplateOutlet="groupView; context: { $implicit: group }"
+              />
+            </div>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    }
+  }
+</ng-template>
 
 <ng-template #groupView let-group>
   <p class="m-0 mb-3 text-sm text-secondary">
@@ -151,6 +171,10 @@
         | transloco
           : { matches: matchesOf(group), matchdays: group.matchdays.length }
     }}
+    @if (playedOf(group) > 0) {
+      ·
+      {{ "matches.playedCount" | transloco: { played: playedOf(group) } }}
+    }
   </p>
 
   @for (round of roundsOf(group); track round.round) {
@@ -202,14 +226,44 @@
                     match.away?.team_name ?? "—"
                   }}</span>
                 </span>
-                <span class="text-sm text-secondary whitespace-nowrap">
+                <span
+                  class="flex items-center justify-end gap-2 text-sm text-secondary whitespace-nowrap"
+                >
+                  @if (match.status === "played") {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/10 text-green-800 dark:text-green-400"
+                      >{{ "matches.played" | transloco }}</span
+                    >
+                  }
                   @if (match.match_datetime) {
                     {{ match.match_datetime | date: "dd/MM/yyyy HH:mm" }}
                   } @else {
                     <span
                       class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-800 dark:text-amber-400"
-                      >{{ "matches.toSchedule" | transloco }}</span
+                      >{{
+                        (match.status === "played"
+                          ? "matches.noDate"
+                          : "matches.toSchedule"
+                        ) | transloco
+                      }}</span
                     >
+                  }
+                  @if (editable()) {
+                    <button
+                      (click)="editResult(match)"
+                      [attr.aria-label]="
+                        'matches.result.edit'
+                          | transloco
+                            : {
+                                home: match.home?.team_name ?? '—',
+                                away: match.away?.team_name ?? '—',
+                              }
+                      "
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon svgIcon="mat:edit" />
+                    </button>
                   }
                 </span>
               </li>

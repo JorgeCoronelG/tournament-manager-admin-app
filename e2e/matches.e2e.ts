@@ -194,4 +194,168 @@ test.describe("matches", () => {
       page.getByRole("button", { name: /Regenerar|Borrar|Generar/ }),
     ).toHaveCount(0);
   });
+
+  const PLAYED = { generated: true, played: true, groups: [FOUR] };
+
+  test("captures a result and shows the score, the played tag and the count", async ({
+    page,
+  }) => {
+    const api = await open(page, "Torneo 02", {
+      generated: true,
+      groups: [FOUR],
+    });
+
+    await page
+      .getByRole("button", {
+        name: /Capturar resultado de Águilas contra Delfines/,
+      })
+      .first()
+      .click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Goles de Águilas").fill("2");
+    await dialog.getByLabel("Goles de Delfines").fill("1");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog).toBeHidden();
+
+    expect(api.writes).toEqual([
+      ["PATCH", "/1/result", { home_score: 2, away_score: 1 }],
+    ]);
+    await expect(page.getByText("2 - 1")).toBeVisible();
+    await expect(page.getByText("Jugado", { exact: true })).toBeVisible();
+    await expect(page.getByText("Sin fecha")).toBeVisible();
+    await expect(
+      page.getByText("6 partidos en 3 jornadas · 1 jugados"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Regenerar" }),
+    ).toBeDisabled();
+  });
+
+  test("a score outside 0 to 99 is not sent", async ({ page }) => {
+    const api = await open(page, "Torneo 02", {
+      generated: true,
+      groups: [FOUR],
+    });
+
+    await page
+      .getByRole("button", { name: /Capturar resultado de Águilas/ })
+      .first()
+      .click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Goles de Águilas").fill("100");
+    await dialog.getByLabel("Goles de Delfines").fill("1");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+
+    await expect(dialog.getByText("de 0 a 99")).toBeVisible();
+    expect(api.writes).toEqual([]);
+  });
+
+  test("shows the backend's refusal when saving a result", async ({ page }) => {
+    await open(page, "Torneo 02", {
+      generated: true,
+      groups: [FOUR],
+      refuse: "La fase regular ya está cerrada.",
+    });
+
+    await page
+      .getByRole("button", { name: /Capturar resultado de Águilas/ })
+      .first()
+      .click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Goles de Águilas").fill("1");
+    await dialog.getByLabel("Goles de Delfines").fill("1");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+
+    await expect(
+      dialog.getByText("La fase regular ya está cerrada."),
+    ).toBeVisible();
+  });
+
+  test("voids a result after confirming", async ({ page }) => {
+    const api = await open(page, "Torneo 02", PLAYED);
+
+    await page
+      .getByRole("button", { name: /Capturar resultado de Águilas/ })
+      .first()
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Anular resultado" })
+      .click();
+    await page
+      .getByRole("dialog")
+      .last()
+      .getByRole("button", { name: "Anular", exact: true })
+      .click();
+
+    await expect(page.getByText("Jugado", { exact: true })).toHaveCount(0);
+    expect(api.writes).toEqual([["DELETE", "/1/result", null]]);
+  });
+
+  test("the standings start at zero without a tie alert", async ({ page }) => {
+    await open(page, "Torneo 02", { generated: true, groups: [FOUR] });
+
+    await page.getByRole("tab", { name: "Tabla de posiciones" }).click();
+
+    await expect(
+      page.getByText("Orden: Puntos, Diferencia de goles, Goles a favor."),
+    ).toBeVisible();
+    await expect(page.locator("tr[mat-row]")).toHaveCount(4);
+    await expect(
+      page.getByText("Hay equipos empatados sin resolver."),
+    ).toHaveCount(0);
+  });
+
+  test("sets the order of tied teams by hand and removes it", async ({
+    page,
+  }) => {
+    const api = await open(page, "Torneo 02", PLAYED);
+
+    await page.getByRole("tab", { name: "Tabla de posiciones" }).click();
+    await expect(
+      page.getByText("Hay equipos empatados sin resolver."),
+    ).toBeVisible();
+    await expect(page.locator("tr[mat-row]").nth(1)).toContainText("Búhos");
+    await expect(page.locator("tr[mat-row]").nth(1)).toContainText("Empate");
+
+    await page.getByRole("button", { name: "Definir orden" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Bajar Búhos" }).click();
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog).toBeHidden();
+
+    expect(api.writes[0]).toEqual([
+      "PUT",
+      "/standings/manual-order",
+      { group_id: 1, registration_ids: [3, 2] },
+    ]);
+    await expect(page.locator("tr[mat-row]").nth(1)).toContainText("Cóndores");
+    await expect(
+      page.getByText("Hay equipos empatados sin resolver."),
+    ).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Quitar orden manual" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Quitar", exact: true })
+      .click();
+    await expect(
+      page.getByText("Hay equipos empatados sin resolver."),
+    ).toBeVisible();
+  });
+
+  test("a tournament in its playoffs shows the table but cannot edit", async ({
+    page,
+  }) => {
+    await open(page, "Torneo 04", PLAYED);
+
+    await expect(
+      page.getByRole("button", { name: /Capturar resultado/ }),
+    ).toHaveCount(0);
+    await page.getByRole("tab", { name: "Tabla de posiciones" }).click();
+    await expect(page.locator("tr[mat-row]")).toHaveCount(4);
+    await expect(
+      page.getByRole("button", { name: /Definir orden|Quitar orden/ }),
+    ).toHaveCount(0);
+  });
 });

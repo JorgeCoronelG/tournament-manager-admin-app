@@ -614,7 +614,7 @@
     "planning": "Inicia el torneo para generar el calendario.",
     "empty": "Aún no hay calendario",
     "error": "No pudimos cargar el calendario.",
-    "lockedHint": "Ya hay partidos jugados: el calendario no se puede cambiar.",
+    "lockedHint": "Ya hay partidos jugados.",
     "generated": "Calendario generado",
     "regenerated": "Calendario regenerado",
     "deleted": "Calendario borrado",
@@ -623,6 +623,58 @@
     "round": "Vuelta {{round}}",
     "vs": "vs",
     "toSchedule": "Por programar",
+    "played": "Jugado",
+    "noDate": "Sin fecha",
+    "playedCount": "{{played}} jugados",
+    "tabs": {
+      "schedule": "Calendario",
+      "standings": "Tabla de posiciones"
+    },
+    "result": {
+      "title": "Resultado del partido",
+      "edit": "Capturar resultado de {{home}} contra {{away}}",
+      "goalsOf": "Goles de {{team}}",
+      "scoreError": "Ingresa un entero de 0 a {{max}}",
+      "saved": "Resultado guardado",
+      "voidAction": "Anular resultado",
+      "void": {
+        "title": "Anular resultado",
+        "message": "¿Seguro que quieres anular el resultado de {{home}} contra {{away}}? El partido volverá a estar por jugar.",
+        "confirm": "Anular"
+      }
+    },
+    "standings": {
+      "error": "No pudimos cargar la tabla de posiciones.",
+      "criteria": "Orden: {{criteria}}.",
+      "tied": "Hay equipos empatados sin resolver.",
+      "tie": "Empate",
+      "defineOrder": "Definir orden",
+      "clearOrderAction": "Quitar orden manual",
+      "orderSaved": "Orden guardado",
+      "orderCleared": "Orden manual quitado",
+      "columns": {
+        "position": "Pos",
+        "team": "Equipo",
+        "played": "PJ",
+        "won": "PG",
+        "drawn": "PE",
+        "lost": "PP",
+        "goalsFor": "GF",
+        "goalsAgainst": "GC",
+        "goalDifference": "DG",
+        "points": "Pts"
+      },
+      "order": {
+        "title": "Definir orden: {{group}}",
+        "hint": "Ordena los equipos empatados del mejor al peor.",
+        "set": "Empate {{number}}"
+      },
+      "clearOrder": {
+        "title": "Quitar orden manual",
+        "message": "¿Seguro que quieres quitar el orden manual del {{group}}? Los equipos volverán a estar empatados.",
+        "confirm": "Quitar"
+      }
+    },
     "resting": "Descansa: {{teams}}",
     "generate": {
       "action": "Generar calendario",
@@ -737,7 +789,14 @@
       "datesLater": "Las fechas se definirán al cerrar la fase regular. También puedes capturarlas ahora.",
       "roundsOrder": "Las fechas de las rondas deben ir en orden.",
       "datesPending": "Fechas por definir",
-      "roundsChanged": "Cambió el número de rondas; se recalcularon las fechas."
+      "roundsChanged": "Cambió el número de partidos; se recalcularon las fechas.",
+      "legFirst": "{{name}} (ida)",
+      "legSecond": "{{name}} (vuelta)",
+      "twoLegs": "{{name}} (ida y vuelta)",
+      "legs": {
+        "one": "Un partido",
+        "two": "Ida y vuelta"
+      }
     },
     "round": {
       "2": "Final",

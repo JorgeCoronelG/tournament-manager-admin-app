@@ -18,10 +18,14 @@ export interface PlayoffSource {
   position_end: number;
 }
 
-/** A round of a playoff with its date (Y-m-d), as the backend names it */
+/** Matches a round is played over: one, or home and away */
+export type RoundLegs = 1 | 2;
+
+/** A round of a playoff as the backend names it, with the date (Y-m-d or null) of each of its matches */
 export interface RoundDetail {
   name: string;
-  date: string | null;
+  legs: RoundLegs;
+  dates: Array<string | null>;
 }
 
 /** A group as the list returns it; playoffs add dates, sources and rounds */
@@ -38,8 +42,10 @@ export interface Group {
   rounds?: number;
   /** Y-m-d */
   final_date?: string | null;
-  /** Y-m-d of each round, first round to the final */
-  round_dates?: Array<string | null>;
+  /** Y-m-d of each match, first round to the final; null when none was set by hand */
+  round_dates?: Array<string | null> | null;
+  /** Matches of each round, first round to the final */
+  round_legs?: RoundLegs[];
   rounds_detail?: RoundDetail[];
   /** Playoffs only: false once the backend locks it; absent means editable */
   editable?: boolean;
@@ -80,8 +86,10 @@ export type GroupBody =
       /** Y-m-d */
       start_date: string | null;
       round_interval_days: number;
-      /** Y-m-d per round; only sent when the admin edited one by hand */
+      /** Y-m-d per match; only sent when the admin edited one by hand, null without a start date */
       round_dates?: string[] | null;
+      /** Matches of each round, in the order of the rounds */
+      round_legs?: RoundLegs[];
       sources: PlayoffSourceBody[];
     };
 
@@ -191,4 +199,9 @@ export function datesInOrder(dates: ReadonlyArray<Date | null>): boolean {
   }
 
   return true;
+}
+
+/** Matches of a playoff: the sum of the matches of each round */
+export function matchTotal(legs: readonly number[]): number {
+  return legs.reduce((sum, value) => sum + value, 0);
 }

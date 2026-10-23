@@ -305,12 +305,12 @@
                     }}
                   </p>
                   @if (hasDates(playoff)) {
-                    @for (round of playoff.rounds_detail ?? []; track $index) {
+                    @for (line of matchLines(playoff); track $index) {
                       <p class="m-0 text-sm text-secondary">
-                        {{ round.name }}{{ round.date ? ": " : ""
+                        {{ line.label }}{{ line.date ? ": " : ""
                         }}{{
-                          round.date
-                            ? (parseDate(round.date) | date: "dd/MM/yyyy")
+                          line.date
+                            ? (parseDate(line.date) | date: "dd/MM/yyyy")
                             : ""
                         }}
                       </p>

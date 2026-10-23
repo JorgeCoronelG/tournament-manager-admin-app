@@ -121,6 +121,7 @@ describe("PlayoffFormDialogComponent", () => {
       type: "playoff",
       start_date: "2026-09-20",
       round_interval_days: 7,
+      round_legs: [1, 1],
       sources: [{ source_group_id: 1, position_start: 1, position_end: 4 }],
     });
     expect(close).toHaveBeenCalledWith({ id: 9 });
@@ -209,6 +210,12 @@ describe("PlayoffFormDialogComponent", () => {
 
       return component;
     }
+
+    const legs = (component: PlayoffFormDialogComponent) =>
+      component.playoffForm
+        .round_legs()
+        .value()
+        .map((row) => row.legs);
 
     const dates = (component: PlayoffFormDialogComponent) =>
       component.playoffForm
@@ -308,6 +315,100 @@ describe("PlayoffFormDialogComponent", () => {
       expect(component.roundsChanged()).toBe(true);
     });
 
+    it("gives every round one match, and a date for each match", () => {
+      const component = eight();
+      component.playoffForm.start_date().value.set(day(2));
+      TestBed.tick();
+
+      expect(legs(component)).toEqual([1, 1, 1]);
+      expect(component.matchLabels()).toEqual([
+        "Cuartos de final",
+        "Semifinal",
+        "Final",
+      ]);
+    });
+
+    it("dates home and away matches apart and sends the legs", async () => {
+      const component = eight();
+      component.playoffForm.start_date().value.set(day(2));
+      TestBed.tick();
+      component.playoffForm.round_legs[1].legs().value.set(2);
+      TestBed.tick();
+
+      expect(component.matchLabels()).toEqual([
+        "Cuartos de final",
+        "Semifinal (ida)",
+        "Semifinal (vuelta)",
+        "Final",
+      ]);
+      expect(dates(component)).toEqual([day(2), day(9), day(16), day(23)]);
+      expect(component.roundsChanged()).toBe(true);
+
+      await component.save();
+
+      expect(create.mock.calls[0][1]).toMatchObject({ round_legs: [1, 2, 1] });
+    });
+
+    it("starts the dates over when a round changes its matches", () => {
+      const component = eight();
+      component.playoffForm.start_date().value.set(day(2));
+      TestBed.tick();
+      component.setRoundDate(1, day(4));
+      component.playoffForm.round_legs[0].legs().value.set(2);
+      TestBed.tick();
+
+      expect(dates(component)).toEqual([day(2), day(9), day(16), day(23)]);
+      expect(component.roundsChanged()).toBe(true);
+    });
+
+    it("lets the legs be chosen without a start date", async () => {
+      const component = eight();
+      component.playoffForm.round_legs[2].legs().value.set(2);
+      TestBed.tick();
+
+      expect(dates(component)).toEqual([null, null, null, null]);
+
+      await component.save();
+
+      expect(create.mock.calls[0][1]).toMatchObject({
+        start_date: null,
+        round_dates: null,
+        round_legs: [1, 1, 2],
+      });
+    });
+
+    it("restores the legs and the dates of a saved playoff", () => {
+      const component = setup({
+        playoff: {
+          id: 9,
+          name: "Oro",
+          type: "playoff",
+          teams_count: 0,
+          start_date: "2026-11-02",
+          round_interval_days: 7,
+          round_legs: [2, 1],
+          rounds_detail: [
+            { name: "Semifinal", legs: 2, dates: ["2026-11-02", "2026-11-09"] },
+            { name: "Final", legs: 1, dates: ["2026-11-16"] },
+          ],
+          sources: [
+            {
+              id: 1,
+              source_group_id: 2,
+              source_group_name: "Grupo B",
+              position_start: 1,
+              position_end: 4,
+            },
+          ],
+        },
+      });
+      TestBed.tick();
+
+      expect(legs(component)).toEqual([2, 1]);
+      expect(dates(component)).toEqual([day(2), day(9), day(16)]);
+      expect(component.roundsChanged()).toBe(false);
+    });
+
     it("starts from the saved dates when editing, manual or not", async () => {
       const playoff: Group = {
         id: 9,
@@ -317,8 +418,8 @@ describe("PlayoffFormDialogComponent", () => {
         start_date: "2026-11-02",
         round_interval_days: 7,
         rounds_detail: [
-          { name: "Semifinal", date: "2026-11-02" },
-          { name: "Final", date: "2026-11-04" },
+          { name: "Semifinal", legs: 1, dates: ["2026-11-02"] },
+          { name: "Final", legs: 1, dates: ["2026-11-04"] },
         ],
         sources: [
           {

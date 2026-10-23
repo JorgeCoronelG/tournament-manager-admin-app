@@ -5,6 +5,7 @@ import {
   Match,
   Matchday,
   matchdaysPerRound,
+  playedCount,
   Schedule,
 } from "./match.model";
 
@@ -66,5 +67,18 @@ describe("match model", () => {
       [1, 2],
       [2, 1],
     ]);
+  });
+
+  it("counts only the matches with a result", () => {
+    const group = {
+      group_id: 1,
+      group_name: "Grupo A",
+      matchdays: [
+        { ...day(1, 1), matches: [match(1, "played"), match(2)] },
+        { ...day(2, 1), matches: [match(3, "played")] },
+      ],
+    };
+
+    expect(playedCount(group)).toBe(2);
   });
 });

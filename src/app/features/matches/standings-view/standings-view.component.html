@@ -1,0 +1,117 @@
+@if (single()) {
+  <ng-container
+    *ngTemplateOutlet="groupTable; context: { $implicit: groups()[0] }"
+  />
+} @else {
+  <mat-tab-group [(selectedIndex)]="selectedTab" animationDuration="0">
+    @for (group of groups(); track group.group_id) {
+      <mat-tab [label]="group.group_name">
+        <div class="pt-4">
+          <ng-container
+            *ngTemplateOutlet="groupTable; context: { $implicit: group }"
+          />
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+}
+
+<ng-template #groupTable let-group>
+  <p class="m-0 mb-3 text-sm text-secondary">
+    {{
+      "matches.standings.criteria" | transloco: { criteria: criteria(group) }
+    }}
+  </p>
+
+  @if (hasTies(group)) {
+    <div
+      class="flex flex-wrap items-center gap-3 mb-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:warning" />
+      <p class="m-0 text-sm flex-1">
+        {{ "matches.standings.tied" | transloco }}
+      </p>
+      @if (editable()) {
+        <button (click)="defineOrder(group)" mat-stroked-button type="button">
+          {{ "matches.standings.defineOrder" | transloco }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (editable() && hasManualOrder(group)) {
+    <div class="mb-3">
+      <button (click)="clearOrder(group)" mat-stroked-button type="button">
+        {{ "matches.standings.clearOrderAction" | transloco }}
+      </button>
+    </div>
+  }
+
+  <div class="bg-foreground rounded shadow overflow-x-auto">
+    <table [dataSource]="group.rows" mat-table>
+      <ng-container matColumnDef="position">
+        <th *matHeaderCellDef mat-header-cell>
+          {{ "matches.standings.columns.position" | transloco }}
+        </th>
+        <td *matCellDef="let row" mat-cell>{{ row.position }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="team">
+        <th *matHeaderCellDef mat-header-cell>
+          {{ "matches.standings.columns.team" | transloco }}
+        </th>
+        <td *matCellDef="let row" mat-cell>
+          <span class="flex items-center gap-2">
+            <app-logo-image
+              [alt]="row.team_name"
+              [src]="row.logo_url"
+              class="w-6 h-6 rounded-full shrink-0"
+            />
+            <span class="font-medium">{{ row.team_name }}</span>
+            @if (isTied(group, row)) {
+              <span
+                class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-800 dark:text-amber-400"
+                >{{ "matches.standings.tie" | transloco }}</span
+              >
+            }
+          </span>
+        </td>
+      </ng-container>
+
+      @for (
+        column of [
+          ["played", "played"],
+          ["won", "won"],
+          ["drawn", "drawn"],
+          ["lost", "lost"],
+          ["goals_for", "goalsFor"],
+          ["goals_against", "goalsAgainst"],
+          ["goal_difference", "goalDifference"],
+          ["points", "points"],
+        ];
+        track column[0]
+      ) {
+        <ng-container [matColumnDef]="column[0]">
+          <th *matHeaderCellDef mat-header-cell>
+            {{ "matches.standings.columns." + column[1] | transloco }}
+          </th>
+          <td
+            *matCellDef="let row"
+            [class.font-medium]="column[0] === 'points'"
+            mat-cell
+          >
+            {{ row[column[0]] }}
+          </td>
+        </ng-container>
+      }
+
+      <tr *matHeaderRowDef="columns" mat-header-row></tr>
+      <tr
+        *matRowDef="let row; columns: columns"
+        [class]="isTied(group, row) ? 'bg-amber-500/10' : ''"
+        mat-row
+      ></tr>
+    </table>
+  </div>
+</ng-template>
