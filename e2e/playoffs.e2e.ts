@@ -584,6 +584,8 @@ test.describe("playoffs", () => {
       .getByRole("button", { name: "Registrar resultado" })
       .click();
     const dialog = page.getByRole("dialog");
+    // The dialog moves the focus to the first field when it opens: wait for it, or the typing lands in the wrong one
+    await expect(dialog.getByLabel("Goles de Lobos")).toBeFocused();
     await dialog.getByLabel("Goles de Lobos").fill("1");
     await dialog.getByLabel("Goles de Halcones").fill("1");
     await expect(dialog.getByText("Global: 2-3")).toBeVisible();
@@ -624,6 +626,8 @@ test.describe("playoffs", () => {
 
     await page.getByRole("button", { name: "Registrar resultado" }).click();
     const dialog = page.getByRole("dialog");
+    // The dialog moves the focus to the first field when it opens: wait for it, or the typing lands in the wrong one
+    await expect(dialog.getByLabel("Goles de Águilas")).toBeFocused();
     await dialog.getByLabel("Goles de Águilas").fill("1");
     await dialog.getByLabel("Goles de Búhos").fill("1");
     await dialog.getByLabel("Penales de Águilas").fill("5");
@@ -653,6 +657,8 @@ test.describe("playoffs", () => {
       .getByRole("button", { name: "Registrar resultado" })
       .click();
     const dialog = page.getByRole("dialog");
+    // The dialog moves the focus to the first field when it opens: wait for it, or the typing lands in the wrong one
+    await expect(dialog.getByLabel("Goles de Lobos")).toBeFocused();
     await dialog.getByLabel("Goles de Lobos").fill("0");
     await dialog.getByLabel("Goles de Halcones").fill("1");
     await dialog.getByRole("button", { name: "Guardar" }).click();
