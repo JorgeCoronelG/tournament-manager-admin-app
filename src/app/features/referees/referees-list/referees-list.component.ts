@@ -3,7 +3,7 @@ import {
   Component,
   computed,
   inject,
-  signal,
+  linkedSignal,
 } from "@angular/core";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { Observable } from "rxjs";
@@ -97,7 +97,11 @@ export class RefereesListComponent {
   readonly statuses = REFEREE_LEAGUE_STATUSES;
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
-  readonly filters = signal<RefereesFilters>({ search: "", status: "" });
+  /** Another league starts again with empty filters, as when the screen is opened */
+  readonly filters = linkedSignal<number | null, RefereesFilters>({
+    source: this.leagueContext.activeLeagueId,
+    computation: () => ({ search: "", status: "" }),
+  });
   readonly filtersForm = form(this.filters, (filter) => {
     debounce(filter.search, 300);
   });

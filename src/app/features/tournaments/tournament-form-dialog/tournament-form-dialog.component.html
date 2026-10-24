@@ -7,14 +7,21 @@
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
   <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
-    @if (tournament?.status === "in_progress") {
+    @if (
+      tournament?.status === "in_progress" || tournament?.status === "playoffs"
+    ) {
       <div
         class="flex items-center gap-3 mb-2 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
         role="status"
       >
         <mat-icon class="shrink-0" svgIcon="mat:info" />
         <p class="m-0 text-sm">
-          {{ "tournaments.form.inProgressNotice" | transloco }}
+          {{
+            (tournament?.status === "playoffs"
+              ? "tournaments.form.playoffsNotice"
+              : "tournaments.form.inProgressNotice"
+            ) | transloco
+          }}
         </p>
       </div>
     }
@@ -81,12 +88,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field
-            [matTooltip]="lockedReason() ?? ''"
-            [matTooltipDisabled]="
-              !tournamentForm.match_duration_minutes().disabled()
-            "
-          >
+          <mat-form-field>
             <mat-label>{{
               "tournaments.fields.matchDuration" | transloco
             }}</mat-label>
@@ -230,10 +232,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field
-            [matTooltip]="lockedReason() ?? ''"
-            [matTooltipDisabled]="!tournamentForm.rounds().disabled()"
-          >
+          <mat-form-field>
             <mat-label>{{ "tournaments.fields.rounds" | transloco }}</mat-label>
             <mat-select [formField]="tournamentForm.rounds">
               @for (rounds of rounds; track rounds) {
@@ -255,11 +254,7 @@
             </button>
           </mat-form-field>
 
-          <fieldset
-            [matTooltip]="lockedReason() ?? ''"
-            [matTooltipDisabled]="!tournamentForm.tiebreakers().disabled()"
-            class="m-0 mb-2 p-0 border-0 min-w-0"
-          >
+          <fieldset class="m-0 mb-2 p-0 border-0 min-w-0">
             <legend
               class="flex items-center gap-1 p-0 mb-1 text-sm font-medium"
             >

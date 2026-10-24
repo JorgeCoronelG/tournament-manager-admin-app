@@ -3,7 +3,6 @@ import {
   effect,
   linkedSignal,
   Signal,
-  signal,
   untracked,
 } from "@angular/core";
 import { Sort } from "@angular/material/sort";
@@ -58,7 +57,11 @@ export function listState<F extends object, T>({
   pageSize = 5,
   load,
 }: ListStateOptions<F, T>) {
-  const sortState = signal<Sort>(defaultSort);
+  // Another context (e.g. league) starts again from the default order
+  const sortState = linkedSignal<unknown, Sort>({
+    source: () => resetOn?.(),
+    computation: () => defaultSort,
+  });
 
   const paging = linkedSignal<
     [F, Sort, unknown],

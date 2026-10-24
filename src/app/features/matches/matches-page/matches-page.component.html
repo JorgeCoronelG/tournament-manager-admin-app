@@ -127,19 +127,6 @@
 </app-page-layout>
 
 <ng-template #scheduleTab>
-  @if (canClose()) {
-    <div class="flex justify-end mb-4">
-      <button
-        (click)="closePhase()"
-        color="primary"
-        mat-flat-button
-        type="button"
-      >
-        <mat-icon svgIcon="mat:flag" />
-        {{ "matches.close.action" | transloco }}
-      </button>
-    </div>
-  }
   @if (!generated()) {
     <div class="py-10 px-6 text-center">
       <p class="text-secondary mb-4">
@@ -158,33 +145,74 @@
       }
     </div>
   } @else {
-    @if (editable()) {
-      <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <span [matTooltip]="locked() ? ('matches.lockedHint' | transloco) : ''">
-          <button
-            (click)="regenerate()"
-            [disabled]="locked()"
-            mat-stroked-button
-            type="button"
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+      @if (currentGroup(); as group) {
+        <p class="m-0 text-sm text-secondary">
+          {{
+            "matches.count"
+              | transloco
+                : {
+                    matches: matchesOf(group),
+                    matchdays: group.matchdays.length,
+                  }
+          }}
+          @if (playedOf(group) > 0) {
+            ·
+            {{ "matches.playedCount" | transloco: { played: playedOf(group) } }}
+          }
+        </p>
+      }
+      @if (editable()) {
+        <div class="flex items-center gap-1">
+          <span
+            [matTooltip]="
+              (locked() ? 'matches.lockedHint' : 'matches.regenerate.action')
+                | transloco
+            "
           >
-            <mat-icon svgIcon="mat:autorenew" />
-            {{ "matches.regenerate.action" | transloco }}
-          </button>
-        </span>
-        <span [matTooltip]="locked() ? ('matches.lockedHint' | transloco) : ''">
-          <button
-            (click)="remove()"
-            [disabled]="locked()"
-            color="warn"
-            mat-stroked-button
-            type="button"
+            <button
+              (click)="regenerate()"
+              [attr.aria-label]="'matches.regenerate.action' | transloco"
+              [disabled]="locked()"
+              mat-icon-button
+              type="button"
+            >
+              <mat-icon color="primary" svgIcon="mat:autorenew" />
+            </button>
+          </span>
+          @if (canClose()) {
+            <button
+              (click)="closePhase()"
+              [attr.aria-label]="'matches.close.action' | transloco"
+              [matTooltip]="'matches.close.action' | transloco"
+              mat-icon-button
+              type="button"
+            >
+              <mat-icon
+                class="text-green-600 dark:text-green-400"
+                svgIcon="mat:flag"
+              />
+            </button>
+          }
+          <span
+            [matTooltip]="
+              (locked() ? 'matches.lockedHint' : 'matches.delete.action')
+                | transloco
+            "
           >
-            <mat-icon svgIcon="mat:delete_sweep" />
-            {{ "matches.delete.action" | transloco }}
-          </button>
-        </span>
-      </div>
-    }
+            <button
+              (click)="remove()"
+              [attr.aria-label]="'matches.delete.action' | transloco"
+              [disabled]="locked()"
+              mat-icon-button
+              type="button"
+            >
+              <mat-icon color="warn" svgIcon="mat:delete_sweep" />
+            </button>
+          </span>
+        </div>
+      }
+    </div>
 
     @if (groups().length === 1) {
       <ng-container
@@ -207,18 +235,6 @@
 </ng-template>
 
 <ng-template #groupView let-group>
-  <p class="m-0 mb-3 text-sm text-secondary">
-    {{
-      "matches.count"
-        | transloco
-          : { matches: matchesOf(group), matchdays: group.matchdays.length }
-    }}
-    @if (playedOf(group) > 0) {
-      ·
-      {{ "matches.playedCount" | transloco: { played: playedOf(group) } }}
-    }
-  </p>
-
   @for (round of roundsOf(group); track round.round) {
     @if (hasSeveralRounds(group)) {
       <h2 class="mt-4 mb-2 text-lg font-medium">

@@ -3,8 +3,10 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   signal,
+  viewChild,
 } from "@angular/core";
 import { HttpErrorResponse } from "@angular/common/http";
 import { MatButtonModule } from "@angular/material/button";
@@ -113,6 +115,17 @@ export class AddRefereeDialogComponent {
       field.errors().some((error) => error.kind === "server"),
     ),
   );
+
+  private readonly duplicateNotice =
+    viewChild<ElementRef<HTMLElement>>("duplicateNotice");
+
+  /** The notice sits below the fields: bring it into view of the dialog's scroll */
+  private readonly revealDuplicateNotice = effect(() => {
+    this.duplicateNotice()?.nativeElement.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  });
 
   /** The warning is gone (the email or phone changed): the code hint no longer applies */
   private readonly resetDuplicateHint = effect(() => {

@@ -205,8 +205,10 @@ export class TournamentFormDialogComponent {
       value().length === 0 ? { kind: "tiebreakersRequired" } : undefined,
     );
 
-    // In progress only the name changes (the backend rejects the rest)
-    const locked = () => this.tournament?.status === "in_progress";
+    // In progress or in its playoffs only the name changes (the backend rejects the rest)
+    const locked = () =>
+      this.tournament?.status === "in_progress" ||
+      this.tournament?.status === "playoffs";
     disabled(tournament.gender, locked);
     disabled(tournament.min_age, locked);
     disabled(tournament.max_age, locked);
@@ -222,20 +224,6 @@ export class TournamentFormDialogComponent {
     disabled(tournament.rounds, closed);
     disabled(tournament.match_duration_minutes, closed);
     disabled(tournament.tiebreakers, closed);
-  });
-
-  /** Why the new rule fields cannot change, for the tooltip; null when they can */
-  readonly lockedReason = computed(() => {
-    switch (this.tournament?.status) {
-      case "in_progress":
-        return this.transloco.translate("tournaments.form.lockedInProgress");
-      case "playoffs":
-        return this.transloco.translate("tournaments.form.lockedInProgress");
-      case "finished":
-        return this.transloco.translate("tournaments.form.lockedFinished");
-      default:
-        return null;
-    }
   });
 
   /** An error in the hidden tab would block saving with nothing visible */

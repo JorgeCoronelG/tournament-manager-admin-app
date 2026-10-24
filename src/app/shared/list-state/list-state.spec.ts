@@ -108,6 +108,17 @@ describe("listState", () => {
     expect(list.rows()).toEqual([3]);
   });
 
+  it("goes back to the default order when resetOn changes", () => {
+    const league = signal<unknown>(1);
+    const list = setup(undefined, league);
+
+    list.sort({ active: "name", direction: "asc" });
+    expect(query().sort).toBe("name");
+
+    league.set(2);
+    expect(query().sort).toBe("-created_at");
+  });
+
   it("goes back to the last page with rows when the current one comes back empty", () => {
     const state = setup();
     state.changePage({ pageIndex: 1, pageSize: 5 });

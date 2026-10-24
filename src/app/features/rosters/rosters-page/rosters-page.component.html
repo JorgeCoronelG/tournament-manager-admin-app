@@ -19,9 +19,32 @@
 
         <mat-form-field class="w-72">
           <mat-label>{{ "rosters.team" | transloco }}</mat-label>
-          <mat-select [formField]="teamPickerForm.team">
+          <mat-select [formField]="teamPickerForm.team" [panelWidth]="null">
+            @if (registration(); as selected) {
+              <mat-select-trigger>
+                <span
+                  class="inline-flex h-6 items-center gap-2 align-top [&_.mat-icon]:!m-0 [&_.mat-icon]:!size-4"
+                >
+                  <app-logo-image
+                    [alt]="selected.team.name"
+                    [src]="selected.team.logo_url"
+                    class="w-6 h-6 rounded-full shrink-0"
+                  />
+                  <span class="truncate">{{ teamLabel(selected) }}</span>
+                </span>
+              </mat-select-trigger>
+            }
             @for (item of teams(); track item.id) {
-              <mat-option [value]="item.id">{{ teamLabel(item) }}</mat-option>
+              <mat-option [value]="item.id">
+                <span class="flex items-center gap-3 [&_.mat-icon]:!m-0">
+                  <app-logo-image
+                    [alt]="item.team.name"
+                    [src]="item.team.logo_url"
+                    class="w-8 h-8 rounded-full shrink-0"
+                  />
+                  <span class="whitespace-nowrap">{{ teamLabel(item) }}</span>
+                </span>
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>

@@ -37,15 +37,21 @@
     </div>
 
     <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 m-0 mb-6">
-      <dt class="text-secondary">{{ "players.fields.gender" | transloco }}</dt>
+      <dt class="text-secondary font-semibold">
+        {{ "players.fields.gender" | transloco }}
+      </dt>
       <dd class="m-0">{{ "players.gender." + player.gender | transloco }}</dd>
-      <dt class="text-secondary">
+      <dt class="text-secondary font-semibold">
         {{ "players.fields.birthDate" | transloco }}
       </dt>
       <dd class="m-0">{{ formatBirthDate(player.birth_date) }}</dd>
-      <dt class="text-secondary">{{ "players.fields.age" | transloco }}</dt>
+      <dt class="text-secondary font-semibold">
+        {{ "players.fields.age" | transloco }}
+      </dt>
       <dd class="m-0">{{ player.age }}</dd>
-      <dt class="text-secondary">{{ "players.fields.phone" | transloco }}</dt>
+      <dt class="text-secondary font-semibold">
+        {{ "players.fields.phone" | transloco }}
+      </dt>
       <dd class="m-0">{{ player.phone ?? "—" }}</dd>
     </dl>
 

@@ -185,6 +185,7 @@
                     [svgIcon]="
                       team.manager ? 'mat:swap_horiz' : 'mat:person_add'
                     "
+                    color="primary"
                   />
                 </button>
                 @if (team.manager?.account_status === "pending") {
@@ -195,7 +196,7 @@
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon svgIcon="mat:manage_accounts" />
+                    <mat-icon color="primary" svgIcon="mat:manage_accounts" />
                   </button>
                   <button
                     (click)="resendInvitation(team)"
@@ -206,7 +207,7 @@
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon svgIcon="mat:forward_to_inbox" />
+                    <mat-icon color="primary" svgIcon="mat:forward_to_inbox" />
                   </button>
                 }
                 @if (team.manager) {
@@ -219,7 +220,7 @@
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon svgIcon="mat:person_remove" />
+                    <mat-icon color="warn" svgIcon="mat:person_remove" />
                   </button>
                 }
                 <button

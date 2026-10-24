@@ -3,7 +3,7 @@ import {
   Component,
   computed,
   inject,
-  signal,
+  linkedSignal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
@@ -91,10 +91,14 @@ export class PlayersListComponent {
   ];
   readonly genders = PLAYER_GENDERS;
 
-  readonly filters = signal<PlayersFilters>({
-    search: "",
-    gender: "",
-    status: "",
+  /** Another league starts again with empty filters, as when the screen is opened */
+  readonly filters = linkedSignal<number | null, PlayersFilters>({
+    source: this.leagueContext.activeLeagueId,
+    computation: () => ({
+      search: "",
+      gender: "",
+      status: "",
+    }),
   });
   readonly filtersForm = form(this.filters, (filter) => {
     debounce(filter.search, 300);

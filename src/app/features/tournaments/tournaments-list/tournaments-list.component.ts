@@ -3,7 +3,7 @@ import {
   Component,
   computed,
   inject,
-  signal,
+  linkedSignal,
 } from "@angular/core";
 import { Observable } from "rxjs";
 import { MatButtonModule } from "@angular/material/button";
@@ -92,10 +92,14 @@ export class TournamentsListComponent {
   readonly statuses = TOURNAMENT_STATUSES;
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
-  readonly filters = signal<TournamentsFilters>({
-    search: "",
-    gender: "",
-    status: "",
+  /** Another league starts again with empty filters, as when the screen is opened */
+  readonly filters = linkedSignal<number | null, TournamentsFilters>({
+    source: this.leagueContext.activeLeagueId,
+    computation: () => ({
+      search: "",
+      gender: "",
+      status: "",
+    }),
   });
   readonly filtersForm = form(this.filters, (filter) => {
     debounce(filter.search, 300);

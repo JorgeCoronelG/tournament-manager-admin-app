@@ -100,6 +100,17 @@ export class ManagerFieldsComponent {
     });
   });
 
+  private readonly foundManager =
+    viewChild<ElementRef<HTMLElement>>("foundManager");
+
+  /** The delegate found sits below the field: bring it into view of the dialog's scroll (nothing happens without a result) */
+  private readonly revealFoundManager = effect(() => {
+    this.foundManager()?.nativeElement.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  });
+
   // Lookup of an existing delegate
 
   /** The code of the last search (empty until the first one) */

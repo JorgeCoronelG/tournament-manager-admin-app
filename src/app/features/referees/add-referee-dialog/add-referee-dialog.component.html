@@ -20,7 +20,12 @@
 
         <mat-form-field>
           <mat-label>{{ "referees.fields.firstName" | transloco }}</mat-label>
-          <input [formField]="newForm.first_name" autocomplete="off" matInput />
+          <input
+            [formField]="newForm.first_name"
+            autocomplete="off"
+            cdkFocusInitial
+            matInput
+          />
           @if (newForm.first_name().errors().length) {
             <mat-error>{{
               errorText(
@@ -79,10 +84,11 @@
 
         @if (duplicate()) {
           <div
-            class="flex items-start gap-3 mt-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+            #duplicateNotice
+            class="flex items-start gap-3 mt-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
             role="status"
           >
-            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <mat-icon class="shrink-0" svgIcon="mat:warning" />
             <p class="m-0 text-sm">
               {{ "referees.add.duplicate" | transloco }}
               <button
@@ -108,10 +114,10 @@
 
         @if (lookupError(); as error) {
           <div
-            class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+            class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
             role="alert"
           >
-            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <mat-icon class="shrink-0" svgIcon="mat:warning" />
             <p class="m-0 text-sm">
               {{ "referees.add.lookup." + error | transloco }}
             </p>

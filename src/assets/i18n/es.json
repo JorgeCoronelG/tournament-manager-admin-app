@@ -329,9 +329,8 @@
       "moveDown": "Bajar {{name}}",
       "addTiebreaker": "Agregar {{name}}",
       "removeTiebreaker": "Quitar {{name}}",
-      "lockedInProgress": "No se puede cambiar porque el torneo ya está en curso.",
-      "lockedFinished": "No se puede cambiar porque el torneo ya terminó.",
-      "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre."
+      "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre.",
+      "playoffsNotice": "El torneo está en liguilla: solo se puede editar su nombre."
     }
   },
   "datepicker": {
@@ -680,7 +679,7 @@
       "datesHintAfter": "La primera fecha debe ser posterior al último partido de la fase regular ({{date}}).",
       "confirmation": {
         "title": "Cerrar fase regular",
-        "message": "Se cerrará la fase regular y ya no se podrán modificar sus resultados. ¿Continuar?",
+        "message": "Se cerrará la fase regular y ya no se podrán modificar sus resultados. ¿Desea continuar?",
         "confirm": "Continuar"
       }
     },
@@ -830,7 +829,7 @@
     "random": {
       "action": "Reparto aleatorio",
       "title": "Reparto aleatorio",
-      "message": "Se reemplazará la asignación actual y los equipos se repartirán al azar de forma equilibrada. ¿Continuar?",
+      "message": "Se reemplazará la asignación actual y los equipos se repartirán al azar de forma equilibrada. ¿Desea continuar?",
       "confirm": "Repartir"
     },
     "playoffs": {

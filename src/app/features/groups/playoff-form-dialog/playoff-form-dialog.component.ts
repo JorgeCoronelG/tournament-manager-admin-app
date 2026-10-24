@@ -3,9 +3,11 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   signal,
   untracked,
+  viewChild,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
@@ -150,6 +152,17 @@ export class PlayoffFormDialogComponent {
 
   /** Failures that belong to no field (e.g. overlapping ranges), as the backend words them */
   readonly formError = signal<string | null>(null);
+
+  private readonly errorBanner =
+    viewChild<ElementRef<HTMLElement>>("errorBanner");
+
+  /** The alert sits at the top of a long form: bring it into view of the dialog's scroll */
+  private readonly revealError = effect(() => {
+    this.errorBanner()?.nativeElement.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  });
 
   readonly playoffForm = form(this.model, (playoff) => {
     required(playoff.name);

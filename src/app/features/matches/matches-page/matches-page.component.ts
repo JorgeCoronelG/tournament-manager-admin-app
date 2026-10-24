@@ -163,8 +163,10 @@ export class MatchesPageComponent {
     () => (this.groupsResource.value()?.playoffs.length ?? 0) > 0,
   );
 
-  /** Closing needs a tournament in progress with playoffs to start */
-  readonly canClose = computed(() => this.editable() && this.hasPlayoffs());
+  /** Closing needs a tournament in progress with playoffs to start and a calendar already generated */
+  readonly canClose = computed(
+    () => this.editable() && this.hasPlayoffs() && this.generated(),
+  );
 
   /** Latest dated match of the regular phase: what the first playoff date must follow */
   readonly lastRegularDate = computed(() => {
@@ -223,6 +225,11 @@ export class MatchesPageComponent {
   );
   readonly generated = computed(() => this.schedule()?.generated === true);
   readonly groups = computed(() => this.schedule()?.groups ?? []);
+
+  /** The group whose counters the toolbar shows: the open tab (the only group when there is one) */
+  readonly currentGroup = computed(
+    () => this.groups()[this.selectedTab()] ?? this.groups()[0],
+  );
 
   /** Played matches freeze the calendar */
   readonly locked = computed(() => hasPlayedMatches(this.schedule()));
@@ -294,6 +301,8 @@ export class MatchesPageComponent {
           rounds: tournament.rounds,
           regenerate,
         },
+        // Focus the dialog itself, not the first control: nothing looks selected
+        autoFocus: "dialog",
         width: "480px",
         maxWidth: "95vw",
       })

@@ -16,14 +16,6 @@
       {{ "players.ban.message" | transloco: { name } }}
     </p>
 
-    <div
-      class="flex items-center gap-3 mb-2 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
-      role="status"
-    >
-      <mat-icon class="shrink-0" svgIcon="mat:info" />
-      <p class="m-0 text-sm">{{ "players.ban.info" | transloco }}</p>
-    </div>
-
     <mat-form-field>
       <mat-label>{{ "players.ban.reason" | transloco }}</mat-label>
       <textarea [formField]="banForm.reason" matInput rows="3"></textarea>
@@ -31,6 +23,14 @@
         <mat-error>{{ errorText(banForm.reason().errors()) }}</mat-error>
       }
     </mat-form-field>
+
+    <div
+      class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:warning" />
+      <p class="m-0 text-sm">{{ "players.ban.info" | transloco }}</p>
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

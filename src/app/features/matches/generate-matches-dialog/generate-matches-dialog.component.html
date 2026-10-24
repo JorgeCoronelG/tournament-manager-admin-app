@@ -9,7 +9,7 @@
   <mat-dialog-content class="flex flex-col gap-3 !pt-2 min-w-[320px]">
     @if (data.regenerate) {
       <div
-        class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-200"
+        class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
         role="status"
       >
         <mat-icon class="shrink-0" svgIcon="mat:warning" />
@@ -58,7 +58,7 @@
       </p>
     </section>
 
-    <mat-checkbox [formField]="generateForm.shuffle">
+    <mat-checkbox [formField]="generateForm.shuffle" class="-ml-3">
       {{ "matches.generate.shuffle" | transloco }}
     </mat-checkbox>
   </mat-dialog-content>
@@ -69,7 +69,7 @@
     </button>
     <button
       [disabled]="generateForm().submitting()"
-      [color]="data.regenerate ? 'warn' : 'primary'"
+      color="primary"
       mat-flat-button
       type="submit"
     >
