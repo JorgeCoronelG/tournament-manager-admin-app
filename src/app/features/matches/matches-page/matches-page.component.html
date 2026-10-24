@@ -90,6 +90,35 @@
                 }
               </div>
             </mat-tab>
+            @if (inPlayoffs()) {
+              <mat-tab [label]="'matches.tabs.playoffs' | transloco">
+                <div class="pt-4">
+                  @if (bracketResource.error()) {
+                    <div class="py-10 px-6 text-center" role="alert">
+                      <p class="text-secondary mb-4">
+                        {{ "matches.bracket.error" | transloco }}
+                      </p>
+                      <button
+                        (click)="bracketResource.reload()"
+                        mat-stroked-button
+                        type="button"
+                      >
+                        {{ "common.retry" | transloco }}
+                      </button>
+                    </div>
+                  } @else {
+                    <app-bracket-view
+                      (changed)="reloadBracket()"
+                      (finished)="reloadTournament()"
+                      [editable]="bracketEditable()"
+                      [playoffs]="bracket()"
+                      [tournamentId]="tournament()!.id"
+                      [tournamentName]="tournament()!.name"
+                    />
+                  }
+                </div>
+              </mat-tab>
+            }
           </mat-tab-group>
         }
       }
@@ -98,6 +127,19 @@
 </app-page-layout>
 
 <ng-template #scheduleTab>
+  @if (canClose()) {
+    <div class="flex justify-end mb-4">
+      <button
+        (click)="closePhase()"
+        color="primary"
+        mat-flat-button
+        type="button"
+      >
+        <mat-icon svgIcon="mat:flag" />
+        {{ "matches.close.action" | transloco }}
+      </button>
+    </div>
+  }
   @if (!generated()) {
     <div class="py-10 px-6 text-center">
       <p class="text-secondary mb-4">

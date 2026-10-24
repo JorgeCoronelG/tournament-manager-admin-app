@@ -218,7 +218,7 @@ test.describe("matches", () => {
     await expect(dialog).toBeHidden();
 
     expect(api.writes).toEqual([
-      ["PATCH", "/1/result", { home_score: 2, away_score: 1 }],
+      ["PATCH", "/1/result", { home_goals: 2, away_goals: 1 }],
     ]);
     await expect(page.getByText("2 - 1")).toBeVisible();
     await expect(page.getByText("Jugado", { exact: true })).toBeVisible();

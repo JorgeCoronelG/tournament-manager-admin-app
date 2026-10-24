@@ -996,9 +996,11 @@ export interface MockGroup {
   /** False when the backend locks the playoff; absent means editable */
   editable?: boolean;
   sources?: {
-    source_group_id: number;
+    kind?: "range" | "best_of_position";
+    source_group_id?: number;
     position_start: number;
     position_end: number;
+    best_count?: number;
   }[];
 }
 
@@ -1033,11 +1035,12 @@ export async function mockGroupsApi(
     nextId: 100,
   };
   const regular = () => state.groups.filter((g) => g.type === "regular_stage");
+  const countOf = (s: NonNullable<MockGroup["sources"]>[number]) =>
+    s.kind === "best_of_position"
+      ? (s.best_count ?? 0)
+      : s.position_end - s.position_start + 1;
   const totalOf = (group: MockGroup) =>
-    (group.sources ?? []).reduce(
-      (sum, s) => sum + s.position_end - s.position_start + 1,
-      0,
-    );
+    (group.sources ?? []).reduce((sum, s) => sum + countOf(s), 0);
   const ROUND_NAMES: Record<number, string> = {
     2: "Final",
     4: "Semifinal",
@@ -1103,9 +1106,13 @@ export async function mockGroupsApi(
       round_interval_days: group.round_interval_days ?? 7,
       sources: (group.sources ?? []).map((s, i) => ({
         id: group.id * 10 + i,
+        kind: "range",
+        source_group_id: null,
         ...s,
         source_group_name:
           state.groups.find((g) => g.id === s.source_group_id)?.name ?? null,
+        position: s.kind === "best_of_position" ? s.position_start : null,
+        best_count: s.best_count ?? null,
       })),
       total_teams: total,
       rounds: Math.log2(total),
@@ -1261,14 +1268,13 @@ export async function mockGroupsApi(
     const sources = body?.["sources"] as MockGroup["sources"];
 
     if (sources) {
-      const total = sources.reduce(
-        (sum, s) => sum + s.position_end - s.position_start + 1,
-        0,
-      );
+      const total = sources.reduce((sum, s) => sum + countOf(s), 0);
       const overlaps = sources.some((a, i) =>
         sources.some(
           (b, j) =>
             i < j &&
+            a.kind !== "best_of_position" &&
+            b.kind !== "best_of_position" &&
             a.source_group_id === b.source_group_id &&
             a.position_start <= b.position_end &&
             b.position_start <= a.position_end,
@@ -1631,12 +1637,12 @@ export async function mockMatchesApi(
       }
 
       const body = request.postDataJSON() as {
-        home_score: number;
-        away_score: number;
+        home_goals: number;
+        away_goals: number;
       } | null;
       found.status = body ? "played" : "scheduled";
-      found.home_score = body?.home_score ?? null;
-      found.away_score = body?.away_score ?? null;
+      found.home_score = body?.home_goals ?? null;
+      found.away_score = body?.away_goals ?? null;
 
       return route.fulfill({ json: strip(found) });
     }
@@ -1698,6 +1704,101 @@ export async function mockMatchesApi(
     manual.delete(Number(url.searchParams.get("group_id")));
 
     return route.fulfill({ status: 204 });
+  });
+
+  return api;
+}
+
+export interface PlayoffsApiOptions {
+  /** Answer of `GET /close-regular-phase/preview` */
+  preview?: unknown;
+  /** Answer of `GET /playoffs` */
+  bracket?: unknown;
+  /** Answer of the preview once a best-of-position order was saved or removed (the backend recalculates it) */
+  previewAfterOrder?: unknown;
+  /** Refuses `POST /close-regular-phase` and result writes with this 422 message */
+  refuse?: string;
+}
+
+export interface PlayoffsApi {
+  /** `[method, path, body]` of every write so far (path after `/tournaments/{id}`) */
+  writes: [string, string, unknown][];
+}
+
+/**
+ * Stubs the closing of the regular phase and the playoff bracket
+ * (`/close-regular-phase`, `/playoffs`) and the results of playoff matches with
+ * fixed answers: what the screens do with the backend's data is tested, not
+ * the bracket rules. Register it after `mockMatchesApi`, whose result route it
+ * overrides.
+ */
+export async function mockPlayoffsApi(
+  page: Page,
+  { preview, bracket, previewAfterOrder, refuse }: PlayoffsApiOptions = {},
+): Promise<PlayoffsApi> {
+  const api: PlayoffsApi = { writes: [] };
+  let ordered = false;
+
+  await page.route(
+    /\/tournaments\/\d+\/playoff-sources\/\d+\/manual-order$/,
+    (route) => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname.replace(
+        /^.*\/tournaments\/\d+/,
+        "",
+      );
+      api.writes.push([request.method(), path, request.postDataJSON()]);
+
+      if (refuse) {
+        return route.fulfill({
+          status: 422,
+          json: { code: 422, error: refuse },
+        });
+      }
+
+      ordered = request.method() === "PUT";
+
+      return request.method() === "PUT"
+        ? route.fulfill({ json: previewAfterOrder ?? preview })
+        : route.fulfill({ status: 204 });
+    },
+  );
+
+  await page.route(/\/tournaments\/\d+\/close-regular-phase/, (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname.replace(
+      /^.*\/tournaments\/\d+/,
+      "",
+    );
+
+    if (request.method() === "GET") {
+      return route.fulfill({
+        json: ordered ? (previewAfterOrder ?? preview) : preview,
+      });
+    }
+
+    api.writes.push([request.method(), path, request.postDataJSON()]);
+
+    return refuse
+      ? route.fulfill({ status: 422, json: { code: 422, error: refuse } })
+      : route.fulfill({ json: {} });
+  });
+
+  await page.route(/\/tournaments\/\d+\/playoffs$/, (route) =>
+    route.fulfill({ json: bracket }),
+  );
+
+  await page.route(/\/tournaments\/\d+\/matches\/\d+\/result$/, (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname.replace(
+      /^.*\/tournaments\/\d+/,
+      "",
+    );
+    api.writes.push([request.method(), path, request.postDataJSON()]);
+
+    return refuse
+      ? route.fulfill({ status: 422, json: { code: 422, error: refuse } })
+      : route.fulfill({ json: {} });
   });
 
   return api;

@@ -71,9 +71,19 @@ describe("MatchesApi", () => {
     api.setResult(7, 5, 2, 1).subscribe();
     const patch = controller.expectOne(`${URL}/5/result`);
     expect(patch.request.method).toBe("PATCH");
-    expect(patch.request.body).toEqual({ home_score: 2, away_score: 1 });
+    expect(patch.request.body).toEqual({ home_goals: 2, away_goals: 1 });
     expect(patch.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
     patch.flush({});
+
+    api.setResult(7, 6, 1, 1, { home: 4, away: 3 }).subscribe();
+    const pens = controller.expectOne(`${URL}/6/result`);
+    expect(pens.request.body).toEqual({
+      home_goals: 1,
+      away_goals: 1,
+      home_penalties: 4,
+      away_penalties: 3,
+    });
+    pens.flush({});
 
     api.clearResult(7, 5).subscribe();
     const remove = controller.expectOne(`${URL}/5/result`);

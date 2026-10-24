@@ -82,4 +82,28 @@ describe("group model", () => {
     expect(datesInOrder([b, a, c])).toBe(false);
     expect(datesInOrder([a, a])).toBe(false);
   });
+
+  it("counts the teams of a best-of-position source as the ones that qualify", () => {
+    expect(
+      playoffTotal([
+        { position_start: 1, position_end: 3 },
+        {
+          kind: "best_of_position",
+          position_start: 4,
+          position_end: null,
+          best_count: 1,
+        },
+      ]),
+    ).toBe(4);
+    expect(
+      playoffTotal([
+        {
+          kind: "best_of_position",
+          position_start: 4,
+          position_end: null,
+          best_count: null,
+        },
+      ]),
+    ).toBe(0);
+  });
 });

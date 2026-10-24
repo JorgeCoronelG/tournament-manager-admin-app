@@ -41,16 +41,24 @@ export class MatchesApi {
     );
   }
 
-  /** Captures the score of a match (it becomes played) */
+  /** Captures the score of a match (it becomes played); penalties only in a playoff match that needs them */
   setResult(
     tournamentId: number,
     matchId: number,
-    homeScore: number,
-    awayScore: number,
+    homeGoals: number,
+    awayGoals: number,
+    penalties?: { home: number; away: number },
   ) {
     return this.http.patch<Match>(
       this.url(tournamentId, `/${matchId}/result`) ?? "",
-      { home_score: homeScore, away_score: awayScore },
+      {
+        home_goals: homeGoals,
+        away_goals: awayGoals,
+        ...(penalties && {
+          home_penalties: penalties.home,
+          away_penalties: penalties.away,
+        }),
+      },
       this.ownErrors,
     );
   }

@@ -283,18 +283,32 @@
                   <ul class="m-0 mb-2 p-0 list-none text-sm">
                     @for (source of playoff.sources; track source.id) {
                       <li>
-                        {{
-                          (source.position_start === source.position_end
-                            ? "groups.playoffs.sourceOne"
-                            : "groups.playoffs.source"
-                          )
-                            | transloco
-                              : {
-                                  group: source.source_group_name,
-                                  from: source.position_start,
-                                  to: source.position_end,
-                                }
-                        }}
+                        @if (source.kind === "best_of_position") {
+                          {{
+                            (source.best_count === 1
+                              ? "groups.playoffs.bestOne"
+                              : "groups.playoffs.best"
+                            )
+                              | transloco
+                                : {
+                                    position: source.position_start,
+                                    count: source.best_count,
+                                  }
+                          }}
+                        } @else {
+                          {{
+                            (source.position_start === source.position_end
+                              ? "groups.playoffs.sourceOne"
+                              : "groups.playoffs.source"
+                            )
+                              | transloco
+                                : {
+                                    group: source.source_group_name,
+                                    from: source.position_start,
+                                    to: source.position_end,
+                                  }
+                          }}
+                        }
                       </li>
                     }
                   </ul>

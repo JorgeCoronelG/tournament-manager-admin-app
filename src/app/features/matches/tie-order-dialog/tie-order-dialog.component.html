@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>
-  {{ "matches.standings.order.title" | transloco: { group: data.groupName } }}
+  {{ data.title }}
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
@@ -26,12 +26,7 @@
           </h3>
         }
         <ol class="m-0 p-0 list-none flex flex-col gap-1">
-          @for (
-            row of set;
-            track row.registration_id;
-            let i = $index;
-            let last = $last
-          ) {
+          @for (row of set; track row.key; let i = $index; let last = $last) {
             <li class="flex items-center gap-2 rounded border px-2 py-1">
               <span class="w-6 text-sm">{{ i + 1 }}.</span>
               <app-logo-image

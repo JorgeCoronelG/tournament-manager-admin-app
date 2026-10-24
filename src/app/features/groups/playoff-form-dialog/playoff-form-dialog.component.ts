@@ -20,6 +20,7 @@ import {
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {
@@ -43,6 +44,8 @@ import {
   matchTotal,
   playoffRounds,
   playoffTotal,
+  PlayoffSourceBody,
+  PlayoffSourceKind,
   roundLabel,
   RoundLegs,
 } from "../group.model";
@@ -57,9 +60,12 @@ export interface PlayoffFormDialogData {
 }
 
 interface SourceRow {
+  kind: PlayoffSourceKind;
   source_group_id: number | "";
+  /** The position, in a best-of-position source */
   position_start: number | null;
   position_end: number | null;
+  best_count: number | null;
 }
 
 interface PlayoffFormModel {
@@ -75,10 +81,12 @@ interface PlayoffFormModel {
 
 const NAME_MAX = 100;
 
-const emptySource = (): SourceRow => ({
+const emptySource = (kind: PlayoffSourceKind = "range"): SourceRow => ({
+  kind,
   source_group_id: "",
   position_start: null,
   position_end: null,
+  best_count: null,
 });
 
 /**
@@ -98,6 +106,7 @@ const emptySource = (): SourceRow => ({
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatMenuModule,
     MatSelectModule,
     MatTooltipModule,
     TranslocoPipe,
@@ -128,10 +137,13 @@ export class PlayoffFormDialogComponent {
       .flatMap((round) => round.dates)
       .map((date) => ({ date: date ? parseDate(date) : null })),
     sources: this.data.playoff?.sources?.length
-      ? this.data.playoff.sources.map((source) => ({
-          source_group_id: source.source_group_id,
+      ? this.data.playoff.sources.map((source): SourceRow => ({
+          kind: source.kind ?? "range",
+          source_group_id: source.source_group_id ?? "",
           position_start: source.position_start,
-          position_end: source.position_end,
+          position_end:
+            source.kind === "best_of_position" ? null : source.position_end,
+          best_count: source.best_count ?? null,
         }))
       : [emptySource()],
   });
@@ -150,7 +162,19 @@ export class PlayoffFormDialogComponent {
         : { kind: "days" };
     });
     applyEach(playoff.sources, (source) => {
-      required(source.source_group_id);
+      validate(source.source_group_id, ({ value, valueOf }) =>
+        valueOf(source.kind) === "best_of_position" || value() !== ""
+          ? undefined
+          : { kind: "required" },
+      );
+      validate(source.best_count, ({ value, valueOf }) => {
+        const count = value();
+
+        return valueOf(source.kind) !== "best_of_position" ||
+          (count !== null && Number.isInteger(count) && count >= 1)
+          ? undefined
+          : { kind: "bestCount" };
+      });
       validate(source.position_start, ({ value }) => {
         const start = value();
 
@@ -162,9 +186,10 @@ export class PlayoffFormDialogComponent {
         const end = value();
         const start = valueOf(source.position_start);
 
-        return end !== null &&
-          Number.isInteger(end) &&
-          (start === null || end >= start)
+        return valueOf(source.kind) === "best_of_position" ||
+          (end !== null &&
+            Number.isInteger(end) &&
+            (start === null || end >= start))
           ? undefined
           : { kind: "positionEnd" };
       });
@@ -180,6 +205,11 @@ export class PlayoffFormDialogComponent {
         : { kind: "total" },
     );
   });
+
+  /** Some source compares the best teams of a position across the groups */
+  readonly hasBestSource = computed(() =>
+    this.model().sources.some((source) => source.kind === "best_of_position"),
+  );
 
   readonly total = computed(() => playoffTotal(this.model().sources));
   readonly totalValid = computed(() => isValidPlayoffTotal(this.total()));
@@ -362,10 +392,10 @@ export class PlayoffFormDialogComponent {
     this.setRoundDate(index, event.value);
   }
 
-  addSource(): void {
+  addSource(kind: PlayoffSourceKind = "range"): void {
     this.model.update((model) => ({
       ...model,
-      sources: [...model.sources, emptySource()],
+      sources: [...model.sources, emptySource(kind)],
     }));
   }
 
@@ -395,6 +425,8 @@ export class PlayoffFormDialogComponent {
         });
       case "days":
         return this.transloco.translate("groups.playoff.daysError");
+      case "bestCount":
+        return this.transloco.translate("groups.playoff.bestCountError");
       case "position":
       case "positionEnd":
         return this.transloco.translate("groups.playoff.positionError");
@@ -443,11 +475,20 @@ export class PlayoffFormDialogComponent {
                 ? round_legs.map((row) => row.legs)
                 : Array.from({ length: this.roundCount() }, (): RoundLegs => 1),
           }),
-          sources: sources.map((source) => ({
-            source_group_id: source.source_group_id as number,
-            position_start: source.position_start as number,
-            position_end: source.position_end as number,
-          })),
+          sources: sources.map((source): PlayoffSourceBody =>
+            source.kind === "best_of_position"
+              ? {
+                  kind: "best_of_position",
+                  position_start: source.position_start as number,
+                  position_end: source.position_start as number,
+                  best_count: source.best_count as number,
+                }
+              : {
+                  source_group_id: source.source_group_id as number,
+                  position_start: source.position_start as number,
+                  position_end: source.position_end as number,
+                },
+          ),
         };
 
         return this.data.playoff

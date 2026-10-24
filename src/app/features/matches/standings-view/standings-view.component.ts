@@ -106,7 +106,14 @@ export class StandingsViewComponent {
 
     const byId = new Map(group.rows.map((row) => [row.registration_id, row]));
     const sets = group.ties.map((ids) =>
-      ids.map((id) => byId.get(id)).filter((row): row is StandingRow => !!row),
+      ids
+        .map((id) => byId.get(id))
+        .filter((row): row is StandingRow => !!row)
+        .map((row) => ({
+          key: row.registration_id,
+          team_name: row.team_name,
+          logo_url: row.logo_url,
+        })),
     );
 
     this.dialog
@@ -114,10 +121,16 @@ export class StandingsViewComponent {
         TieOrderDialogComponent,
         {
           data: {
-            tournamentId: this.tournamentId(),
-            groupId: group.group_id,
-            groupName: group.group_name,
+            title: this.transloco.translate("matches.standings.order.title", {
+              group: group.group_name,
+            }),
             sets,
+            save: (ids) =>
+              this.api.saveManualOrder(
+                this.tournamentId(),
+                group.group_id,
+                ids,
+              ),
           },
           width: "460px",
           maxWidth: "95vw",

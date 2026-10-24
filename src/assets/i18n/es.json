@@ -628,7 +628,82 @@
     "playedCount": "{{played}} jugados",
     "tabs": {
       "schedule": "Calendario",
-      "standings": "Tabla de posiciones"
+      "standings": "Tabla de posiciones",
+      "playoffs": "Liguilla"
+    },
+    "close": {
+      "action": "Cerrar fase regular",
+      "title": "Cerrar fase regular",
+      "closed": "Fase regular cerrada",
+      "error": "No pudimos revisar si se puede cerrar la fase regular.",
+      "blocked": "No se puede cerrar la fase regular todavía:",
+      "dismiss": "Cerrar",
+      "confirm": "Confirmar y pasar a liguilla",
+      "blockers": {
+        "pending": "Faltan {{count}} partidos por jugar",
+        "example": "{{group}}, jornada {{matchday}}: {{home}} vs {{away}}",
+        "noCalendar": "Primero genera el calendario",
+        "ties": "Hay empates sin resolver en {{group}}, posiciones {{positions}}.",
+        "goToStandings": "Definir el orden en la tabla de posiciones",
+        "bestTies": "Hay empate en los mejores {{position}}.º lugares."
+      },
+      "bestOrder": "Definir orden: mejores {{position}}.º lugares",
+      "clearBestOrder": {
+        "title": "Quitar orden manual",
+        "message": "¿Seguro que quieres quitar el orden manual? Los equipos volverán a estar empatados.",
+        "confirm": "Quitar"
+      },
+      "best": {
+        "title": "Mejores {{position}}.º lugares",
+        "rank": "Lugar",
+        "group": "Grupo",
+        "perMatch": "Pts/PJ",
+        "qualifies": "Clasifica",
+        "clearOrder": "Quitar orden manual",
+        "infoTie": "Hay equipos empatados en los mejores {{position}}.º lugares, pero no cambia quién clasifica."
+      },
+      "warnings": {
+        "tiedQualified": "Hay equipos empatados entre los clasificados de {{group}}, posiciones {{positions}}."
+      },
+      "qualified": "Clasificados",
+      "seed": "{{seed}}. {{team}} ({{group}}, {{position}}°)",
+      "seedBest": "{{seed}}. {{team}} (mejor {{position}}.º)",
+      "twoLegs": "ida y vuelta",
+      "resetTies": "Restablecer cruces",
+      "pairingRule": "Por defecto: mejor sembrado vs peor sembrado.",
+      "teamA": "Cruce {{number}}: equipo 1",
+      "teamB": "Cruce {{number}}: equipo 2",
+      "tiesError": "Cada cruce necesita dos equipos distintos y ningún equipo puede repetirse.",
+      "laterRounds": "Rondas siguientes",
+      "dates": "Fechas de los partidos",
+      "datesHint": "La primera fecha debe ser posterior al último partido de la fase regular.",
+      "datesHintAfter": "La primera fecha debe ser posterior al último partido de la fase regular ({{date}}).",
+      "confirmation": {
+        "title": "Cerrar fase regular",
+        "message": "Se cerrará la fase regular y ya no se podrán modificar sus resultados. ¿Continuar?",
+        "confirm": "Continuar"
+      }
+    },
+    "playoffResult": {
+      "global": "Global: {{home}}-{{away}}",
+      "penalties": "Penales",
+      "penaltiesOf": "Penales de {{team}}",
+      "penaltiesError": "Penales distintos, de 0 a {{max}}"
+    },
+    "bracket": {
+      "error": "No pudimos cargar las llaves.",
+      "playoff": "Liguilla",
+      "champion": "Campeón: {{team}}",
+      "tbd": "Por definir",
+      "first": "Ida",
+      "second": "Vuelta",
+      "toPlay": "Por jugar",
+      "pen": "pen.",
+      "register": "Registrar resultado",
+      "edit": "Editar",
+      "global": "Global: {{a}}-{{b}}",
+      "penaltiesWin": "Gana por penales",
+      "finish": "Terminar torneo"
     },
     "result": {
       "title": "Resultado del partido",
@@ -636,6 +711,7 @@
       "goalsOf": "Goles de {{team}}",
       "scoreError": "Ingresa un entero de 0 a {{max}}",
       "saved": "Resultado guardado",
+      "voided": "Resultado anulado",
       "voidAction": "Anular resultado",
       "void": {
         "title": "Anular resultado",
@@ -764,7 +840,9 @@
       "empty": "Aún no hay liguillas en este torneo.",
       "finalsNotAligned": "Las finales de las liguillas no coinciden en la misma fecha.",
       "source": "{{group}}: posiciones {{from}} a {{to}}",
-      "sourceOne": "{{group}}: posición {{from}}"
+      "sourceOne": "{{group}}: posición {{from}}",
+      "bestOne": "Mejor {{position}}.º lugar entre todos los grupos",
+      "best": "Mejores {{position}}.º lugares: {{count}}"
     },
     "playoff": {
       "newTitle": "Nueva liguilla",
@@ -780,6 +858,14 @@
       "to": "Hasta la posición",
       "positionError": "Ingresa posiciones válidas (la final no puede ser menor que la inicial)",
       "addSource": "Agregar fuente",
+      "kinds": {
+        "range": "Posiciones de un grupo",
+        "best": "Mejores de una posición entre todos los grupos"
+      },
+      "bestPosition": "Posición",
+      "bestCount": "Cuántos clasifican",
+      "bestCountError": "Ingresa un entero mayor a 0",
+      "bestHint": "Compara a los equipos que quedaron en esa posición en cada grupo y clasifican los mejores.",
       "removeSource": "Quitar fuente",
       "total": "Total: {{count}} equipos",
       "totalError": "El total debe ser 2, 4, 8, 16 o 32.",

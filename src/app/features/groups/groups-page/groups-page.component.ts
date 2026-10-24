@@ -342,7 +342,7 @@ export class GroupsPageComponent {
             groups: this.regular(),
             playoff,
           },
-          width: "640px",
+          width: "860px",
           maxWidth: "95vw",
         },
       )

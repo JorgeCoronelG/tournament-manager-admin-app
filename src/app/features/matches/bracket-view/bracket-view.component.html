@@ -1,0 +1,163 @@
+@if (playoffs().length > 1) {
+  <mat-form-field class="w-72">
+    <mat-label>{{ "matches.bracket.playoff" | transloco }}</mat-label>
+    <mat-select [formField]="pickForm.playoff">
+      @for (playoff of playoffs(); track playoff.group_id; let i = $index) {
+        <mat-option [value]="i">{{ playoff.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+}
+
+@if (current(); as playoff) {
+  @if (playoff.champion; as champion) {
+    <div
+      class="flex items-center gap-3 mb-4 p-3 rounded border border-green-600 bg-green-50 text-green-900 dark:border-green-400 dark:bg-green-950 dark:text-green-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:emoji_events" />
+      <p class="m-0 font-medium">
+        {{
+          "matches.bracket.champion" | transloco: { team: champion.team_name }
+        }}
+      </p>
+    </div>
+  }
+
+  @if (editable() && allDecided()) {
+    <div class="flex justify-end mb-4">
+      <button (click)="finish()" color="primary" mat-flat-button type="button">
+        <mat-icon svgIcon="mat:flag" />
+        {{ "matches.bracket.finish" | transloco }}
+      </button>
+    </div>
+  }
+
+  <div class="flex items-stretch gap-6 overflow-x-auto pb-2">
+    @for (round of playoff.rounds; track round.index) {
+      <section class="shrink-0 w-72 flex flex-col gap-3">
+        <h2 class="m-0 text-lg font-medium">{{ round.name }}</h2>
+        <div class="flex flex-1 flex-col justify-around gap-3">
+          @for (tie of round.ties; track tie.id) {
+            <article
+              [attr.aria-label]="
+                (tie.team_a?.team_name ?? ('matches.bracket.tbd' | transloco)) +
+                ' / ' +
+                (tie.team_b?.team_name ?? ('matches.bracket.tbd' | transloco))
+              "
+              class="bg-foreground rounded shadow p-3 flex flex-col gap-2"
+            >
+              @for (side of ["a", "b"]; track side) {
+                @let team = side === "a" ? tie.team_a : tie.team_b;
+                <div
+                  [class]="
+                    isWinner(tie, team)
+                      ? 'flex items-center gap-2 rounded px-2 py-1 bg-green-600/10 font-medium'
+                      : 'flex items-center gap-2 rounded px-2 py-1'
+                  "
+                >
+                  @if (team) {
+                    <app-logo-image
+                      [alt]="team.team_name"
+                      [src]="team.logo_url"
+                      class="w-6 h-6 rounded-full shrink-0"
+                    />
+                    <span class="flex-1 truncate">
+                      @if (seedOf(tie, $any(side)); as seed) {
+                        <span class="text-secondary">{{ seed }}.</span>
+                      }
+                      {{ team.team_name }}
+                    </span>
+                    @if (isWinner(tie, team)) {
+                      <mat-icon
+                        class="!size-4 !text-base"
+                        svgIcon="mat:check_circle"
+                      />
+                    }
+                  } @else {
+                    <span class="text-secondary">{{
+                      "matches.bracket.tbd" | transloco
+                    }}</span>
+                  }
+                </div>
+              }
+
+              @for (match of tie.matches; track match.id) {
+                <div class="border-t pt-2 text-sm flex flex-col gap-1">
+                  <div class="flex items-center justify-between text-secondary">
+                    <span>{{ legLabel(match) }}</span>
+                    <span>
+                      @if (match.scheduled_date) {
+                        {{
+                          parseDate(match.scheduled_date) | date: "dd/MM/yyyy"
+                        }}
+                      }
+                    </span>
+                  </div>
+                  @if (hasTeams(match)) {
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="truncate">
+                        {{ match.home_team?.team_name }}
+                        {{ "matches.vs" | transloco }}
+                        {{ match.away_team?.team_name }}
+                      </span>
+                      <span class="font-medium whitespace-nowrap">
+                        {{
+                          score(match) ?? ("matches.bracket.toPlay" | transloco)
+                        }}
+                      </span>
+                    </div>
+                    @if (editable()) {
+                      <div class="flex gap-2">
+                        <button
+                          (click)="editResult(tie, match)"
+                          mat-stroked-button
+                          type="button"
+                        >
+                          {{
+                            (match.status === "played"
+                              ? "matches.bracket.edit"
+                              : "matches.bracket.register"
+                            ) | transloco
+                          }}
+                        </button>
+                        @if (match.status === "played") {
+                          <button
+                            (click)="voidResult(match)"
+                            color="warn"
+                            mat-button
+                            type="button"
+                          >
+                            {{ "matches.result.voidAction" | transloco }}
+                          </button>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <span class="text-secondary">{{
+                      "matches.bracket.tbd" | transloco
+                    }}</span>
+                  }
+                </div>
+              }
+
+              @if (tie.matches.length > 1 && tie.aggregate; as aggregate) {
+                <p class="m-0 text-sm font-medium">
+                  {{
+                    "matches.bracket.global"
+                      | transloco: { a: aggregate.a, b: aggregate.b }
+                  }}
+                </p>
+              }
+              @if (tie.decided_by === "penalties") {
+                <p class="m-0 text-xs text-secondary">
+                  {{ "matches.bracket.penaltiesWin" | transloco }}
+                </p>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
+  </div>
+}

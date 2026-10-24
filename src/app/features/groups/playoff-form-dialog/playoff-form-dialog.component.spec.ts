@@ -200,6 +200,99 @@ describe("PlayoffFormDialogComponent", () => {
     expect(component.formError()).toBe("Se traslapa con otra fuente.");
   });
 
+  describe("best of a position", () => {
+    function withBest(count: number | null = 1) {
+      const component = setup();
+      const { name, sources } = component.playoffForm;
+      name().value.set("Oro");
+      sources[0].source_group_id().value.set(1);
+      sources[0].position_start().value.set(1);
+      sources[0].position_end().value.set(3);
+      component.addSource("best_of_position");
+      const best = component.playoffForm.sources[1];
+      best.position_start().value.set(4);
+      best.best_count().value.set(count);
+
+      return component;
+    }
+
+    it("adds a source of the chosen kind", () => {
+      const component = setup();
+      component.addSource("best_of_position");
+
+      expect(component.playoffForm.sources[1].kind().value()).toBe(
+        "best_of_position",
+      );
+      expect(component.hasBestSource()).toBe(true);
+    });
+
+    it("counts the best teams in the total and the rounds", () => {
+      const component = withBest(1);
+
+      expect(component.total()).toBe(4);
+      expect(component.rounds()).toEqual(["Semifinal", "Final"]);
+    });
+
+    it("sends the kind, the position twice and how many qualify", async () => {
+      const component = withBest(1);
+
+      await component.save();
+
+      expect(create.mock.calls[0][1].sources).toEqual([
+        { source_group_id: 1, position_start: 1, position_end: 3 },
+        {
+          kind: "best_of_position",
+          position_start: 4,
+          position_end: 4,
+          best_count: 1,
+        },
+      ]);
+    });
+
+    it("needs a position and a count, but no group", async () => {
+      const component = withBest(null);
+
+      await component.save();
+
+      expect(create).not.toHaveBeenCalled();
+      expect(
+        component.playoffForm.sources[1].source_group_id().errors(),
+      ).toHaveLength(0);
+      expect(
+        component.playoffForm.sources[1].best_count().errors(),
+      ).not.toHaveLength(0);
+    });
+
+    it("restores a saved best-of-position source", () => {
+      const component = setup({
+        playoff: {
+          id: 9,
+          name: "Oro",
+          type: "playoff",
+          teams_count: 0,
+          sources: [
+            {
+              id: 1,
+              kind: "best_of_position",
+              source_group_id: null,
+              source_group_name: null,
+              position_start: 4,
+              position_end: 4,
+              position: 4,
+              best_count: 2,
+            },
+          ],
+        },
+      });
+
+      const best = component.playoffForm.sources[0];
+      expect(best.kind().value()).toBe("best_of_position");
+      expect(best.position_start().value()).toBe(4);
+      expect(best.best_count().value()).toBe(2);
+      expect(component.total()).toBe(2);
+    });
+  });
+
   describe("round dates", () => {
     const day = (n: number) => new Date(2026, 10, n);
 

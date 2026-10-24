@@ -10,12 +10,21 @@ export interface GroupTeam {
 }
 
 /** A slice of a regular group that feeds a playoff: positions `start` to `end` */
+export type PlayoffSourceKind = "range" | "best_of_position";
+
 export interface PlayoffSource {
   id: number;
-  source_group_id: number;
+  /** Absent in older answers: a range */
+  kind?: PlayoffSourceKind;
+  /** Null in a best-of-position source: it looks at every group */
+  source_group_id: number | null;
   source_group_name: string | null;
   position_start: number;
   position_end: number;
+  /** The position a best-of-position source compares (same as `position_start`) */
+  position?: number | null;
+  /** How many of the best teams in that position qualify */
+  best_count?: number | null;
 }
 
 /** Matches a round is played over: one, or home and away */
@@ -71,11 +80,19 @@ export interface GroupsView {
   finalsAligned: boolean;
 }
 
-export interface PlayoffSourceBody {
-  source_group_id: number;
-  position_start: number;
-  position_end: number;
-}
+export type PlayoffSourceBody =
+  | {
+      source_group_id: number;
+      position_start: number;
+      position_end: number;
+    }
+  | {
+      kind: "best_of_position";
+      /** Same value in both: the position the best teams are compared in */
+      position_start: number;
+      position_end: number;
+      best_count: number;
+    };
 
 /** Body of POST and PATCH /groups; a regular group only has a name */
 export type GroupBody =
@@ -103,11 +120,23 @@ export const DEFAULT_ROUND_INTERVAL_DAYS = 7;
 /** Teams a playoff takes from its sources */
 export function playoffTotal(
   sources: ReadonlyArray<{
+    kind?: PlayoffSourceKind;
     position_start: number | null;
     position_end: number | null;
+    best_count?: number | null;
   }>,
 ): number {
-  return sources.reduce((total, { position_start, position_end }) => {
+  return sources.reduce((total, source) => {
+    const { position_start, position_end } = source;
+
+    if (source.kind === "best_of_position") {
+      const count = source.best_count ?? null;
+
+      return count !== null && Number.isInteger(count) && count >= 1
+        ? total + count
+        : total;
+    }
+
     if (
       position_start === null ||
       position_end === null ||

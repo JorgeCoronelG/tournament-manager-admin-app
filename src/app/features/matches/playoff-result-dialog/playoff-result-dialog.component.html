@@ -1,0 +1,118 @@
+<h2 mat-dialog-title>{{ "matches.result.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (formError(); as message) {
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm">{{ message }}</p>
+      </div>
+    }
+
+    <div class="flex items-start gap-4">
+      <mat-form-field class="flex-1">
+        <mat-label>{{ homeName }}</mat-label>
+        <input
+          [formField]="resultForm.home_goals"
+          [attr.aria-label]="
+            'matches.result.goalsOf' | transloco: { team: homeName }
+          "
+          autocomplete="off"
+          cdkFocusInitial
+          inputmode="numeric"
+          matInput
+          type="number"
+        />
+        @if (resultForm.home_goals().errors().length) {
+          <mat-error>{{ scoreError() }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="flex-1">
+        <mat-label>{{ awayName }}</mat-label>
+        <input
+          [formField]="resultForm.away_goals"
+          [attr.aria-label]="
+            'matches.result.goalsOf' | transloco: { team: awayName }
+          "
+          autocomplete="off"
+          inputmode="numeric"
+          matInput
+          type="number"
+        />
+        @if (resultForm.away_goals().errors().length) {
+          <mat-error>{{ scoreError() }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    @if (global(); as score) {
+      <p class="m-0 text-sm text-secondary">
+        {{
+          "matches.playoffResult.global"
+            | transloco: { home: score.home, away: score.away }
+        }}
+      </p>
+    }
+
+    @if (penaltiesAsked()) {
+      <p class="m-0 text-sm font-medium">
+        {{ "matches.playoffResult.penalties" | transloco }}
+      </p>
+      <div class="flex items-start gap-4">
+        <mat-form-field class="flex-1">
+          <mat-label>{{ homeName }}</mat-label>
+          <input
+            [formField]="resultForm.home_penalties"
+            [attr.aria-label]="
+              'matches.playoffResult.penaltiesOf'
+                | transloco: { team: homeName }
+            "
+            autocomplete="off"
+            inputmode="numeric"
+            matInput
+            type="number"
+          />
+          @if (resultForm.home_penalties().errors().length) {
+            <mat-error>{{ penaltiesError() }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="flex-1">
+          <mat-label>{{ awayName }}</mat-label>
+          <input
+            [formField]="resultForm.away_penalties"
+            [attr.aria-label]="
+              'matches.playoffResult.penaltiesOf'
+                | transloco: { team: awayName }
+            "
+            autocomplete="off"
+            inputmode="numeric"
+            matInput
+            type="number"
+          />
+          @if (resultForm.away_penalties().errors().length) {
+            <mat-error>{{ penaltiesError() }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="resultForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

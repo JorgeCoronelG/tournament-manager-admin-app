@@ -47,6 +47,14 @@ import {
   playedCount,
 } from "../match.model";
 import { MatchesApi } from "../matches.api";
+import { BracketViewComponent } from "../bracket-view/bracket-view.component";
+import {
+  ClosePhaseDialogComponent,
+  ClosePhaseDialogData,
+  ClosePhaseResult,
+} from "../close-phase-dialog/close-phase-dialog.component";
+import { PlayoffsApi } from "../playoffs.api";
+import { GroupsApi } from "../../groups/groups.api";
 import { StandingsViewComponent } from "../standings-view/standings-view.component";
 import { StandingsApi } from "../standings.api";
 
@@ -63,6 +71,7 @@ const OPEN_ALL_UP_TO = 4;
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    BracketViewComponent,
     DatePipe,
     FormField,
     LeagueRequiredComponent,
@@ -84,6 +93,8 @@ const OPEN_ALL_UP_TO = 4;
 export class MatchesPageComponent {
   private readonly api = inject(MatchesApi);
   private readonly standingsApi = inject(StandingsApi);
+  private readonly playoffsApi = inject(PlayoffsApi);
+  private readonly groupsApi = inject(GroupsApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(SnackbarService);
@@ -116,6 +127,64 @@ export class MatchesPageComponent {
       !this.tournament()
     ) {
       this.picker.set({ tournament: "" });
+    }
+  });
+
+  /** The playoff stage has started: the bracket exists */
+  readonly inPlayoffs = computed(() => {
+    const status = this.tournament()?.status;
+
+    return status === "playoffs" || status === "finished";
+  });
+
+  /** Results of the bracket can be captured only while the tournament is in its playoffs */
+  readonly bracketEditable = computed(
+    () => this.tournament()?.status === "playoffs",
+  );
+
+  readonly bracketResource = this.playoffsApi.bracket(
+    computed(() => (this.inPlayoffs() ? this.tournament()?.id : undefined)),
+  );
+  readonly bracket = computed(() =>
+    this.bracketResource.hasValue()
+      ? this.bracketResource.value().playoffs
+      : [],
+  );
+
+  /** The tournament's playoffs, to know whether the regular phase can be closed; only asked while in progress */
+  private readonly groupsResource = this.groupsApi.view(
+    computed(() =>
+      this.tournament()?.status === "in_progress"
+        ? this.tournament()?.id
+        : undefined,
+    ),
+  );
+  readonly hasPlayoffs = computed(
+    () => (this.groupsResource.value()?.playoffs.length ?? 0) > 0,
+  );
+
+  /** Closing needs a tournament in progress with playoffs to start */
+  readonly canClose = computed(() => this.editable() && this.hasPlayoffs());
+
+  /** Latest dated match of the regular phase: what the first playoff date must follow */
+  readonly lastRegularDate = computed(() => {
+    const dates = this.groups()
+      .flatMap((group) => group.matchdays)
+      .flatMap((day) => day.matches)
+      .map((match) => match.match_datetime)
+      .filter((date): date is string => !!date)
+      .map((date) => date.slice(0, 10))
+      .sort();
+
+    return dates.at(-1) ?? null;
+  });
+
+  /** After closing the phase the bracket tab opens by itself once the tournament shows as in its playoffs */
+  private readonly showBracketNext = signal(false);
+  private readonly openBracket = effect(() => {
+    if (this.showBracketNext() && this.inPlayoffs()) {
+      this.selectedSection.set(2);
+      this.showBracketNext.set(false);
     }
   });
 
@@ -262,6 +331,49 @@ export class MatchesPageComponent {
           error: (error: unknown) => this.snackbar.notifyFailure(error),
         });
       });
+  }
+
+  /** Opens the closing of the regular phase: what blocks it, or the playoffs to confirm */
+  closePhase(): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.canClose()) {
+      return;
+    }
+
+    this.dialog
+      .open<ClosePhaseDialogComponent, ClosePhaseDialogData, ClosePhaseResult>(
+        ClosePhaseDialogComponent,
+        {
+          data: {
+            tournamentId: tournament.id,
+            lastRegularDate: this.lastRegularDate(),
+          },
+          width: "720px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (result === "standings") {
+          this.selectedSection.set(1);
+        } else if (result === "closed") {
+          this.showBracketNext.set(true);
+          this.tournamentsResource.reload();
+          this.reloadAll();
+          this.snackbar.notifySuccess("matches.close.closed");
+        }
+      });
+  }
+
+  /** A result of the bracket changed, or the tournament was finished */
+  reloadBracket(): void {
+    this.bracketResource.reload();
+  }
+
+  reloadTournament(): void {
+    this.tournamentsResource.reload();
+    this.bracketResource.reload();
   }
 
   /** Opens the score of a match to capture, change or void it */

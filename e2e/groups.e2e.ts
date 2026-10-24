@@ -228,6 +228,9 @@ test.describe("groups", () => {
     await page.getByRole("button", { name: "Editar Oro" }).click();
     await dialog.getByLabel("Hasta la posición").fill("2");
     await dialog.getByRole("button", { name: "Agregar fuente" }).click();
+    await page
+      .getByRole("menuitem", { name: "Posiciones de un grupo" })
+      .click();
     await dialog.getByRole("combobox", { name: "Grupo" }).nth(1).click();
     await page.getByRole("option", { name: "Grupo A" }).click();
     await dialog.getByLabel("Desde la posición").nth(1).fill("2");
@@ -515,6 +518,93 @@ test.describe("groups", () => {
       "Rondas: Cuartos de final, Semifinal (ida y vuelta), Final",
     );
     await expect(card(page, "Oro")).toContainText("Fechas por definir");
+  });
+
+  test("a playoff can take the best teams of a position among all the groups", async ({
+    page,
+  }) => {
+    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+
+    await page.getByRole("button", { name: "Nueva liguilla" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Nombre", { exact: true }).fill("Oro");
+    await dialog.getByRole("combobox", { name: "Grupo" }).click();
+    await page.getByRole("option", { name: "Grupo A" }).click();
+    await dialog.getByLabel("Desde la posición").fill("1");
+    await dialog.getByLabel("Hasta la posición").fill("3");
+
+    await dialog.getByRole("button", { name: "Agregar fuente" }).click();
+    await page
+      .getByRole("menuitem", {
+        name: "Mejores de una posición entre todos los grupos",
+      })
+      .click();
+    await expect(
+      dialog.getByText("Compara a los equipos que quedaron en esa posición"),
+    ).toBeVisible();
+    // No group to pick in this source
+    await expect(dialog.getByRole("combobox", { name: "Grupo" })).toHaveCount(
+      1,
+    );
+    await dialog.getByLabel("Posición", { exact: true }).fill("4");
+    await dialog.getByLabel("Cuántos clasifican").fill("1");
+
+    await expect(dialog.getByText("Total: 4 equipos")).toBeVisible();
+    await expect(dialog.getByText("Rondas: Semifinal, Final")).toBeVisible();
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog).toBeHidden();
+
+    expect(api.writes[0][2]).toMatchObject({
+      sources: [
+        { source_group_id: 1, position_start: 1, position_end: 3 },
+        {
+          kind: "best_of_position",
+          position_start: 4,
+          position_end: 4,
+          best_count: 1,
+        },
+      ],
+    });
+    const oro = card(page, "Oro");
+    await expect(oro).toContainText("Grupo A: posiciones 1 a 3");
+    await expect(oro).toContainText("Mejor 4.º lugar entre todos los grupos");
+    await expect(oro).toContainText("Total: 4 equipos");
+  });
+
+  test("a playoff card names several best teams of a position", async ({
+    page,
+  }) => {
+    await open(page, {
+      groups: [
+        ...TWO_GROUPS,
+        {
+          id: 10,
+          name: "Plata",
+          type: "playoff",
+          sources: [
+            { source_group_id: 1, position_start: 1, position_end: 2 },
+            {
+              kind: "best_of_position",
+              position_start: 3,
+              position_end: 3,
+              best_count: 2,
+            },
+          ],
+        },
+      ],
+      teams: TEAMS,
+    });
+
+    await expect(card(page, "Plata")).toContainText("Mejores 3.º lugares: 2");
+    await expect(card(page, "Plata")).toContainText("Total: 4 equipos");
+
+    // Editing restores the best-of-position source
+    await page.getByRole("button", { name: "Editar Plata" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel("Posición", { exact: true })).toHaveValue(
+      "3",
+    );
+    await expect(dialog.getByLabel("Cuántos clasifican")).toHaveValue("2");
   });
 
   test("warns when the finals do not share a date", async ({ page }) => {

@@ -87,51 +87,89 @@
 
       @for (source of playoffForm.sources; track $index; let i = $index) {
         <div class="flex items-start gap-2">
-          <mat-form-field class="flex-[2]">
-            <mat-label>{{ "groups.playoff.group" | transloco }}</mat-label>
-            <mat-select [formField]="source.source_group_id">
-              @for (group of data.groups; track group.id) {
-                <mat-option [value]="group.id">{{ group.name }}</mat-option>
+          @if (source.kind().value() === "best_of_position") {
+            <mat-form-field class="flex-1">
+              <mat-label>{{
+                "groups.playoff.bestPosition" | transloco
+              }}</mat-label>
+              <input
+                [formField]="source.position_start"
+                autocomplete="off"
+                inputmode="numeric"
+                matInput
+                type="number"
+              />
+              @if (source.position_start().errors().length) {
+                <mat-error>{{
+                  errorText(source.position_start().errors())
+                }}</mat-error>
               }
-            </mat-select>
-            @if (source.source_group_id().errors().length) {
-              <mat-error>{{
-                errorText(source.source_group_id().errors())
-              }}</mat-error>
-            }
-          </mat-form-field>
+            </mat-form-field>
 
-          <mat-form-field class="flex-1">
-            <mat-label>{{ "groups.playoff.from" | transloco }}</mat-label>
-            <input
-              [formField]="source.position_start"
-              autocomplete="off"
-              inputmode="numeric"
-              matInput
-              type="number"
-            />
-            @if (source.position_start().errors().length) {
-              <mat-error>{{
-                errorText(source.position_start().errors())
-              }}</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field class="flex-1">
+              <mat-label>{{
+                "groups.playoff.bestCount" | transloco
+              }}</mat-label>
+              <input
+                [formField]="source.best_count"
+                autocomplete="off"
+                inputmode="numeric"
+                matInput
+                type="number"
+              />
+              @if (source.best_count().errors().length) {
+                <mat-error>{{
+                  errorText(source.best_count().errors())
+                }}</mat-error>
+              }
+            </mat-form-field>
+          } @else {
+            <mat-form-field class="flex-[2]">
+              <mat-label>{{ "groups.playoff.group" | transloco }}</mat-label>
+              <mat-select [formField]="source.source_group_id">
+                @for (group of data.groups; track group.id) {
+                  <mat-option [value]="group.id">{{ group.name }}</mat-option>
+                }
+              </mat-select>
+              @if (source.source_group_id().errors().length) {
+                <mat-error>{{
+                  errorText(source.source_group_id().errors())
+                }}</mat-error>
+              }
+            </mat-form-field>
 
-          <mat-form-field class="flex-1">
-            <mat-label>{{ "groups.playoff.to" | transloco }}</mat-label>
-            <input
-              [formField]="source.position_end"
-              autocomplete="off"
-              inputmode="numeric"
-              matInput
-              type="number"
-            />
-            @if (source.position_end().errors().length) {
-              <mat-error>{{
-                errorText(source.position_end().errors())
-              }}</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field class="flex-1">
+              <mat-label>{{ "groups.playoff.from" | transloco }}</mat-label>
+              <input
+                [formField]="source.position_start"
+                autocomplete="off"
+                inputmode="numeric"
+                matInput
+                type="number"
+              />
+              @if (source.position_start().errors().length) {
+                <mat-error>{{
+                  errorText(source.position_start().errors())
+                }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="flex-1">
+              <mat-label>{{ "groups.playoff.to" | transloco }}</mat-label>
+              <input
+                [formField]="source.position_end"
+                autocomplete="off"
+                inputmode="numeric"
+                matInput
+                type="number"
+              />
+              @if (source.position_end().errors().length) {
+                <mat-error>{{
+                  errorText(source.position_end().errors())
+                }}</mat-error>
+              }
+            </mat-form-field>
+          }
 
           <button
             (click)="removeSource(i)"
@@ -146,10 +184,32 @@
         </div>
       }
 
-      <button (click)="addSource()" mat-stroked-button type="button">
+      @if (hasBestSource()) {
+        <p class="m-0 mb-2 text-xs text-secondary">
+          {{ "groups.playoff.bestHint" | transloco }}
+        </p>
+      }
+
+      <button
+        [matMenuTriggerFor]="sourceKinds"
+        mat-stroked-button
+        type="button"
+      >
         <mat-icon svgIcon="mat:add" />
         {{ "groups.playoff.addSource" | transloco }}
       </button>
+      <mat-menu #sourceKinds="matMenu">
+        <button (click)="addSource('range')" mat-menu-item type="button">
+          {{ "groups.playoff.kinds.range" | transloco }}
+        </button>
+        <button
+          (click)="addSource('best_of_position')"
+          mat-menu-item
+          type="button"
+        >
+          {{ "groups.playoff.kinds.best" | transloco }}
+        </button>
+      </mat-menu>
 
       <p
         [class]="

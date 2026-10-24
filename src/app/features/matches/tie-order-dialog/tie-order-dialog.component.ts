@@ -13,18 +13,23 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 import { form } from "@angular/forms/signals";
 import { TranslocoPipe } from "@jsverse/transloco";
-import { concat, last } from "rxjs";
+import { concat, last, Observable } from "rxjs";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
-import { StandingRow } from "../match.model";
-import { StandingsApi } from "../standings.api";
+
+/** A tied team: `key` is what `save` receives to name it */
+export interface TieTeam {
+  key: number;
+  team_name: string;
+  logo_url: string | null;
+}
 
 export interface TieOrderDialogData {
-  tournamentId: number;
-  groupId: number;
-  groupName: string;
-  /** Teams of each set that is still tied, in the order the table shows them */
-  sets: StandingRow[][];
+  title: string;
+  /** Teams of each set that is still tied, in the order they are shown */
+  sets: TieTeam[][];
+  /** Saves the order of one set: the keys of its teams, best first */
+  save: (keys: number[]) => Observable<unknown>;
 }
 
 /**
@@ -44,7 +49,6 @@ export interface TieOrderDialogData {
   ],
 })
 export class TieOrderDialogComponent {
-  private readonly api = inject(StandingsApi);
   private readonly dialogRef =
     inject<MatDialogRef<TieOrderDialogComponent, boolean>>(MatDialogRef);
   private readonly formSubmit = inject(FormSubmitService);
@@ -81,11 +85,7 @@ export class TieOrderDialogComponent {
       send: () =>
         concat(
           ...this.model().sets.map((rows) =>
-            this.api.saveManualOrder(
-              this.data.tournamentId,
-              this.data.groupId,
-              rows.map((row) => row.registration_id),
-            ),
+            this.data.save(rows.map((row) => row.key)),
           ),
         ).pipe(last()),
       onSuccess: () => this.dialogRef.close(true),
