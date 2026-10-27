@@ -41,11 +41,13 @@ import { provideApp } from "@ui/app.provider";
 import { provideNavigation } from "./core/navigation/navigation.provider";
 import { appConfigs } from "@ui/config/app-configs";
 
-/** Same as the native adapter's defaults, but the input shows two-digit day and month (dd/mm/yyyy) */
+/** Same as the native adapter's defaults, but the input shows two-digit day and month (dd/mm/yyyy) and times in 12 h (AM/PM) */
 const APP_DATE_FORMATS: MatDateFormats = {
-  parse: { dateInput: null },
+  parse: { dateInput: null, timeInput: null },
   display: {
     dateInput: { day: "2-digit", month: "2-digit", year: "numeric" },
+    timeInput: { hour: "numeric", minute: "2-digit", hour12: true },
+    timeOptionLabel: { hour: "numeric", minute: "2-digit", hour12: true },
     monthYearLabel: { year: "numeric", month: "short" },
     dateA11yLabel: { year: "numeric", month: "long", day: "numeric" },
     monthYearA11yLabel: { year: "numeric", month: "long" },

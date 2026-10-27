@@ -1,0 +1,591 @@
+<h2 mat-dialog-title>{{ "matches.config.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-5 !pt-2 min-w-[320px]">
+    <mat-progress-bar [class.invisible]="!loading()" mode="indeterminate" />
+
+    @if (configResource.error()) {
+      <div
+        class="flex items-center gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm">{{ "matches.config.loadError" | transloco }}</p>
+      </div>
+    }
+
+    @if (errors().length) {
+      <div
+        class="flex items-start gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <ul class="m-0 pl-4 text-sm">
+          @for (message of errors(); track message) {
+            <li>{{ message }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <section class="flex flex-col gap-2">
+      <mat-form-field class="w-full sm:w-72">
+        <mat-label>{{ "matches.config.startDate" | transloco }}</mat-label>
+        <input
+          (beforeinput)="$event.preventDefault()"
+          (click)="startPicker.open()"
+          (keydown.enter)="startPicker.open()"
+          aria-readonly="true"
+          [formField]="scheduleForm.start_date"
+          [matDatepicker]="startPicker"
+          autocomplete="off"
+          class="cursor-pointer"
+          matInput
+        />
+        <mat-datepicker-toggle
+          [for]="startPicker"
+          class="[&_.mat-mdc-button-touch-target]:hidden"
+          matIconSuffix
+        />
+        <mat-datepicker #startPicker />
+      </mat-form-field>
+
+      @if (duration()) {
+        <div
+          class="flex items-center gap-3 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
+          role="status"
+        >
+          <mat-icon class="shrink-0" svgIcon="mat:info" />
+          <p class="m-0 text-sm">
+            {{ "matches.config.durationBefore" | transloco }}
+            <strong>{{
+              "matches.config.durationMinutes"
+                | transloco: { minutes: duration() }
+            }}</strong
+            >.
+            {{ "matches.config.durationHint" | transloco }}
+            <a
+              (click)="close()"
+              class="underline"
+              routerLink="/dashboard/torneos"
+              >{{ "matches.config.durationLink" | transloco }}</a
+            >.
+          </p>
+        </div>
+      } @else if (!loading()) {
+        <div
+          class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+          role="status"
+        >
+          <mat-icon class="shrink-0" svgIcon="mat:warning" />
+          <p class="m-0 text-sm">
+            {{ capacityError() ?? ("matches.config.noDuration" | transloco) }}
+          </p>
+        </div>
+      }
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="m-0 text-base font-medium">
+          {{ "matches.config.days" | transloco }}
+        </h3>
+        <button
+          [attr.aria-label]="'matches.config.addDay' | transloco"
+          [disabled]="!freeWeekdays().length"
+          [matMenuTriggerFor]="dayMenu"
+          [matTooltip]="'matches.config.addDay' | transloco"
+          mat-icon-button
+          matTooltipPosition="above"
+          type="button"
+        >
+          <mat-icon color="primary" svgIcon="mat:add" />
+        </button>
+        <mat-menu #dayMenu="matMenu">
+          @for (weekday of freeWeekdays(); track weekday) {
+            <button (click)="addDay(weekday)" mat-menu-item type="button">
+              {{ "matches.config.weekdays." + weekday | transloco }}
+            </button>
+          }
+        </mat-menu>
+      </div>
+
+      @if (!model().days.length) {
+        <p class="m-0 text-sm text-secondary">
+          {{ "matches.config.noDays" | transloco }}
+        </p>
+      }
+
+      @for (day of model().days; track day.weekday; let d = $index) {
+        <div class="rounded border p-3 flex flex-col gap-3">
+          <div class="flex flex-wrap items-start gap-3">
+            <h4 class="m-0 mt-4 text-sm font-medium w-24">
+              {{ "matches.config.weekdays." + day.weekday | transloco }}
+            </h4>
+            <mat-form-field class="w-40">
+              <mat-label>{{ "matches.config.start" | transloco }}</mat-label>
+              <input
+                (valueChange)="setDayTime(d, 'start', clockOf($event))"
+                [matTimepicker]="tp1"
+                [value]="toDate(day.start)"
+                matInput
+                placeholder="HH:mm"
+              />
+              <mat-timepicker-toggle
+                [for]="tp1"
+                class="[&_.mat-mdc-button-touch-target]:hidden"
+                matIconSuffix
+              />
+              <mat-timepicker #tp1 />
+              @if (!isClock(day.start)) {
+                <mat-error>{{
+                  "matches.config.clockError" | transloco
+                }}</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field class="w-40">
+              <mat-label>{{ "matches.config.end" | transloco }}</mat-label>
+              <input
+                (valueChange)="setDayTime(d, 'end', clockOf($event))"
+                [matTimepicker]="tp2"
+                [disabled]="!isClock(day.start)"
+                [matTimepickerMin]="toDate(day.start)"
+                [value]="toDate(day.end)"
+                matInput
+                placeholder="HH:mm"
+              />
+              <mat-timepicker-toggle
+                [for]="tp2"
+                class="[&_.mat-mdc-button-touch-target]:hidden"
+                matIconSuffix
+              />
+              <mat-timepicker
+                #tp2
+                [interval]="endOptions(day.start) ? null : '15 minutes'"
+                [options]="endOptions(day.start)"
+              />
+              @if (!isClock(day.end)) {
+                <mat-error>{{
+                  "matches.config.clockError" | transloco
+                }}</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field class="flex-1 min-w-48">
+              <mat-label>{{ "matches.config.fields" | transloco }}</mat-label>
+              <mat-select
+                (selectionChange)="setDayFields(d, $event.value)"
+                [value]="fieldIds(day)"
+                multiple
+              >
+                @for (field of fields(); track field.id) {
+                  <mat-option [value]="field.id">{{ field.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button
+              (click)="removeDay(d)"
+              [attr.aria-label]="'matches.config.removeDay' | transloco"
+              class="mt-1"
+              mat-icon-button
+              type="button"
+            >
+              <mat-icon color="warn" svgIcon="mat:delete" />
+            </button>
+          </div>
+
+          @if (day.start && day.end && !validWindow(day)) {
+            <p class="m-0 text-xs text-red-600" role="alert">
+              {{ "matches.config.windowError" | transloco }}
+            </p>
+          }
+
+          @for (field of day.fields; track field.field_id; let f = $index) {
+            <div class="flex flex-col gap-1 pl-3 border-l-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-medium">{{
+                  fieldName(field.field_id)
+                }}</span>
+                <button
+                  (click)="addWindow(d, f)"
+                  [attr.aria-label]="'matches.config.split' | transloco"
+                  [matTooltip]="'matches.config.split' | transloco"
+                  mat-icon-button
+                  matTooltipPosition="above"
+                  type="button"
+                >
+                  <mat-icon color="primary" svgIcon="mat:add" />
+                </button>
+                <button
+                  (click)="resetField(d, f)"
+                  [attr.aria-label]="'matches.config.reset' | transloco"
+                  [disabled]="!field.edited"
+                  [matTooltip]="'matches.config.reset' | transloco"
+                  mat-icon-button
+                  matTooltipPosition="above"
+                  type="button"
+                >
+                  <mat-icon color="primary" svgIcon="mat:refresh" />
+                </button>
+              </div>
+              @let overlaps = overlappingWindows(field.windows);
+              @for (window of field.windows; track $index; let w = $index) {
+                <div class="flex items-start gap-2">
+                  <mat-form-field class="w-40">
+                    <mat-label>{{
+                      "matches.config.start" | transloco
+                    }}</mat-label>
+                    <input
+                      (valueChange)="
+                        setWindow(d, f, w, 'start', clockOf($event))
+                      "
+                      [matTimepicker]="tp3"
+                      [matTimepickerMin]="toDate(day.start)"
+                      [matTimepickerMax]="toDate(day.end)"
+                      [value]="toDate(window.start)"
+                      matInput
+                      placeholder="HH:mm"
+                    />
+                    <mat-timepicker-toggle
+                      [for]="tp3"
+                      class="[&_.mat-mdc-button-touch-target]:hidden"
+                      matIconSuffix
+                    />
+                    <mat-timepicker
+                      #tp3
+                      [interval]="
+                        startOptions(day.start, day.end) ? null : '15 minutes'
+                      "
+                      [options]="startOptions(day.start, day.end)"
+                    />
+                  </mat-form-field>
+                  <mat-form-field class="w-40">
+                    <mat-label>{{
+                      "matches.config.end" | transloco
+                    }}</mat-label>
+                    <input
+                      (valueChange)="setWindow(d, f, w, 'end', clockOf($event))"
+                      [matTimepicker]="tp4"
+                      [disabled]="!isClock(window.start)"
+                      [matTimepickerMin]="toDate(window.start)"
+                      [matTimepickerMax]="toDate(day.end)"
+                      [value]="toDate(window.end)"
+                      matInput
+                      placeholder="HH:mm"
+                    />
+                    <mat-timepicker-toggle
+                      [for]="tp4"
+                      class="[&_.mat-mdc-button-touch-target]:hidden"
+                      matIconSuffix
+                    />
+                    <mat-timepicker
+                      #tp4
+                      [interval]="
+                        endOptions(window.start, day.end) ? null : '15 minutes'
+                      "
+                      [options]="endOptions(window.start, day.end)"
+                    />
+                    @if (!validWindow(window)) {
+                      <mat-error>{{
+                        "matches.config.windowError" | transloco
+                      }}</mat-error>
+                    }
+                  </mat-form-field>
+                  @if (field.windows.length > 1) {
+                    <button
+                      (click)="removeWindow(d, f, w)"
+                      [attr.aria-label]="
+                        'matches.config.removeWindow' | transloco
+                      "
+                      class="mt-1"
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon color="warn" svgIcon="mat:close" />
+                    </button>
+                  }
+                </div>
+                @if (overlaps[w]) {
+                  <p
+                    class="-mt-3 mb-3 ml-1 text-xs text-[var(--mat-sys-error)]"
+                    role="alert"
+                  >
+                    {{ "matches.config.windowOverlap" | transloco }}
+                  </p>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="m-0 text-base font-medium">
+          {{ "matches.config.blocks" | transloco }}
+        </h3>
+        <button
+          (click)="addBlock()"
+          [attr.aria-label]="'matches.config.addBlock' | transloco"
+          [matTooltip]="'matches.config.addBlock' | transloco"
+          mat-icon-button
+          matTooltipPosition="above"
+          type="button"
+        >
+          <mat-icon color="primary" svgIcon="mat:add" />
+        </button>
+      </div>
+
+      @if (!model().blocks.length) {
+        <p class="m-0 text-sm text-secondary">
+          {{ "matches.config.noBlocks" | transloco }}
+        </p>
+      }
+
+      @for (block of scheduleForm.blocks; track $index; let b = $index) {
+        <div class="flex flex-wrap items-start gap-3 rounded border p-3">
+          <mat-form-field class="w-44">
+            <mat-label>{{ "matches.config.blockDate" | transloco }}</mat-label>
+            <input
+              (beforeinput)="$event.preventDefault()"
+              (click)="blockPicker.open()"
+              (keydown.enter)="blockPicker.open()"
+              aria-readonly="true"
+              [formField]="block.date"
+              [matDatepicker]="blockPicker"
+              autocomplete="off"
+              class="cursor-pointer"
+              matInput
+            />
+            <mat-datepicker-toggle
+              [for]="blockPicker"
+              class="[&_.mat-mdc-button-touch-target]:hidden"
+              matIconSuffix
+            />
+            <mat-datepicker #blockPicker />
+          </mat-form-field>
+          <mat-form-field class="w-44">
+            <mat-label>{{ "matches.config.blockField" | transloco }}</mat-label>
+            <mat-select [formField]="block.field_id">
+              <mat-option value="">{{
+                "matches.config.allFields" | transloco
+              }}</mat-option>
+              @for (field of fields(); track field.id) {
+                <mat-option [value]="field.id">{{ field.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="w-40">
+            <mat-label>{{ "matches.config.start" | transloco }}</mat-label>
+            <input
+              (valueChange)="setBlockTime(b, 'start', clockOf($event))"
+              [matTimepicker]="tp5"
+              [value]="toDate(model().blocks[b].start)"
+              matInput
+              placeholder="HH:mm"
+            />
+            <mat-timepicker-toggle
+              [for]="tp5"
+              class="[&_.mat-mdc-button-touch-target]:hidden"
+              matIconSuffix
+            />
+            <mat-timepicker #tp5 />
+          </mat-form-field>
+          <mat-form-field class="w-40">
+            <mat-label>{{ "matches.config.end" | transloco }}</mat-label>
+            <input
+              (valueChange)="setBlockTime(b, 'end', clockOf($event))"
+              [matTimepicker]="tp6"
+              [value]="toDate(model().blocks[b].end)"
+              matInput
+              placeholder="HH:mm"
+            />
+            <mat-timepicker-toggle
+              [for]="tp6"
+              class="[&_.mat-mdc-button-touch-target]:hidden"
+              matIconSuffix
+            />
+            <mat-timepicker #tp6 />
+            <mat-hint>{{ "matches.config.allDay" | transloco }}</mat-hint>
+          </mat-form-field>
+          <mat-form-field class="flex-1 min-w-48">
+            <mat-label>{{ "matches.config.reason" | transloco }}</mat-label>
+            <input [formField]="block.reason" matInput />
+          </mat-form-field>
+          <button
+            (click)="removeBlock(b)"
+            [attr.aria-label]="'matches.config.removeBlock' | transloco"
+            class="mt-1"
+            mat-icon-button
+            type="button"
+          >
+            <mat-icon color="warn" svgIcon="mat:delete" />
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="m-0 text-base font-medium">
+          {{ "matches.config.capacity.title" | transloco }}
+        </h3>
+        <button
+          (click)="calculate()"
+          [disabled]="!valid() || calculating()"
+          [attr.aria-label]="'matches.config.capacity.calculate' | transloco"
+          [matTooltip]="'matches.config.capacity.calculate' | transloco"
+          mat-icon-button
+          matTooltipPosition="above"
+          type="button"
+        >
+          <mat-icon color="primary" svgIcon="mat:refresh" />
+        </button>
+      </div>
+      <p class="m-0 text-xs text-secondary">
+        {{ "matches.config.capacity.savedHint" | transloco }}
+      </p>
+      <mat-progress-bar
+        [class.invisible]="!capacityResource.isLoading() && !calculating()"
+        mode="indeterminate"
+      />
+
+      @if (capacityFailed()) {
+        @if (duration()) {
+          <p class="m-0 text-sm text-secondary" role="alert">
+            {{
+              capacityError() ?? ("matches.config.capacity.error" | transloco)
+            }}
+          </p>
+        }
+      } @else if (capacity(); as capacity) {
+        @if (capacity.schedule_outdated) {
+          <div
+            class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+            role="status"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:warning" />
+            <p class="m-0 text-sm">
+              {{ "matches.config.capacity.outdated" | transloco }}
+            </p>
+          </div>
+        }
+
+        @if (!capacity.matchdays.length) {
+          <p class="m-0 text-sm text-secondary">
+            {{ "matches.config.capacity.noCalendar" | transloco }}
+          </p>
+        } @else {
+          @if (deficitLines().length) {
+            <div
+              class="flex items-center gap-3 p-3 my-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+              role="status"
+            >
+              <mat-icon class="shrink-0" svgIcon="mat:warning" />
+              <p class="m-0 text-sm">
+                @for (line of deficitLines(); track line) {
+                  {{ line }}
+                  @if (!$last) {
+                    <br />
+                  }
+                }
+              </p>
+            </div>
+          }
+
+          <table [dataSource]="rows()" class="w-full" mat-table>
+            <ng-container matColumnDef="matchday">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "matches.config.capacity.matchday" | transloco }}
+              </th>
+              <td *matCellDef="let day" class="font-medium" mat-cell>
+                {{ day.matchday ?? "-" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="week">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "matches.config.capacity.weekColumn" | transloco }}
+              </th>
+              <td *matCellDef="let day" class="whitespace-nowrap" mat-cell>
+                @if (day.start_date && day.end_date) {
+                  @for (
+                    date of playDates(day.start_date, day.end_date);
+                    track date.getTime();
+                    let last = $last
+                  ) {
+                    {{ date | date: "dd/MM/yyyy" }}{{ last ? "" : "," }}
+                  } @empty {
+                    —
+                  }
+                } @else {
+                  —
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="matches">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "matches.config.capacity.matches" | transloco }}
+              </th>
+              <td *matCellDef="let day" mat-cell>
+                {{ day.matches_required ?? "-" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="slots">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "matches.config.capacity.slots" | transloco }}
+              </th>
+              <td *matCellDef="let day" mat-cell>
+                {{ day.slots_available ?? "-" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="deficit">
+              <th *matHeaderCellDef mat-header-cell>
+                {{ "matches.config.capacity.deficit" | transloco }}
+              </th>
+              <td
+                *matCellDef="let day"
+                [class]="
+                  (day.deficit ?? 0) > 0
+                    ? 'font-medium text-amber-800 dark:text-amber-400'
+                    : ''
+                "
+                mat-cell
+              >
+                {{ day.deficit ?? "-" }}
+              </td>
+            </ng-container>
+
+            <tr *matHeaderRowDef="columns" mat-header-row></tr>
+            <tr
+              *matRowDef="let row; columns: columns"
+              [class]="
+                row.matchday === null
+                  ? 'bg-black/5 text-gray-500 dark:bg-white/5 dark:text-gray-400'
+                  : ''
+              "
+              mat-row
+            ></tr>
+          </table>
+        }
+      }
+    </section>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="scheduleForm().submitting() || !canSave()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

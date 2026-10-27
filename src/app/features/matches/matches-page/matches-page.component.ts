@@ -34,6 +34,10 @@ import {
   GenerateMatchesDialogData,
 } from "../generate-matches-dialog/generate-matches-dialog.component";
 import {
+  ScheduleConfigDialogComponent,
+  ScheduleConfigDialogData,
+} from "../schedule-config-dialog/schedule-config-dialog.component";
+import {
   MatchResultDialogComponent,
   MatchResultDialogData,
 } from "../match-result-dialog/match-result-dialog.component";
@@ -190,6 +194,11 @@ export class MatchesPageComponent {
     }
   });
 
+  /** Hours and fields are configured only while the tournament is in progress (not in planning, nor from the playoffs on) */
+  readonly configurable = computed(
+    () => this.tournament()?.status === "in_progress",
+  );
+
   /** A tournament in planning has no calendar to ask for */
   readonly started = computed(() => {
     const status = this.tournament()?.status;
@@ -273,6 +282,34 @@ export class MatchesPageComponent {
 
   restingNames(resting: ReadonlyArray<{ team_name: string }>): string {
     return resting.map((team) => team.team_name).join(", ");
+  }
+
+  configureSchedule(): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.configurable()) {
+      return;
+    }
+
+    this.dialog
+      .open<ScheduleConfigDialogComponent, ScheduleConfigDialogData, boolean>(
+        ScheduleConfigDialogComponent,
+        {
+          data: {
+            tournamentId: tournament.id,
+            matchDuration: tournament.match_duration_minutes,
+            tournamentStartDate: tournament.start_date,
+          },
+          width: "960px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((saved) => {
+        if (saved) {
+          this.snackbar.notifySuccess("matches.config.saved");
+        }
+      });
   }
 
   generate(): void {

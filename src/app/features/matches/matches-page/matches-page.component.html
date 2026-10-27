@@ -23,6 +23,17 @@
             class="mt-4"
           />
         }
+        @if (configurable()) {
+          <button
+            (click)="configureSchedule()"
+            class="mt-2"
+            mat-stroked-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:calendar_month" />
+            {{ "matches.config.action" | transloco }}
+          </button>
+        }
       </div>
 
       @if (!tournament()) {
@@ -203,6 +214,7 @@
             <button
               (click)="remove()"
               [attr.aria-label]="'matches.delete.action' | transloco"
+              class="[&_.mat-mdc-button-touch-target]:hidden"
               [disabled]="locked()"
               mat-icon-button
               type="button"
