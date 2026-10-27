@@ -36,8 +36,8 @@ export class SnackbarService {
   }
 
   /** Success message from a translation key */
-  notifySuccess(key: string): void {
-    this.success(this.transloco.translate(key));
+  notifySuccess(key: string, params?: Record<string, unknown>): void {
+    this.success(this.transloco.translate(key, params));
   }
 
   /** A failed request: the backend's own message, or a generic one for its status */

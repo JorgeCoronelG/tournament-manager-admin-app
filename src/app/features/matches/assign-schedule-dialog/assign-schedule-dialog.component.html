@@ -1,0 +1,213 @@
+<h2 mat-dialog-title>{{ "matches.assign.title" | transloco }}</h2>
+
+<mat-dialog-content class="flex flex-col gap-4 !pt-2">
+  @if (error(); as message) {
+    <div
+      class="flex items-center gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+      role="alert"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:error" />
+      <p class="m-0 text-sm">{{ message }}</p>
+    </div>
+  }
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <section>
+      <h3 class="m-0 mb-1 text-sm font-medium">
+        {{ "matches.assign.mode" | transloco }}
+      </h3>
+      <mat-radio-group
+        (change)="setMode($event.value)"
+        [value]="mode()"
+        class="flex flex-col"
+      >
+        <mat-radio-button value="balanced">
+          {{ "matches.assign.balanced" | transloco }}
+        </mat-radio-button>
+        <mat-radio-button value="random">
+          {{ "matches.assign.random" | transloco }}
+        </mat-radio-button>
+      </mat-radio-group>
+      <p class="m-0 text-xs text-secondary">
+        {{
+          (mode() === "balanced"
+            ? "matches.assign.balancedHint"
+            : "matches.assign.randomHint"
+          ) | transloco
+        }}
+      </p>
+    </section>
+
+    <section>
+      <h3 class="m-0 mb-1 text-sm font-medium">
+        {{ "matches.assign.scope" | transloco }}
+      </h3>
+      <mat-radio-group
+        (change)="setScope($event.value)"
+        [value]="scope()"
+        class="flex flex-col"
+      >
+        <mat-radio-button value="all">
+          {{ "matches.assign.scopeAll" | transloco }}
+        </mat-radio-button>
+        <mat-radio-button value="unscheduled">
+          {{ "matches.assign.scopeUnscheduled" | transloco }}
+        </mat-radio-button>
+      </mat-radio-group>
+    </section>
+  </div>
+
+  <mat-progress-bar [class.invisible]="!working()" mode="indeterminate" />
+
+  @if (preview(); as result) {
+    <section class="flex flex-col gap-3">
+      <ul class="m-0 p-0 list-none flex flex-wrap gap-x-6 gap-y-1 text-sm">
+        <li>
+          <span class="font-medium">{{ result.scheduled }}</span>
+          {{ "matches.assign.scheduled" | transloco }}
+        </li>
+        <li>
+          <span class="font-medium">{{ result.unscheduled }}</span>
+          {{ "matches.assign.unscheduled" | transloco }}
+        </li>
+        <li>
+          <span class="font-medium">{{ result.locked_kept }}</span>
+          {{ "matches.assign.lockedKept" | transloco }}
+        </li>
+        <li>
+          <span class="font-medium">{{ result.played_kept }}</span>
+          {{ "matches.assign.playedKept" | transloco }}
+        </li>
+      </ul>
+
+      @for (warning of result.warnings; track warning.matchday) {
+        <div
+          class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+          role="status"
+        >
+          <mat-icon class="shrink-0" svgIcon="mat:warning" />
+          <p class="m-0 text-sm">
+            {{ warning.message }}
+          </p>
+        </div>
+      }
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead>
+            <tr class="border-b">
+              <th class="py-2 pr-3 font-medium">
+                {{ "matches.assign.matchday" | transloco }}
+              </th>
+              <th class="py-2 pr-3 font-medium">
+                {{ "matches.assign.week" | transloco }}
+              </th>
+              <th class="py-2 pr-3 font-medium">
+                {{ "matches.assign.matches" | transloco }}
+              </th>
+              <th class="py-2 pr-3 font-medium">
+                {{ "matches.assign.scheduledColumn" | transloco }}
+              </th>
+              <th class="py-2 font-medium">
+                {{ "matches.assign.unscheduledColumn" | transloco }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (day of result.matchdays; track day.matchday) {
+              <tr class="border-b">
+                <td class="py-2 pr-3 font-medium">{{ day.matchday }}</td>
+                <td class="py-2 pr-3 whitespace-nowrap">
+                  @if (day.week_start && day.week_end) {
+                    {{ parseDate(day.week_start) | date: "dd/MM/yyyy" }} -
+                    {{ parseDate(day.week_end) | date: "dd/MM/yyyy" }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td class="py-2 pr-3">{{ day.matches }}</td>
+                <td class="py-2 pr-3">{{ day.scheduled }}</td>
+                <td
+                  [class]="
+                    day.unscheduled > 0
+                      ? 'py-2 font-medium text-amber-800 dark:text-amber-400'
+                      : 'py-2'
+                  "
+                >
+                  {{ day.unscheduled }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="m-0 text-sm font-medium">
+        {{ "matches.assign.proposed" | transloco }}
+      </h3>
+      <div class="max-h-72 overflow-y-auto border rounded">
+        <table class="w-full text-sm text-left">
+          <thead class="sticky top-0 bg-[var(--mat-sys-surface)]">
+            <tr class="border-b">
+              <th class="p-2 font-medium">
+                {{ "matches.assign.matchday" | transloco }}
+              </th>
+              <th class="p-2 font-medium">
+                {{ "matches.assign.group" | transloco }}
+              </th>
+              <th class="p-2 font-medium">
+                {{ "matches.assign.match" | transloco }}
+              </th>
+              <th class="p-2 font-medium">
+                {{ "matches.assign.slot" | transloco }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (match of result.matches; track match.id) {
+              <tr class="border-b last:border-b-0">
+                <td class="p-2">{{ match.matchday }}</td>
+                <td class="p-2">{{ match.group ?? "—" }}</td>
+                <td class="p-2">
+                  {{ match.home_team ?? "—" }} vs {{ match.away_team ?? "—" }}
+                </td>
+                <td class="p-2 whitespace-nowrap">
+                  @if (match.match_datetime) {
+                    {{ slot(match.match_datetime, match.field?.name) }}
+                  } @else {
+                    <span class="text-amber-800 dark:text-amber-400">{{
+                      "matches.noDate" | transloco
+                    }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">
+    {{ "common.cancel" | transloco }}
+  </button>
+  <button
+    (click)="calculate()"
+    [disabled]="working()"
+    mat-stroked-button
+    type="button"
+  >
+    {{ "matches.assign.preview" | transloco }}
+  </button>
+  <button
+    (click)="assign()"
+    [disabled]="!preview() || working()"
+    color="primary"
+    mat-flat-button
+    type="button"
+  >
+    {{ "matches.assign.confirm" | transloco }}
+  </button>
+</mat-dialog-actions>

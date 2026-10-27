@@ -1612,6 +1612,85 @@ export async function mockMatchesApi(
     json: { code: 422, error: message },
   });
 
+  // The hours: a configuration with one play day and nothing outdated
+  await page.route(/\/tournaments\/\d+\/schedule-config$/, (route) =>
+    route.fulfill({
+      json: {
+        schedule_start_date: null,
+        windows: [
+          {
+            weekday: 7,
+            field: { id: 1, name: "Cancha 1" },
+            start: "08:00",
+            end: "13:00",
+          },
+        ],
+        blocks: [],
+        match_duration_minutes: 60,
+      },
+    }),
+  );
+  await page.route(/\/tournaments\/\d+\/schedule-config\/capacity$/, (route) =>
+    route.fulfill({
+      json: {
+        weeks: [],
+        matchdays: [],
+        has_calendar: true,
+        schedule_outdated: false,
+      },
+    }),
+  );
+  const proposal = {
+    seed: 42,
+    scheduled: 1,
+    unscheduled: 1,
+    locked_kept: 0,
+    played_kept: 0,
+    assigned_kept: 0,
+    matchdays: [
+      {
+        matchday: 1,
+        week_start: "2026-11-02",
+        week_end: "2026-11-08",
+        matches: 2,
+        scheduled: 1,
+        unscheduled: 1,
+      },
+    ],
+    warnings: [
+      {
+        matchday: 1,
+        unscheduled: 1,
+        message: "Faltan 1 espacios en la jornada 1.",
+      },
+    ],
+    matches: [
+      {
+        id: 1,
+        matchday: 1,
+        group: "Grupo A",
+        home_team: "Águilas",
+        away_team: "Búhos",
+        match_datetime: "2026-11-07T08:00:00",
+        field: { id: 1, name: "Cancha 1" },
+      },
+    ],
+  };
+  await page.route(/\/tournaments\/\d+\/schedule(\/.*)?$/, (route) => {
+    const request = route.request();
+
+    if (request.method() !== "GET") {
+      api.writes.push([
+        request.method(),
+        new URL(request.url()).pathname,
+        request.postDataJSON(),
+      ]);
+    }
+
+    return route.fulfill({
+      json: request.method() === "DELETE" ? { cleared: 3 } : proposal,
+    });
+  });
   await page.route(/\/tournaments\/\d+\/matches(\/.*)?$/, async (route) => {
     const request = route.request();
     const method = request.method();

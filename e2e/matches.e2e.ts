@@ -364,4 +364,44 @@ test.describe("matches", () => {
       page.getByRole("button", { name: /Definir orden|Quitar orden/ }),
     ).toHaveCount(0);
   });
+
+  test("assigns the hours after a preview, and clears them", async ({
+    page,
+  }) => {
+    const api = await open(page, "Torneo 02", { generated: true });
+
+    const assign = page.getByRole("button", { name: "Asignar horarios" });
+    await assign.click();
+
+    const dialog = page.getByRole("dialog");
+    const confirm = dialog.getByRole("button", {
+      name: "Asignar",
+      exact: true,
+    });
+    await expect(confirm).toBeDisabled();
+
+    await dialog.getByRole("button", { name: "Vista previa" }).click();
+    await expect(
+      dialog.getByText("Faltan 1 espacios en la jornada 1."),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText("Sáb 07/11 · 8:00 a.m. · Cancha 1"),
+    ).toBeVisible();
+
+    await dialog.getByText("Aleatorio").click();
+    await expect(confirm).toBeDisabled();
+
+    await dialog.getByRole("button", { name: "Vista previa" }).click();
+    await confirm.click();
+    await expect(page.getByText("Horarios asignados")).toBeVisible();
+    expect(api.writes.at(-1)).toEqual([
+      "POST",
+      expect.stringContaining("/schedule/generate"),
+      { mode: "random", scope: "all", seed: 42 },
+    ]);
+
+    await page.getByRole("button", { name: "Quitar horarios" }).click();
+    await page.getByRole("button", { name: "Quitar", exact: true }).click();
+    await expect(page.getByText("Horarios quitados: 3 partidos")).toBeVisible();
+  });
 });

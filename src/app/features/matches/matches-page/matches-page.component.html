@@ -34,6 +34,34 @@
             {{ "matches.config.action" | transloco }}
           </button>
         }
+        @if (assignable()) {
+          <span
+            [matTooltip]="
+              hasConfig() ? '' : ('matches.assign.needsConfig' | transloco)
+            "
+            class="mt-2"
+          >
+            <button
+              (click)="assignSchedule()"
+              [disabled]="!hasConfig()"
+              mat-stroked-button
+              type="button"
+            >
+              <mat-icon svgIcon="mat:schedule" />
+              {{ "matches.assign.action" | transloco }}
+            </button>
+          </span>
+          <button
+            (click)="clearSchedule()"
+            [attr.aria-label]="'matches.clearSchedule.action' | transloco"
+            [matTooltip]="'matches.clearSchedule.action' | transloco"
+            class="mt-2 [&_.mat-mdc-button-touch-target]:hidden"
+            mat-icon-button
+            type="button"
+          >
+            <mat-icon color="warn" svgIcon="mat:event_busy" />
+          </button>
+        }
       </div>
 
       @if (!tournament()) {
@@ -156,6 +184,17 @@
       }
     </div>
   } @else {
+    @if (outdated()) {
+      <div
+        class="flex items-center gap-3 p-3 mb-4 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:warning" />
+        <p class="m-0 text-sm">
+          {{ "matches.config.capacity.outdated" | transloco }}
+        </p>
+      </div>
+    }
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
       @if (currentGroup(); as group) {
         <p class="m-0 text-sm text-secondary">
@@ -170,6 +209,13 @@
           @if (playedOf(group) > 0) {
             ·
             {{ "matches.playedCount" | transloco: { played: playedOf(group) } }}
+          }
+          @if (unscheduledOf(group) > 0) {
+            ·
+            {{
+              "matches.unscheduledCount"
+                | transloco: { count: unscheduledOf(group) }
+            }}
           }
         </p>
       }
@@ -260,6 +306,11 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               {{ "matches.matchday" | transloco: { number: day.matchday } }}
+              @if (rangeOf(day.matches); as range) {
+                <span class="ml-3 text-sm font-normal text-secondary">{{
+                  range
+                }}</span>
+              }
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -306,7 +357,7 @@
                     >
                   }
                   @if (match.match_datetime) {
-                    {{ match.match_datetime | date: "dd/MM/yyyy HH:mm" }}
+                    {{ slotText(match) }}
                   } @else {
                     <span
                       class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-800 dark:text-amber-400"

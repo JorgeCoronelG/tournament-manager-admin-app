@@ -1,4 +1,4 @@
-import { DatePipe, NgTemplateOutlet } from "@angular/common";
+import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -33,6 +33,13 @@ import {
   GenerateMatchesDialogComponent,
   GenerateMatchesDialogData,
 } from "../generate-matches-dialog/generate-matches-dialog.component";
+import {
+  AssignScheduleDialogComponent,
+  AssignScheduleDialogData,
+} from "../assign-schedule-dialog/assign-schedule-dialog.component";
+import { ScheduleApi } from "../schedule.api";
+import { ScheduleConfigApi } from "../schedule-config.api";
+import { datesRange, slotLabel } from "../schedule.model";
 import {
   ScheduleConfigDialogComponent,
   ScheduleConfigDialogData,
@@ -76,7 +83,6 @@ const OPEN_ALL_UP_TO = 4;
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
     BracketViewComponent,
-    DatePipe,
     FormField,
     LeagueRequiredComponent,
     LogoImageComponent,
@@ -99,6 +105,8 @@ export class MatchesPageComponent {
   private readonly standingsApi = inject(StandingsApi);
   private readonly playoffsApi = inject(PlayoffsApi);
   private readonly groupsApi = inject(GroupsApi);
+  private readonly scheduleApi = inject(ScheduleApi);
+  private readonly configApi = inject(ScheduleConfigApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(SnackbarService);
@@ -211,6 +219,34 @@ export class MatchesPageComponent {
     () => this.tournament()?.status === "in_progress",
   );
 
+  /** Hours can be assigned once the calendar of pairings exists */
+  readonly assignable = computed(() => this.editable() && this.generated());
+
+  private readonly configResource = this.configApi.config(
+    computed(() => (this.assignable() ? this.tournament()?.id : undefined)),
+  );
+  private readonly capacityResource = this.configApi.capacity(
+    computed(() => (this.assignable() ? this.tournament()?.id : undefined)),
+  );
+
+  /** Without play days there is nothing to assign matches to */
+  readonly hasConfig = computed(
+    () => (this.configResource.value()?.windows.length ?? 0) > 0,
+  );
+
+  /** The assigned hours no longer match the configuration */
+  readonly outdated = computed(
+    () => this.capacityResource.value()?.schedule_outdated === true,
+  );
+
+  /** Matches of a group still to be played that have no date yet */
+  unscheduledOf(group: GroupSchedule): number {
+    return group.matchdays
+      .flatMap((day) => day.matches)
+      .filter((match) => match.status !== "played" && !match.match_datetime)
+      .length;
+  }
+
   readonly resource = this.api.schedule(
     computed(() => (this.started() ? this.tournament()?.id : undefined)),
   );
@@ -280,6 +316,75 @@ export class MatchesPageComponent {
     );
   }
 
+  /** "Sáb 07/11 · 8:00 a.m. · Cancha 1" */
+  slotText(match: Match): string {
+    return slotLabel(match.match_datetime ?? "", match.field?.name, (weekday) =>
+      this.transloco.translate(`matches.config.weekdays.${weekday}`),
+    );
+  }
+
+  /** "02/11 - 08/11" when the matchday has dated matches */
+  rangeOf(matches: Match[]): string | null {
+    return datesRange(matches);
+  }
+
+  /** The assigned slots changed: the calendar and the outdated notice are asked again */
+  private reloadSchedule(): void {
+    this.resource.reload();
+    this.capacityResource.reload();
+  }
+
+  assignSchedule(): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.assignable() || !this.hasConfig()) {
+      return;
+    }
+
+    this.dialog
+      .open<AssignScheduleDialogComponent, AssignScheduleDialogData, boolean>(
+        AssignScheduleDialogComponent,
+        {
+          data: { tournamentId: tournament.id },
+          width: "960px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((assigned) => {
+        if (assigned) {
+          this.reloadSchedule();
+          this.snackbar.notifySuccess("matches.assign.assigned");
+        }
+      });
+  }
+
+  clearSchedule(): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.assignable()) {
+      return;
+    }
+
+    this.confirmDialog
+      .confirm({ key: "matches.clearSchedule" })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.scheduleApi.clear(tournament.id).subscribe({
+          next: ({ cleared }) => {
+            this.reloadSchedule();
+            this.snackbar.notifySuccess("matches.clearSchedule.cleared", {
+              count: cleared,
+            });
+          },
+          error: (error: unknown) => this.snackbar.notifyFailure(error),
+        });
+      });
+  }
+
   restingNames(resting: ReadonlyArray<{ team_name: string }>): string {
     return resting.map((team) => team.team_name).join(", ");
   }
@@ -307,6 +412,7 @@ export class MatchesPageComponent {
       .afterClosed()
       .subscribe((saved) => {
         if (saved) {
+          this.capacityResource.reload();
           this.snackbar.notifySuccess("matches.config.saved");
         }
       });

@@ -18,6 +18,8 @@ export interface Match {
   status: MatchStatus;
   /** ISO 8601; null while the match has no date ("Por programar") */
   match_datetime: string | null;
+  /** Field it is played in; null until the hours are assigned */
+  field?: { id: number; name: string | null } | null;
   home: MatchSide | null;
   away: MatchSide | null;
   home_score: number | null;
