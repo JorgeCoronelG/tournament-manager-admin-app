@@ -26,6 +26,10 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { applyEach, form, FormField, validate } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { map, Observable, of, switchMap } from "rxjs";
+import {
+  ScheduleConfigDialogComponent,
+  ScheduleConfigDialogData,
+} from "../schedule-config-dialog/schedule-config-dialog.component";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { datesInOrder } from "../../groups/group.model";
@@ -50,6 +54,9 @@ export interface ClosePhaseDialogData {
   tournamentId: number;
   /** Y-m-d of the last regular match that has a date, to show what the first playoff date must follow */
   lastRegularDate: string | null;
+  /** To open the hours' configuration from here */
+  matchDuration: number | null;
+  tournamentStartDate: string;
 }
 
 /** What closing the phase leaves to do: look at the standings, or nothing (it was closed) */
@@ -111,6 +118,53 @@ export class ClosePhaseDialogComponent {
     params: () => this.data.tournamentId,
     stream: ({ params }) => this.api.preview(params),
   });
+
+  /** Asked again after the hours were configured, so the dates the user edited stay as they are */
+  private readonly freshScheduleWarnings = signal<
+    NonNullable<ClosePreview["schedule_warnings"]> | undefined
+  >(undefined);
+
+  /** Capacity notices of the proposed dates: they do not block the closing */
+  readonly scheduleWarnings = computed(
+    () =>
+      this.freshScheduleWarnings() ??
+      this.preview.value()?.schedule_warnings ??
+      [],
+  );
+
+  /** The notices of a liguilla */
+  warningsOf(name: string) {
+    return this.scheduleWarnings().filter(
+      (warning) => warning.liguilla === name,
+    );
+  }
+
+  /** Opens the hours' configuration; its notices are refreshed once it is saved */
+  configureSchedule(): void {
+    this.dialog
+      .open<ScheduleConfigDialogComponent, ScheduleConfigDialogData, boolean>(
+        ScheduleConfigDialogComponent,
+        {
+          data: {
+            tournamentId: this.data.tournamentId,
+            matchDuration: this.data.matchDuration,
+            tournamentStartDate: this.data.tournamentStartDate,
+          },
+          width: "960px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((saved) => {
+        if (saved) {
+          this.api
+            .preview(this.data.tournamentId)
+            .subscribe((fresh) =>
+              this.freshScheduleWarnings.set(fresh.schedule_warnings ?? []),
+            );
+        }
+      });
+  }
 
   readonly blockers = computed(() => this.preview.value()?.blockers ?? []);
   readonly warnings = computed(() => this.preview.value()?.warnings ?? []);

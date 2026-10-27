@@ -588,6 +588,70 @@
             ></tr>
           </table>
         }
+
+        @if (capacity.playoff_rounds?.length) {
+          <h4 class="m-0 mt-4 mb-1 text-sm font-medium">
+            {{ "matches.config.capacity.playoffs" | transloco }}
+          </h4>
+
+          @for (
+            warning of capacity.playoff_warnings ?? [];
+            track warning.message
+          ) {
+            <div
+              class="flex items-center gap-3 p-3 mb-2 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+              role="status"
+            >
+              <mat-icon class="shrink-0" svgIcon="mat:warning" />
+              <p class="m-0 text-sm">{{ warning.message }}</p>
+            </div>
+          }
+
+          <table class="w-full text-sm text-left">
+            <thead>
+              <tr class="border-b">
+                <th class="py-2 pr-3 font-medium">
+                  {{ "matches.assign.round" | transloco }}
+                </th>
+                <th class="py-2 pr-3 font-medium">
+                  {{ "matches.assign.date" | transloco }}
+                </th>
+                <th class="py-2 pr-3 font-medium">
+                  {{ "matches.assign.matches" | transloco }}
+                </th>
+                <th class="py-2 pr-3 font-medium">
+                  {{ "matches.config.capacity.slots" | transloco }}
+                </th>
+                <th class="py-2 font-medium">
+                  {{ "matches.config.capacity.deficit" | transloco }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (round of capacity.playoff_rounds; track $index) {
+                <tr class="border-b">
+                  <td class="py-2 pr-3 font-medium">
+                    {{ playoffRoundName(round) }}
+                  </td>
+                  <td class="py-2 pr-3 whitespace-nowrap">
+                    {{ parseDate(round.date) | date: "dd/MM/yyyy" }}
+                  </td>
+                  <td class="py-2 pr-3">{{ round.matches_required }}</td>
+                  <td class="py-2 pr-3">{{ round.slots_available }}</td>
+                  <td
+                    [class]="
+                      round.deficit > 0
+                        ? 'py-2 font-medium text-amber-800 dark:text-amber-400'
+                        : 'py-2'
+                    "
+                  >
+                    {{ round.deficit }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       }
     </section>
   </mat-dialog-content>

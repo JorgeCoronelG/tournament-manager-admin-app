@@ -248,7 +248,29 @@ export interface CapacityWeek {
   matchday: number | null;
 }
 
+/** A round of the playoffs and the slots its date has */
+export interface PlayoffRoundCapacity {
+  liguilla: string | null;
+  round_name: string;
+  leg: number | null;
+  /** Y-m-d */
+  date: string;
+  matches_required: number;
+  slots_available: number;
+  deficit: number;
+}
+
+export interface PlayoffWarning {
+  date: string | null;
+  liguilla: string | null;
+  round_name: string;
+  message: string;
+}
+
 export interface Capacity {
+  /** Only once the playoffs have dates; empty otherwise */
+  playoff_rounds?: PlayoffRoundCapacity[];
+  playoff_warnings?: PlayoffWarning[];
   weeks: CapacityWeek[];
   /** Empty when there is no pairing calendar */
   matchdays: MatchdayCapacity[];

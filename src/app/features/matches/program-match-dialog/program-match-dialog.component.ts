@@ -91,8 +91,10 @@ export class ProgramMatchDialogComponent {
 
   readonly data = inject<ProgramMatchDialogData>(MAT_DIALOG_DATA);
 
-  readonly home = this.data.match.home?.team_name ?? "—";
-  readonly away = this.data.match.away?.team_name ?? "—";
+  private readonly tbd = this.transloco.translate("matches.bracket.tbd");
+
+  readonly home = this.data.match.home?.team_name ?? this.tbd;
+  readonly away = this.data.match.away?.team_name ?? this.tbd;
 
   readonly view = signal<"edit" | "swap">("edit");
 
@@ -206,7 +208,15 @@ export class ProgramMatchDialogComponent {
   }
 
   nameOf(match: Match): string {
-    return `${match.home?.team_name ?? "—"} vs ${match.away?.team_name ?? "—"}`;
+    return `${match.home?.team_name ?? this.tbd} vs ${match.away?.team_name ?? this.tbd}`;
+  }
+
+  /** "Jornada 3", or the playoff round where there is no matchday */
+  roundOf(match: Match): string {
+    return (
+      match.round_label ??
+      this.transloco.translate("matches.matchday", { number: match.matchday })
+    );
   }
 
   save(): void {

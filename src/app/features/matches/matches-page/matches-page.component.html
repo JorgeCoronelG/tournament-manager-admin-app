@@ -7,160 +7,181 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
-          <mat-select [formField]="pickerForm.tournament">
-            @for (item of tournaments(); track item.id) {
-              <mat-option [value]="item.id">{{ item.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        @if (tournament()) {
-          <app-tournament-status-chip
-            [status]="tournament()!.status"
-            class="mt-4"
-          />
-        }
-        @if (configurable()) {
-          <button
-            (click)="configureSchedule()"
-            class="mt-2"
-            mat-stroked-button
-            type="button"
-          >
-            <mat-icon svgIcon="mat:calendar_month" />
-            {{ "matches.config.action" | transloco }}
-          </button>
-        }
-        @if (assignable()) {
-          <span
-            [matTooltip]="
-              hasConfig() ? '' : ('matches.assign.needsConfig' | transloco)
-            "
-            class="mt-2"
-          >
-            <button
-              (click)="assignSchedule()"
-              [disabled]="!hasConfig()"
-              mat-stroked-button
-              type="button"
-            >
-              <mat-icon svgIcon="mat:schedule" />
-              {{ "matches.assign.action" | transloco }}
-            </button>
-          </span>
-          <button
-            (click)="clearSchedule()"
-            [attr.aria-label]="'matches.clearSchedule.action' | transloco"
-            [matTooltip]="'matches.clearSchedule.action' | transloco"
-            class="mt-2 [&_.mat-mdc-button-touch-target]:hidden"
-            mat-icon-button
-            type="button"
-          >
-            <mat-icon color="warn" svgIcon="mat:event_busy" />
-          </button>
-        }
-      </div>
-
-      @if (!tournament()) {
-        <p class="py-10 px-6 text-center text-secondary">
-          {{
-            (tournamentsResource.hasValue() && tournaments().length === 0
-              ? "matches.noTournaments"
-              : "matches.pickTournament"
-            ) | transloco
-          }}
-        </p>
-      } @else if (!started()) {
-        <p class="py-10 px-6 text-center text-secondary">
-          {{ "matches.planning" | transloco }}
+      @if (onAgenda()) {
+        <p class="m-0 mb-4 text-sm text-secondary">
+          {{ "matches.agenda.leagueWide" | transloco }}
         </p>
       } @else {
-        <mat-progress-bar
-          [class.invisible]="!resource.isLoading()"
-          mode="indeterminate"
-        />
+        <div class="flex flex-wrap items-start gap-4 mb-4">
+          <mat-form-field class="w-72">
+            <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
+            <mat-select [formField]="pickerForm.tournament">
+              @for (item of tournaments(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        @if (resource.error()) {
-          <div class="py-10 px-6 text-center" role="alert">
-            <p class="text-secondary mb-4">{{ "matches.error" | transloco }}</p>
+          @if (tournament()) {
+            <app-tournament-status-chip
+              [status]="tournament()!.status"
+              class="mt-4"
+            />
+          }
+          @if (configurable()) {
             <button
-              (click)="resource.reload()"
+              (click)="configureSchedule()"
+              class="mt-2"
               mat-stroked-button
               type="button"
             >
-              {{ "common.retry" | transloco }}
+              <mat-icon svgIcon="mat:calendar_month" />
+              {{
+                (scheduling() === "playoffs"
+                  ? "matches.config.playoffsAction"
+                  : "matches.config.action"
+                ) | transloco
+              }}
             </button>
-          </div>
-        } @else if (schedule()) {
-          <mat-tab-group
-            [(selectedIndex)]="selectedSection"
-            animationDuration="0"
-          >
-            <mat-tab [label]="'matches.tabs.schedule' | transloco">
-              <div class="pt-4">
-                <ng-container *ngTemplateOutlet="scheduleTab" />
-              </div>
-            </mat-tab>
-            <mat-tab [label]="'matches.tabs.standings' | transloco">
-              <div class="pt-4">
-                @if (standingsResource.error()) {
-                  <div class="py-10 px-6 text-center" role="alert">
-                    <p class="text-secondary mb-4">
-                      {{ "matches.standings.error" | transloco }}
-                    </p>
-                    <button
-                      (click)="standingsResource.reload()"
-                      mat-stroked-button
-                      type="button"
-                    >
-                      {{ "common.retry" | transloco }}
-                    </button>
-                  </div>
-                } @else {
-                  <app-standings-view
-                    (changed)="standingsResource.reload()"
-                    [editable]="editable()"
-                    [groups]="standings()"
-                    [tournamentId]="tournament()!.id"
-                  />
-                }
-              </div>
-            </mat-tab>
-            @if (inPlayoffs()) {
-              <mat-tab [label]="'matches.tabs.playoffs' | transloco">
-                <div class="pt-4">
-                  @if (bracketResource.error()) {
-                    <div class="py-10 px-6 text-center" role="alert">
-                      <p class="text-secondary mb-4">
-                        {{ "matches.bracket.error" | transloco }}
-                      </p>
-                      <button
-                        (click)="bracketResource.reload()"
-                        mat-stroked-button
-                        type="button"
-                      >
-                        {{ "common.retry" | transloco }}
-                      </button>
-                    </div>
-                  } @else {
-                    <app-bracket-view
-                      (changed)="reloadBracket()"
-                      (finished)="reloadTournament()"
-                      [editable]="bracketEditable()"
-                      [playoffs]="bracket()"
-                      [tournamentId]="tournament()!.id"
-                      [tournamentName]="tournament()!.name"
-                    />
-                  }
-                </div>
-              </mat-tab>
-            }
-          </mat-tab-group>
-        }
+          }
+          @if (assignable()) {
+            <span
+              [matTooltip]="
+                hasConfig() ? '' : ('matches.assign.needsConfig' | transloco)
+              "
+              class="mt-2"
+            >
+              <button
+                (click)="assignSchedule()"
+                [disabled]="!hasConfig()"
+                mat-stroked-button
+                type="button"
+              >
+                <mat-icon svgIcon="mat:schedule" />
+                {{
+                  (scheduling() === "playoffs"
+                    ? "matches.assign.playoffsAction"
+                    : "matches.assign.action"
+                  ) | transloco
+                }}
+              </button>
+            </span>
+            <button
+              (click)="clearSchedule()"
+              [attr.aria-label]="clearLabel() | transloco"
+              [matTooltip]="clearLabel() | transloco"
+              class="mt-2 [&_.mat-mdc-button-touch-target]:hidden"
+              mat-icon-button
+              type="button"
+            >
+              <mat-icon color="warn" svgIcon="mat:event_busy" />
+            </button>
+          }
+        </div>
       }
+
+      <mat-tab-group [(selectedIndex)]="selectedSection" animationDuration="0">
+        <mat-tab [label]="'matches.tabs.schedule' | transloco">
+          <div class="pt-4">
+            @if (!tournament() || !started()) {
+              <ng-container *ngTemplateOutlet="unavailable" />
+            } @else {
+              <mat-progress-bar
+                [class.invisible]="!resource.isLoading()"
+                mode="indeterminate"
+              />
+
+              @if (resource.error()) {
+                <div class="py-10 px-6 text-center" role="alert">
+                  <p class="text-secondary mb-4">
+                    {{ "matches.error" | transloco }}
+                  </p>
+                  <button
+                    (click)="resource.reload()"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    {{ "common.retry" | transloco }}
+                  </button>
+                </div>
+              } @else if (schedule()) {
+                <ng-container *ngTemplateOutlet="scheduleTab" />
+              }
+            }
+          </div>
+        </mat-tab>
+        <mat-tab [label]="'matches.tabs.standings' | transloco">
+          <div class="pt-4">
+            @if (!tournament() || !started()) {
+              <ng-container *ngTemplateOutlet="unavailable" />
+            } @else if (schedule()) {
+              @if (standingsResource.error()) {
+                <div class="py-10 px-6 text-center" role="alert">
+                  <p class="text-secondary mb-4">
+                    {{ "matches.standings.error" | transloco }}
+                  </p>
+                  <button
+                    (click)="standingsResource.reload()"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    {{ "common.retry" | transloco }}
+                  </button>
+                </div>
+              } @else {
+                <app-standings-view
+                  (changed)="standingsResource.reload()"
+                  [editable]="editable()"
+                  [groups]="standings()"
+                  [tournamentId]="tournament()!.id"
+                />
+              }
+            }
+          </div>
+        </mat-tab>
+        @if (inPlayoffs()) {
+          <mat-tab [label]="'matches.tabs.playoffs' | transloco">
+            <div class="pt-4">
+              @if (bracketResource.error()) {
+                <div class="py-10 px-6 text-center" role="alert">
+                  <p class="text-secondary mb-4">
+                    {{ "matches.bracket.error" | transloco }}
+                  </p>
+                  <button
+                    (click)="bracketResource.reload()"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    {{ "common.retry" | transloco }}
+                  </button>
+                </div>
+              } @else {
+                <app-bracket-view
+                  (changed)="reloadBracket()"
+                  (finished)="reloadTournament()"
+                  (programmed)="reloadSchedule()"
+                  [editable]="bracketEditable()"
+                  [playoffs]="bracket()"
+                  [schedulable]="bracketEditable()"
+                  [tournamentId]="tournament()!.id"
+                  [tournamentName]="tournament()!.name"
+                />
+              }
+            </div>
+          </mat-tab>
+        }
+        <mat-tab [label]="'matches.tabs.agenda' | transloco">
+          <ng-template matTabContent>
+            <div class="pt-4">
+              <app-agenda-view
+                (openCalendar)="openCalendar($event)"
+                [initialTournament]="picker().tournament"
+                [tournaments]="tournaments()"
+              />
+            </div>
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>
     }
   </app-page-layout-content>
 </app-page-layout>
@@ -457,4 +478,17 @@
       }
     </mat-accordion>
   }
+</ng-template>
+
+<ng-template #unavailable>
+  <p class="py-10 px-6 text-center text-secondary">
+    {{
+      (!tournament()
+        ? tournamentsResource.hasValue() && tournaments().length === 0
+          ? "matches.noTournaments"
+          : "matches.pickTournament"
+        : "matches.planning"
+      ) | transloco
+    }}
+  </p>
 </ng-template>

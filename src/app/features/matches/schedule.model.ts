@@ -2,10 +2,30 @@ export type ScheduleMode = "balanced" | "random";
 export type ScheduleScope = "all" | "unscheduled";
 
 export interface ScheduleOptions {
-  mode: ScheduleMode;
+  /** Regular phase only */
+  mode?: ScheduleMode;
   scope: ScheduleScope;
   /** Draw of the random mode: sending the previewed one assigns exactly what was shown */
   seed?: number | null;
+  /** "playoffs" assigns the bracket's matches; by default the regular phase */
+  phase?: SchedulePhase;
+  /** Playoffs: the finals are scheduled together at the end of the day */
+  align_finals?: boolean;
+}
+
+export type SchedulePhase = "regular" | "playoffs";
+
+/** A round of the playoffs in the preview */
+export interface PlayoffPreviewRound {
+  liguilla: string | null;
+  round_name: string;
+  /** 1 or 2 (home and away) in a two-legged round; null for one match */
+  leg: number | null;
+  /** Y-m-d */
+  date: string | null;
+  matches: number;
+  scheduled: number;
+  unscheduled: number;
 }
 
 export interface SchedulePreviewMatchday {
@@ -19,15 +39,24 @@ export interface SchedulePreviewMatchday {
 }
 
 export interface ScheduleWarning {
-  matchday: number;
+  /** Regular phase */
+  matchday?: number;
+  /** Playoffs: Y-m-d, null with no date */
+  date?: string | null;
+  round_name?: string;
+  liguilla?: string | null;
   unscheduled: number;
   message: string;
 }
 
 export interface ScheduleProposal {
   id: number;
-  matchday: number;
+  /** Null in the playoffs */
+  matchday: number | null;
   group: string | null;
+  /** Playoffs */
+  round_name?: string;
+  leg?: number | null;
   home_team: string | null;
   away_team: string | null;
   /** `Y-m-dTH:mm:ss`; null when the match gets no slot */
@@ -45,6 +74,8 @@ export interface SchedulePreview {
   played_kept: number;
   assigned_kept: number;
   matchdays: SchedulePreviewMatchday[];
+  /** Playoffs: one row per round and date */
+  rounds?: PlayoffPreviewRound[];
   warnings: ScheduleWarning[];
   matches: ScheduleProposal[];
 }

@@ -659,6 +659,35 @@
       "swapSummary": "{{a}} pasará a {{slotB}} y {{b}} pasará a {{slotA}}. El árbitro viaja con el horario."
     },
     "unscheduledCount": "{{count}} sin horario",
+    "clearPlayoffSchedule": {
+      "action": "Quitar horarios de liguilla",
+      "title": "Quitar horarios de liguilla",
+      "message": "Se quitarán fecha, hora, cancha y árbitro de los partidos de liguilla no jugados ni fijados.",
+      "confirm": "Quitar",
+      "cleared": "Horarios quitados: {{count}} partidos"
+    },
+    "agenda": {
+      "leagueWide": "La agenda muestra todos los torneos de la liga.",
+      "all": "Todos",
+      "date": "Fecha",
+      "today": "Hoy",
+      "day": "Día",
+      "week": "Semana",
+      "view": "Vista",
+      "prevDay": "Día anterior",
+      "nextDay": "Día siguiente",
+      "prevWeek": "Semana anterior",
+      "nextWeek": "Semana siguiente",
+      "referee": "Árbitro",
+      "field": "Cancha",
+      "noField": "Sin cancha",
+      "noReferee": "Solo sin árbitro",
+      "unscheduled": "{{count}} partidos sin horario",
+      "openCalendar": "Ver calendario",
+      "open": "Programar {{match}}",
+      "empty": "No hay partidos programados para este periodo.",
+      "error": "No pudimos cargar la agenda."
+    },
     "clearSchedule": {
       "action": "Quitar horarios",
       "title": "Quitar horarios",
@@ -668,6 +697,12 @@
     },
     "assign": {
       "action": "Asignar horarios",
+      "playoffsAction": "Asignar horarios de liguilla",
+      "playoffsTitle": "Asignar horarios de liguilla",
+      "alignFinals": "Alinear finales (programarlas juntas al final del día)",
+      "liguilla": "Liguilla",
+      "round": "Ronda",
+      "date": "Fecha",
       "needsConfig": "Configura los horarios del torneo primero.",
       "title": "Asignar horarios",
       "assigned": "Horarios asignados",
@@ -697,6 +732,7 @@
       "slot": "Día, hora y cancha"
     },
     "tabs": {
+      "agenda": "Agenda",
       "schedule": "Calendario",
       "standings": "Tabla de posiciones",
       "playoffs": "Liguilla"
@@ -765,6 +801,7 @@
       "playoff": "Liguilla",
       "champion": "Campeón: {{team}}",
       "tbd": "Por definir",
+      "final": "Final",
       "first": "Ida",
       "second": "Vuelta",
       "toPlay": "Por jugar",
@@ -823,6 +860,7 @@
     },
     "resting": "Descansa: {{teams}}",
     "config": {
+      "playoffsAction": "Configurar horarios de liguilla",
       "action": "Configurar horarios",
       "title": "Configurar horarios",
       "saved": "Horarios guardados",
@@ -865,6 +903,7 @@
         "7": "Domingo"
       },
       "capacity": {
+        "playoffs": "Rondas de liguilla",
         "title": "Capacidad",
         "calculate": "Calcular",
         "savedHint": "Muestra lo guardado; usa Calcular para ver el efecto de tus cambios sin guardar.",

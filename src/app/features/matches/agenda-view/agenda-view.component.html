@@ -1,0 +1,240 @@
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <button
+    (click)="step(-1)"
+    [attr.aria-label]="
+      (view() === 'day' ? 'matches.agenda.prevDay' : 'matches.agenda.prevWeek')
+        | transloco
+    "
+    mat-icon-button
+    type="button"
+  >
+    <mat-icon svgIcon="mat:chevron_left" />
+  </button>
+  <button
+    (click)="step(1)"
+    [attr.aria-label]="
+      (view() === 'day' ? 'matches.agenda.nextDay' : 'matches.agenda.nextWeek')
+        | transloco
+    "
+    mat-icon-button
+    type="button"
+  >
+    <mat-icon svgIcon="mat:chevron_right" />
+  </button>
+  <button (click)="today()" mat-stroked-button type="button">
+    {{ "matches.agenda.today" | transloco }}
+  </button>
+  <mat-form-field class="w-44">
+    <mat-label>{{ "matches.agenda.date" | transloco }}</mat-label>
+    <input
+      (dateChange)="setAnchor($event.value)"
+      [matDatepicker]="picker"
+      [value]="anchor()"
+      matInput
+    />
+    <mat-datepicker-toggle
+      [for]="picker"
+      class="[&_.mat-mdc-button-touch-target]:hidden"
+      matIconSuffix
+    />
+    <mat-datepicker #picker />
+  </mat-form-field>
+  <span class="font-medium">{{ rangeLabel() }}</span>
+
+  <mat-button-toggle-group
+    (change)="view.set($event.value)"
+    [aria-label]="'matches.agenda.view' | transloco"
+    [value]="view()"
+    class="ml-auto"
+  >
+    <mat-button-toggle value="day">{{
+      "matches.agenda.day" | transloco
+    }}</mat-button-toggle>
+    <mat-button-toggle value="week">{{
+      "matches.agenda.week" | transloco
+    }}</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<div class="flex flex-wrap items-start gap-3">
+  <mat-form-field class="w-56">
+    <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
+    <mat-select
+      (selectionChange)="tournament.set($event.value)"
+      [value]="tournament()"
+    >
+      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
+      @for (item of tournaments(); track item.id) {
+        <mat-option [value]="item.id">{{ item.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="w-56">
+    <mat-label>{{ "matches.agenda.referee" | transloco }}</mat-label>
+    <mat-select
+      (selectionChange)="referee.set($event.value)"
+      [value]="referee()"
+    >
+      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
+      @for (item of referees(); track item.id) {
+        <mat-option [value]="item.id"
+          >{{ item.first_name }} {{ item.last_name }}</mat-option
+        >
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="w-48">
+    <mat-label>{{ "matches.agenda.field" | transloco }}</mat-label>
+    <mat-select (selectionChange)="field.set($event.value)" [value]="field()">
+      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
+      @for (item of resource.value()?.fields ?? []; track item.id) {
+        <mat-option [value]="item.id">{{ item.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-checkbox
+    (change)="noReferee.set($event.checked)"
+    [checked]="noReferee()"
+    class="mt-2"
+  >
+    {{ "matches.agenda.noReferee" | transloco }}
+  </mat-checkbox>
+</div>
+
+@for (item of unscheduled(); track item.id) {
+  <p class="m-0 mb-2 text-sm flex flex-wrap items-center gap-2">
+    <span class="font-medium">{{ item.name }}:</span>
+    {{ "matches.agenda.unscheduled" | transloco: { count: item.count } }}
+    <button
+      (click)="openCalendar.emit(item.id)"
+      class="underline text-primary-600 cursor-pointer bg-transparent border-0 p-0"
+      type="button"
+    >
+      {{ "matches.agenda.openCalendar" | transloco }}
+    </button>
+  </p>
+}
+
+<mat-progress-bar
+  [class.invisible]="!resource.isLoading()"
+  mode="indeterminate"
+/>
+
+@if (resource.error()) {
+  <div class="py-10 px-6 text-center" role="alert">
+    <p class="text-secondary mb-4">{{ "matches.agenda.error" | transloco }}</p>
+    <button (click)="resource.reload()" mat-stroked-button type="button">
+      {{ "common.retry" | transloco }}
+    </button>
+  </div>
+} @else if (resource.hasValue() && !matches().length) {
+  <p class="py-10 px-6 text-center text-secondary">
+    {{ "matches.agenda.empty" | transloco }}
+  </p>
+} @else if (view() === "day") {
+  <div class="overflow-x-auto">
+    <div class="flex min-w-fit">
+      <div class="w-16 shrink-0">
+        <div class="h-8"></div>
+        <div [style.height.px]="gridHeight()" class="relative">
+          @for (hour of hours(); track hour; let i = $index) {
+            <span
+              [style.top.px]="i * 60 * minuteHeight"
+              class="absolute right-2 -translate-y-1/2 text-xs text-secondary"
+              >{{ hourLabel(hour) }}</span
+            >
+          }
+        </div>
+      </div>
+      @for (column of columns(); track column.id) {
+        <div class="w-56 shrink-0 border-l">
+          <div class="h-8 px-2 flex items-center text-sm font-medium truncate">
+            {{ column.name || ("matches.agenda.noField" | transloco) }}
+          </div>
+          <div [style.height.px]="gridHeight()" class="relative">
+            @for (hour of hours(); track hour; let i = $index) {
+              <div
+                [style.top.px]="i * 60 * minuteHeight"
+                class="absolute left-0 right-0 border-t"
+              ></div>
+            }
+            @for (match of columnMatches(column.id); track match.id) {
+              <ng-container
+                *ngTemplateOutlet="
+                  card;
+                  context: { $implicit: match, absolute: true }
+                "
+              />
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+} @else {
+  @for (day of days(); track day.date) {
+    <section class="mb-4">
+      <h3 class="m-0 mb-1 text-sm font-medium">
+        {{ weekdayName(day.date) }}
+        {{ parseDate(day.date) | date: "dd/MM/yyyy" }}
+      </h3>
+      <ul class="m-0 p-0 list-none border rounded">
+        @for (match of day.matches; track match.id) {
+          <li class="border-b last:border-b-0">
+            <ng-container
+              *ngTemplateOutlet="
+                card;
+                context: { $implicit: match, absolute: false }
+              "
+            />
+          </li>
+        }
+      </ul>
+    </section>
+  }
+}
+
+<ng-template #card let-match let-absolute="absolute">
+  <button
+    (click)="program(match)"
+    [attr.aria-label]="
+      'matches.agenda.open'
+        | transloco
+          : {
+              match:
+                (match.home_team ?? '—') + ' vs ' + (match.away_team ?? '—'),
+            }
+    "
+    [disabled]="!canProgram(match)"
+    [style.height.px]="absolute ? box(match).height : null"
+    [style.top.px]="absolute ? box(match).top : null"
+    [class]="
+      (absolute
+        ? 'absolute left-1 right-1 overflow-hidden rounded border px-2 py-1 bg-primary-600/10 border-primary-600/40 '
+        : 'flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 ') +
+      'text-left text-xs bg-transparent enabled:cursor-pointer'
+    "
+    type="button"
+  >
+    <span class="block truncate font-medium">
+      {{ time(match) }} · {{ match.home_team ?? "—" }} vs
+      {{ match.away_team ?? "—" }}
+      @if (match.schedule_locked) {
+        <mat-icon class="!w-3 !h-3 align-middle" svgIcon="mat:lock" />
+      }
+    </span>
+    <span class="block truncate text-secondary">
+      {{ match.tournament.name }} · {{ match.round_label }}
+      @if (!absolute) {
+        · {{ match.field?.name ?? ("matches.agenda.noField" | transloco) }}
+      }
+    </span>
+    <span [class.opacity-60]="!match.referee" class="block truncate">
+      {{
+        match.referee
+          ? ("matches.referee" | transloco: { name: match.referee.name ?? "—" })
+          : ("matches.noReferee" | transloco)
+      }}
+    </span>
+  </button>
+</ng-template>

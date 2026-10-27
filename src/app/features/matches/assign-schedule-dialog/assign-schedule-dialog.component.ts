@@ -6,6 +6,7 @@ import {
   signal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -20,6 +21,7 @@ import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { parseDate } from "../../tournaments/tournament.model";
 import { ScheduleApi } from "../schedule.api";
 import {
+  SchedulePhase,
   ScheduleMode,
   SchedulePreview,
   ScheduleScope,
@@ -28,6 +30,8 @@ import {
 
 export interface AssignScheduleDialogData {
   tournamentId: number;
+  /** The bracket's matches ("playoffs") or the regular phase's; the regular phase by default */
+  phase?: SchedulePhase;
 }
 
 /**
@@ -42,6 +46,7 @@ export interface AssignScheduleDialogData {
   imports: [
     DatePipe,
     MatButtonModule,
+    MatCheckboxModule,
     MatDialogModule,
     MatIconModule,
     MatProgressBarModule,
@@ -60,6 +65,10 @@ export class AssignScheduleDialogComponent {
 
   readonly mode = signal<ScheduleMode>("balanced");
   readonly scope = signal<ScheduleScope>("all");
+  /** Playoffs: the finals are scheduled together at the end of the day */
+  readonly alignFinals = signal(true);
+
+  readonly playoffs = this.data.phase === "playoffs";
 
   /** Only valid for the mode and scope it was asked with: changing them drops it */
   readonly preview = signal<SchedulePreview | undefined>(undefined);
@@ -73,9 +82,21 @@ export class AssignScheduleDialogComponent {
     this.preview.set(undefined);
   }
 
+  setAlignFinals(align: boolean): void {
+    this.alignFinals.set(align);
+    this.preview.set(undefined);
+  }
+
   setScope(scope: ScheduleScope): void {
     this.scope.set(scope);
     this.preview.set(undefined);
+  }
+
+  /** "Semifinal (ida)" for a round played home and away */
+  roundName(name: string, leg: number | null): string {
+    return leg === null
+      ? name
+      : `${name} (${this.transloco.translate(leg === 1 ? "matches.bracket.first" : "matches.bracket.second").toLowerCase()})`;
   }
 
   slot(iso: string, field: string | null | undefined): string {
@@ -103,12 +124,20 @@ export class AssignScheduleDialogComponent {
   }
 
   private options() {
-    return { mode: this.mode(), scope: this.scope() };
+    return this.playoffs
+      ? {
+          phase: "playoffs" as const,
+          scope: this.scope(),
+          align_finals: this.alignFinals(),
+        }
+      : { mode: this.mode(), scope: this.scope() };
   }
 
   /** Generating repeats the preview's draw, so the result is what was shown */
   private generateOptions() {
-    return { ...this.options(), seed: this.preview()?.seed ?? null };
+    return this.playoffs
+      ? this.options()
+      : { ...this.options(), seed: this.preview()?.seed ?? null };
   }
 
   private run<T>(request: Observable<T>, onSuccess: (result: T) => void): void {

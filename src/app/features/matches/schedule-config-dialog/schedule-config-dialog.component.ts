@@ -43,6 +43,7 @@ import {
   clampWindows,
   BlockedDate,
   Capacity,
+  PlayoffRoundCapacity,
   MatchdayCapacity,
   clockToDate,
   dateToClock,
@@ -345,6 +346,22 @@ export class ScheduleConfigDialogComponent {
     }
 
     return dates;
+  }
+
+  /** "Liguilla Oro · Semifinal (ida)" */
+  playoffRoundName(round: PlayoffRoundCapacity): string {
+    const leg =
+      round.leg === null
+        ? ""
+        : ` (${this.transloco
+            .translate(
+              round.leg === 1
+                ? "matches.bracket.first"
+                : "matches.bracket.second",
+            )
+            .toLowerCase()})`;
+
+    return `${round.liguilla ? `${round.liguilla} · ` : ""}${round.round_name}${leg}`;
   }
 
   readonly parseDate = parseDate;

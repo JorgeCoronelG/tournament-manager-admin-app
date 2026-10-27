@@ -4,7 +4,7 @@
   <div>
     <p class="m-0 font-medium">{{ home }} vs {{ away }}</p>
     <p class="m-0 text-sm text-secondary">
-      {{ "matches.matchday" | transloco: { number: data.match.matchday } }}
+      {{ roundOf(data.match) }}
     </p>
   </div>
 
@@ -173,7 +173,7 @@
             >
               <span class="font-medium">{{ nameOf(match) }}</span>
               <span class="text-secondary">
-                {{ "matches.matchday" | transloco: { number: match.matchday } }}
+                {{ roundOf(match) }}
                 · {{ slotOf(match) }}
               </span>
             </button>

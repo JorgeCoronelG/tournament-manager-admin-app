@@ -1927,3 +1927,82 @@ export async function mockPlayoffsApi(
 
   return api;
 }
+
+export interface AgendaApiOptions {
+  /** Matches with an hour, as `GET /agenda` returns them (all on `2026-09-19`, the frozen day) */
+  matches?: Array<{
+    id: number;
+    tournament: { id: number; name: string };
+    round_label: string;
+    home_team: string;
+    away_team: string;
+    start: string;
+    end: string;
+    field: { id: number; name: string } | null;
+    referee: { id: number; name: string } | null;
+  }>;
+}
+
+export interface AgendaApi {
+  /** Query string of every `GET /agenda` so far */
+  queries: URLSearchParams[];
+}
+
+/** Stubs `/leagues/1/agenda` and `/agenda/unscheduled` with fixed answers */
+export async function mockAgendaApi(
+  page: Page,
+  { matches = [] }: AgendaApiOptions = {},
+): Promise<AgendaApi> {
+  const api: AgendaApi = { queries: [] };
+
+  await page.route(/\/agenda\/unscheduled(\?.*)?$/, (route) =>
+    route.fulfill({ json: { unscheduled: 3 } }),
+  );
+  await page.route(/\/agenda(\?.*)?$/, (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    api.queries.push(params);
+
+    const noReferee = params.get("unassigned_referee") === "1";
+    const field = params.get("field_id");
+    const listed = matches.filter(
+      (match) =>
+        (!noReferee || !match.referee) &&
+        (!field || String(match.field?.id) === field),
+    );
+
+    return route.fulfill({
+      json: {
+        date_from: params.get("date_from"),
+        date_to: params.get("date_to"),
+        days: listed.length
+          ? [
+              {
+                date: "2026-09-19",
+                matches: listed.map((match) => ({
+                  id: match.id,
+                  tournament: match.tournament,
+                  phase: "regular",
+                  round_label: match.round_label,
+                  group: "Grupo A",
+                  home_team: match.home_team,
+                  away_team: match.away_team,
+                  match_datetime: match.start,
+                  end_datetime: match.end,
+                  field: match.field,
+                  referee: match.referee,
+                  status: "scheduled",
+                  schedule_locked: false,
+                })),
+              },
+            ]
+          : [],
+        fields: [
+          { id: 1, name: "Cancha 1" },
+          { id: 2, name: "Cancha 2" },
+        ],
+      },
+    });
+  });
+
+  return api;
+}

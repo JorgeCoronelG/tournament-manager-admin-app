@@ -115,6 +115,13 @@ export interface CloseWarning {
 export interface ClosePreview {
   blockers: CloseBlocker[];
   warnings: CloseWarning[];
+  /** Capacity of the hours for the proposed dates; they do not block the closing */
+  schedule_warnings?: Array<{
+    date: string | null;
+    liguilla: string | null;
+    round_name: string;
+    message: string;
+  }>;
   /** Full proposals without blockers; with them, only the comparisons of the best-of-position sources */
   playoffs: Array<PlayoffProposal | PlayoffBestOnly>;
 }
@@ -145,6 +152,12 @@ export interface BracketMatch {
   /** 1 or 2 in a home-and-away round; null in a single match */
   leg: number | null;
   scheduled_date: string | null;
+  /** ISO 8601; null while the match has no hour */
+  match_datetime?: string | null;
+  original_match_datetime?: string | null;
+  schedule_locked?: boolean;
+  field?: { id: number; name: string | null } | null;
+  referee?: { id: number; name: string | null } | null;
   home_team: BracketTeam | null;
   away_team: BracketTeam | null;
   home_goals: number | null;

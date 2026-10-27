@@ -13,6 +13,8 @@ export interface Match {
   group_id: number;
   group_name: string | null;
   matchday: number;
+  /** "Semifinal (ida)" and the like, where there is no matchday number (the playoffs, the agenda) */
+  round_label?: string;
   /** 1 or 2: the second one only with a double round-robin */
   round_number: number;
   status: MatchStatus;

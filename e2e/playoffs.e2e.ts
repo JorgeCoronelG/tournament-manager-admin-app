@@ -420,6 +420,57 @@ test.describe("playoffs", () => {
     ).toHaveCount(0);
   });
 
+  test("a tournament in its playoffs sets the hours of its bracket", async ({
+    page,
+  }) => {
+    await open(page, "Torneo 04", { bracket: BRACKET });
+
+    await expect(
+      page.getByRole("button", { name: "Configurar horarios de liguilla" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Quitar horarios de liguilla" }),
+    ).toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Asignar horarios de liguilla" })
+      .click();
+    const dialog = page.getByRole("dialog");
+
+    await expect(
+      dialog.getByRole("checkbox", { name: /Alinear finales/ }),
+    ).toBeChecked();
+    await expect(dialog.getByText("Balanceado (recomendado)")).toHaveCount(0);
+  });
+
+  test("closing shows the notices of the hours under the dates", async ({
+    page,
+  }) => {
+    await open(page, "Torneo 02", {
+      preview: {
+        ...PROPOSAL,
+        schedule_warnings: [
+          {
+            date: "2026-12-12",
+            liguilla: "Oro",
+            round_name: "Semifinal",
+            message: "Faltan 2 espacios el 12/12 para Semifinal.",
+          },
+        ],
+      },
+    });
+
+    await page.getByRole("button", { name: "Cerrar fase regular" }).click();
+    const dialog = page.getByRole("dialog");
+
+    await expect(
+      dialog.getByText("Faltan 2 espacios el 12/12 para Semifinal."),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole("button", { name: "Configurar horarios" }),
+    ).toBeVisible();
+  });
+
   test("lists what blocks the closing and sends to the standings", async ({
     page,
   }) => {

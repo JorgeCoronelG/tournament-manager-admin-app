@@ -4,6 +4,7 @@ import { SKIP_ERROR_NOTIFICATION } from "../../core/http/error.interceptor";
 import { LeagueContextService } from "../../core/league-context/league-context.service";
 import {
   ClearResult,
+  SchedulePhase,
   SchedulePreview,
   ScheduleOptions,
 } from "./schedule.model";
@@ -47,9 +48,9 @@ export class ScheduleApi {
   }
 
   /** Takes the date, hour and field off the matches that are neither played nor locked */
-  clear(tournamentId: number) {
+  clear(tournamentId: number, phase: SchedulePhase = "regular") {
     return this.http.delete<ClearResult>(
-      this.url(tournamentId),
+      this.url(tournamentId, phase === "playoffs" ? "?phase=playoffs" : ""),
       this.ownErrors,
     );
   }

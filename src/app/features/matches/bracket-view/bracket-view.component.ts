@@ -12,6 +12,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSelectModule } from "@angular/material/select";
 import { form, FormField } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
@@ -20,7 +21,13 @@ import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dia
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
 import { parseDate } from "../../tournaments/tournament.model";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
+import { Match } from "../match.model";
 import { MatchesApi } from "../matches.api";
+import {
+  ProgramMatchDialogComponent,
+  ProgramMatchDialogData,
+} from "../program-match-dialog/program-match-dialog.component";
+import { slotLabel, slotParts } from "../schedule.model";
 import {
   PlayoffResultDialogComponent,
   PlayoffResultDialogData,
@@ -28,6 +35,7 @@ import {
 import {
   BracketMatch,
   BracketPlayoff,
+  BracketRound,
   BracketTeam,
   BracketTie,
   scoreText,
@@ -46,6 +54,7 @@ import {
     MatFormFieldModule,
     MatIconModule,
     MatSelectModule,
+    MatTooltipModule,
     TranslocoPipe,
   ],
 })
@@ -64,6 +73,12 @@ export class BracketViewComponent {
   readonly playoffs = input.required<readonly BracketPlayoff[]>();
   /** Only a tournament in its playoffs lets results be captured or the tournament be finished */
   readonly editable = input(false);
+
+  /** Hours, fields and referees can be set (the tournament is in its playoffs) */
+  readonly schedulable = input(false);
+
+  /** The hour, field or referee of a match changed: the data must be requested again */
+  readonly programmed = output<void>();
 
   /** A result was saved or voided, or the tournament was finished: the data must be requested again */
   readonly changed = output<void>();
@@ -85,6 +100,98 @@ export class BracketViewComponent {
         ),
       ),
   );
+
+  /** "Sáb 07/11 · 8:00 p.m. · Cancha 1" of a match that has an hour */
+  slotText(match: BracketMatch): string {
+    return slotLabel(match.match_datetime ?? "", match.field?.name, (weekday) =>
+      this.transloco.translate(`matches.config.weekdays.${weekday}`),
+    );
+  }
+
+  /** The last round of a liguilla: its matches are the finals */
+  isFinal(playoff: BracketPlayoff, round: BracketRound): boolean {
+    return round.index === playoff.rounds.at(-1)?.index;
+  }
+
+  /** "8:00 p.m." */
+  timeOf(match: BracketMatch): string {
+    return slotParts(match.match_datetime ?? "").time;
+  }
+
+  previousSlot(match: BracketMatch): string {
+    return this.transloco.translate("matches.rescheduledHint", {
+      slot: slotLabel(match.original_match_datetime ?? "", null, (weekday) =>
+        this.transloco.translate(`matches.config.weekdays.${weekday}`),
+      ),
+    });
+  }
+
+  /** A match of the bracket as the dialog that sets its hour takes it */
+  private toMatch(
+    playoff: BracketPlayoff,
+    round: BracketRound,
+    match: BracketMatch,
+  ): Match {
+    const leg = this.legLabel(match);
+
+    return {
+      id: match.id,
+      group_id: playoff.group_id,
+      group_name: playoff.name,
+      matchday: 0,
+      round_number: 1,
+      round_label: `${playoff.name} · ${round.name}${leg ? ` (${leg.toLowerCase()})` : ""}`,
+      status: match.status,
+      match_datetime: match.match_datetime ?? null,
+      field: match.field ?? null,
+      referee: match.referee ?? null,
+      schedule_locked: match.schedule_locked ?? false,
+      original_match_datetime: match.original_match_datetime ?? null,
+      home: match.home_team,
+      away: match.away_team,
+      home_score: match.home_goals,
+      away_score: match.away_goals,
+    };
+  }
+
+  /** Sets the hour, field and referee of a match (it may still have teams to be defined) */
+  program(
+    playoff: BracketPlayoff,
+    round: BracketRound,
+    match: BracketMatch,
+  ): void {
+    if (!this.schedulable() || match.status !== "scheduled") {
+      return;
+    }
+
+    this.dialog
+      .open<ProgramMatchDialogComponent, ProgramMatchDialogData, boolean>(
+        ProgramMatchDialogComponent,
+        {
+          data: {
+            tournamentId: this.tournamentId(),
+            match: this.toMatch(playoff, round, match),
+            candidates: this.playoffs().flatMap((item) =>
+              item.rounds.flatMap((r) =>
+                r.ties.flatMap((tie) =>
+                  tie.matches
+                    .filter((m) => m.status === "scheduled")
+                    .map((m) => this.toMatch(item, r, m)),
+                ),
+              ),
+            ),
+          },
+          width: "720px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((changed) => {
+        if (changed) {
+          this.programmed.emit();
+        }
+      });
+  }
 
   /** "Ida", "Vuelta" or nothing for a single match */
   legLabel(match: BracketMatch): string | null {

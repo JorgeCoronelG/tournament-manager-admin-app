@@ -62,6 +62,7 @@ import {
   playedCount,
 } from "../match.model";
 import { MatchesApi } from "../matches.api";
+import { AgendaViewComponent } from "../agenda-view/agenda-view.component";
 import { BracketViewComponent } from "../bracket-view/bracket-view.component";
 import {
   ClosePhaseDialogComponent,
@@ -82,6 +83,7 @@ const OPEN_ALL_UP_TO = 4;
   templateUrl: "./matches-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AgendaViewComponent,
     AppBreadcrumbsComponent,
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
@@ -208,7 +210,14 @@ export class MatchesPageComponent {
 
   /** Hours and fields are configured only while the tournament is in progress (not in planning, nor from the playoffs on) */
   readonly configurable = computed(
-    () => this.tournament()?.status === "in_progress",
+    () =>
+      this.tournament()?.status === "in_progress" ||
+      this.tournament()?.status === "playoffs",
+  );
+
+  /** The hours being set are those of the bracket, not the regular phase's */
+  readonly scheduling = computed<"regular" | "playoffs">(() =>
+    this.tournament()?.status === "playoffs" ? "playoffs" : "regular",
   );
 
   /** A tournament in planning has no calendar to ask for */
@@ -224,7 +233,11 @@ export class MatchesPageComponent {
   );
 
   /** Hours can be assigned once the calendar of pairings exists */
-  readonly assignable = computed(() => this.editable() && this.generated());
+  readonly assignable = computed(() =>
+    this.scheduling() === "playoffs"
+      ? this.bracket().length > 0
+      : this.editable() && this.generated(),
+  );
 
   private readonly configResource = this.configApi.config(
     computed(() => (this.assignable() ? this.tournament()?.id : undefined)),
@@ -293,8 +306,28 @@ export class MatchesPageComponent {
     this.transloco.translate("nav.schedule"),
   ]);
 
-  /** The section tab: the calendar or the standings table */
+  /** The section tab: the calendar, the standings table, the bracket (in the playoffs) or the agenda */
   readonly selectedSection = signal(0);
+
+  /** The agenda is the last tab: after the bracket's when there is one */
+  readonly agendaIndex = computed(() => (this.inPlayoffs() ? 3 : 2));
+
+  /** The agenda covers the whole league: the tournament picker does not apply to it */
+  readonly onAgenda = computed(
+    () => this.selectedSection() === this.agendaIndex(),
+  );
+
+  readonly clearLabel = computed(() =>
+    this.scheduling() === "playoffs"
+      ? "matches.clearPlayoffSchedule.action"
+      : "matches.clearSchedule.action",
+  );
+
+  /** A tournament's link in the agenda: its calendar opens */
+  openCalendar(tournamentId: number): void {
+    this.picker.set({ tournament: tournamentId });
+    this.selectedSection.set(0);
+  }
 
   /** The group tab (by position) the user has open; the first one by default */
   readonly selectedTab = signal(0);
@@ -347,8 +380,9 @@ export class MatchesPageComponent {
   }
 
   /** The assigned slots changed: the calendar and the outdated notice are asked again */
-  private reloadSchedule(): void {
+  reloadSchedule(): void {
     this.resource.reload();
+    this.bracketResource.reload();
     this.capacityResource.reload();
   }
 
@@ -363,7 +397,7 @@ export class MatchesPageComponent {
       .open<AssignScheduleDialogComponent, AssignScheduleDialogData, boolean>(
         AssignScheduleDialogComponent,
         {
-          data: { tournamentId: tournament.id },
+          data: { tournamentId: tournament.id, phase: this.scheduling() },
           width: "960px",
           maxWidth: "95vw",
         },
@@ -385,13 +419,18 @@ export class MatchesPageComponent {
     }
 
     this.confirmDialog
-      .confirm({ key: "matches.clearSchedule" })
+      .confirm({
+        key:
+          this.scheduling() === "playoffs"
+            ? "matches.clearPlayoffSchedule"
+            : "matches.clearSchedule",
+      })
       .subscribe((confirmed) => {
         if (!confirmed) {
           return;
         }
 
-        this.scheduleApi.clear(tournament.id).subscribe({
+        this.scheduleApi.clear(tournament.id, this.scheduling()).subscribe({
           next: ({ cleared }) => {
             this.reloadSchedule();
             this.snackbar.notifySuccess("matches.clearSchedule.cleared", {
@@ -518,6 +557,8 @@ export class MatchesPageComponent {
           data: {
             tournamentId: tournament.id,
             lastRegularDate: this.lastRegularDate(),
+            matchDuration: tournament.match_duration_minutes,
+            tournamentStartDate: tournament.start_date,
           },
           width: "720px",
           maxWidth: "95vw",
