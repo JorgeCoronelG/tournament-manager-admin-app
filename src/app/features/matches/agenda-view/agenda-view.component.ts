@@ -3,12 +3,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
+  ElementRef,
   inject,
   input,
   output,
   signal,
-  untracked,
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
@@ -80,6 +79,7 @@ function mondayOf(date: Date): Date {
 export class AgendaViewComponent {
   private readonly api = inject(AgendaApi);
   private readonly dialog = inject(MatDialog);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly transloco = inject(TranslocoService);
 
   protected readonly league = inject(LeagueContextService);
@@ -88,9 +88,6 @@ export class AgendaViewComponent {
 
   /** Tournaments of the league, for the filter and to know which can still be edited */
   readonly tournaments = input.required<readonly Tournament[]>();
-  /** The tournament picked in the calendar when the agenda was opened */
-  readonly initialTournament = input<number | "">("");
-
   /** A tournament's link was followed: its calendar must open */
   readonly openCalendar = output<number>();
 
@@ -101,19 +98,6 @@ export class AgendaViewComponent {
   readonly referee = signal<number | "">("");
   readonly field = signal<number | "">("");
   readonly noReferee = signal(false);
-
-  /** The first request waits for the tournament that was open in the calendar to be set as the filter */
-  private readonly seeded = signal(false);
-  private readonly seed = effect(() => {
-    const initial = this.initialTournament();
-
-    untracked(() => {
-      if (!this.seeded()) {
-        this.tournament.set(initial);
-        this.seeded.set(true);
-      }
-    });
-  });
 
   private readonly refereesQuery = signal<RefereesQuery>({
     search: "",
@@ -141,11 +125,7 @@ export class AgendaViewComponent {
     };
   });
 
-  private readonly query = computed<AgendaQuery | undefined>(() => {
-    if (!this.seeded()) {
-      return undefined;
-    }
-
+  private readonly query = computed<AgendaQuery>(() => {
     return {
       from: formatDate(this.range().from),
       to: formatDate(this.range().to),
@@ -307,32 +287,48 @@ export class AgendaViewComponent {
       return;
     }
 
-    this.dialog
-      .open<ProgramMatchDialogComponent, ProgramMatchDialogData, boolean>(
-        ProgramMatchDialogComponent,
-        {
-          data: {
-            tournamentId: match.tournament.id,
-            match: this.toMatch(match),
-            candidates: this.matches()
-              .filter(
-                (other) =>
-                  other.tournament.id === match.tournament.id &&
-                  other.status === "scheduled",
-              )
-              .map((other) => this.toMatch(other)),
-          },
-          width: "720px",
-          maxWidth: "95vw",
-        },
-      )
-      .afterClosed()
-      .subscribe((changed) => {
-        if (changed) {
-          this.resource.reload();
-          this.unscheduledResource.reload();
+    const scroller = this.host.nativeElement.closest<HTMLElement>(
+      "mat-sidenav-content",
+    );
+    const top = scroller?.scrollTop ?? 0;
+    const keepScroll = () =>
+      requestAnimationFrame(() => {
+        if (scroller) {
+          scroller.scrollTop = top;
         }
       });
+
+    const ref = this.dialog.open<
+      ProgramMatchDialogComponent,
+      ProgramMatchDialogData,
+      boolean
+    >(ProgramMatchDialogComponent, {
+      data: {
+        tournamentId: match.tournament.id,
+        match: this.toMatch(match),
+        candidates: this.matches()
+          .filter(
+            (other) =>
+              other.tournament.id === match.tournament.id &&
+              other.status === "scheduled",
+          )
+          .map((other) => this.toMatch(other)),
+      },
+      width: "720px",
+      maxWidth: "95vw",
+    });
+
+    // The page keeps its place when the dialog opens and closes, and after the data is asked again
+    ref.afterOpened().subscribe(keepScroll);
+    ref.afterClosed().subscribe((changed) => {
+      keepScroll();
+
+      if (changed) {
+        this.resource.reload();
+        this.unscheduledResource.reload();
+        setTimeout(keepScroll, 400);
+      }
+    });
   }
 
   private toMatch(item: AgendaMatch): Match {

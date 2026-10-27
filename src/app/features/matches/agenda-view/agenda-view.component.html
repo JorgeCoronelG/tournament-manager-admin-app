@@ -63,7 +63,9 @@
       (selectionChange)="tournament.set($event.value)"
       [value]="tournament()"
     >
-      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
+      <mat-option value="">{{
+        "matches.agenda.allTournaments" | transloco
+      }}</mat-option>
       @for (item of tournaments(); track item.id) {
         <mat-option [value]="item.id">{{ item.name }}</mat-option>
       }

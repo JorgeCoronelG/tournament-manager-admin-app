@@ -88,6 +88,24 @@ test.describe("agenda", () => {
     expect(api.queries.at(-1)?.get("unassigned_referee")).toBe("1");
   });
 
+  test("starts with every tournament and filters by the one picked", async ({
+    page,
+  }) => {
+    const api = await open(page, { matches: MATCHES });
+    await page.getByRole("tab", { name: "Agenda" }).click();
+
+    await expect(page.getByRole("combobox", { name: "Torneo" })).toContainText(
+      "Todos los torneos",
+    );
+    expect(api.queries.at(-1)?.get("tournament_id")).toBeNull();
+
+    await page.getByRole("combobox", { name: "Torneo" }).click();
+    await page.getByRole("option", { name: "Torneo 04" }).click();
+
+    await expect.poll(() => api.queries.at(-1)?.get("tournament_id")).toBe("4");
+    await expect(page.getByText("sin horario")).toHaveCount(1);
+  });
+
   test("says when the period has no matches", async ({ page }) => {
     await open(page);
     await page.getByRole("tab", { name: "Agenda" }).click();

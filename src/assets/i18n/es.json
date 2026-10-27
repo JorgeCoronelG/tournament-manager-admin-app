@@ -669,6 +669,7 @@
     "agenda": {
       "leagueWide": "La agenda muestra todos los torneos de la liga.",
       "all": "Todos",
+      "allTournaments": "Todos los torneos",
       "date": "Fecha",
       "today": "Hoy",
       "day": "Día",
