@@ -471,6 +471,23 @@
           </div>
         }
 
+        @if ((capacity.locked_outside_schedule ?? 0) > 0) {
+          <div
+            class="flex items-center gap-3 p-3 rounded border border-gray-400 bg-gray-100 text-gray-800 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
+            role="status"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <p class="m-0 text-sm">
+              {{
+                (capacity.locked_outside_schedule === 1
+                  ? "matches.config.capacity.lockedOutsideOne"
+                  : "matches.config.capacity.lockedOutsideMany"
+                ) | transloco: { count: capacity.locked_outside_schedule }
+              }}
+            </p>
+          </div>
+        }
+
         @if (!capacity.matchdays.length) {
           <p class="m-0 text-sm text-secondary">
             {{ "matches.config.capacity.noCalendar" | transloco }}

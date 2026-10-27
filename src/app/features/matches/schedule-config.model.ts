@@ -254,6 +254,8 @@ export interface Capacity {
   matchdays: MatchdayCapacity[];
   has_calendar: boolean;
   schedule_outdated: boolean;
+  /** Matches fixed by hand that fall outside the configured hours (absent when the backend does not say) */
+  locked_outside_schedule?: number;
 }
 
 /** The default windows of a field in a day: a copy of the day's schedule */

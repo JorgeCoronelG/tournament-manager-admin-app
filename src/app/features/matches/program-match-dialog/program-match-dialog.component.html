@@ -1,0 +1,261 @@
+<h2 mat-dialog-title>{{ "matches.program.title" | transloco }}</h2>
+
+<mat-dialog-content class="flex flex-col gap-3 !pt-2 min-w-[320px]">
+  <div>
+    <p class="m-0 font-medium">{{ home }} vs {{ away }}</p>
+    <p class="m-0 text-sm text-secondary">
+      {{ "matches.matchday" | transloco: { number: data.match.matchday } }}
+    </p>
+  </div>
+
+  @if (errors().length) {
+    <div
+      class="flex items-start gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+      role="alert"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:error" />
+      <div class="text-sm">
+        @for (message of errors(); track message) {
+          <p class="m-0">{{ message }}</p>
+        }
+      </div>
+    </div>
+  }
+
+  @if (warnings().length) {
+    <div
+      class="flex items-start gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:warning" />
+      <div class="text-sm">
+        @for (message of warnings(); track message) {
+          <p class="m-0">{{ message }}</p>
+        }
+      </div>
+    </div>
+  } @else if (view() === "edit") {
+    <div class="flex flex-wrap items-start gap-3">
+      <mat-form-field class="w-44">
+        <mat-label>{{ "matches.program.date" | transloco }}</mat-label>
+        <input
+          (dateChange)="date.set($event.value)"
+          [matDatepicker]="datePicker"
+          [value]="date()"
+          matInput
+          placeholder="DD/MM/AAAA"
+        />
+        <mat-datepicker-toggle
+          [for]="datePicker"
+          class="[&_.mat-mdc-button-touch-target]:hidden"
+          matIconSuffix
+        />
+        <mat-datepicker #datePicker />
+      </mat-form-field>
+
+      <mat-form-field class="w-40">
+        <mat-label>{{ "matches.program.time" | transloco }}</mat-label>
+        <input
+          (valueChange)="time.set($event)"
+          [matTimepicker]="timePicker"
+          [value]="time()"
+          matInput
+          placeholder="HH:mm"
+        />
+        <mat-timepicker-toggle
+          [for]="timePicker"
+          class="[&_.mat-mdc-button-touch-target]:hidden"
+          matIconSuffix
+        />
+        <mat-timepicker #timePicker interval="15 minutes" />
+      </mat-form-field>
+
+      <mat-form-field class="w-48">
+        <mat-label>{{ "matches.program.field" | transloco }}</mat-label>
+        <mat-select
+          (selectionChange)="fieldId.set($event.value)"
+          [value]="fieldId()"
+        >
+          <mat-option [value]="null">{{
+            "matches.program.noField" | transloco
+          }}</mat-option>
+          @for (field of fields(); track field.id) {
+            <mat-option [value]="field.id">{{ field.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (slots().length) {
+      <section>
+        <h3 class="m-0 mb-1 text-sm font-medium">
+          {{ "matches.program.suggestions" | transloco }}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          @for (slot of slots(); track slot.start_time + slot.field_id) {
+            <button
+              (click)="pickSlot(slot)"
+              [attr.aria-pressed]="isPicked(slot)"
+              [class]="
+                isPicked(slot)
+                  ? 'border-primary-600 bg-primary-600/10 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-400'
+              "
+              class="rounded-full border px-3 py-1 text-sm cursor-pointer"
+              type="button"
+            >
+              {{ slot.start_time }} · {{ slot.field_name }}
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <mat-form-field class="w-full max-w-md">
+      <mat-label>{{ "matches.program.referee" | transloco }}</mat-label>
+      <mat-select
+        (selectionChange)="refereeId.set($event.value)"
+        [value]="refereeId()"
+      >
+        <mat-option [value]="null">{{
+          "matches.program.noReferee" | transloco
+        }}</mat-option>
+        @for (referee of referees(); track referee.id) {
+          <mat-option [disabled]="!referee.available" [value]="referee.id">
+            {{ referee.name }}
+            @if (!referee.available && referee.reason) {
+              <span class="text-xs text-secondary">
+                — {{ referee.reason }}</span
+              >
+            }
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div>
+      <mat-slide-toggle
+        (change)="locked.set($event.checked)"
+        [checked]="locked()"
+      >
+        {{ "matches.program.lock" | transloco }}
+      </mat-slide-toggle>
+      <p class="m-0 text-xs text-secondary">
+        {{ "matches.program.lockHint" | transloco }}
+      </p>
+    </div>
+  } @else {
+    <section class="flex flex-col gap-2">
+      <mat-form-field class="w-full">
+        <mat-label>{{ "matches.program.search" | transloco }}</mat-label>
+        <input
+          #searchInput
+          (input)="search.set(searchInput.value)"
+          [value]="search()"
+          autocomplete="off"
+          matInput
+        />
+      </mat-form-field>
+
+      <ul class="m-0 p-0 list-none max-h-60 overflow-y-auto border rounded">
+        @for (match of options(); track match.id) {
+          <li class="border-b last:border-b-0">
+            <button
+              (click)="target.set(match)"
+              [attr.aria-pressed]="target()?.id === match.id"
+              [class]="
+                target()?.id === match.id
+                  ? 'bg-primary-600/10'
+                  : 'bg-transparent'
+              "
+              class="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm cursor-pointer"
+              type="button"
+            >
+              <span class="font-medium">{{ nameOf(match) }}</span>
+              <span class="text-secondary">
+                {{ "matches.matchday" | transloco: { number: match.matchday } }}
+                · {{ slotOf(match) }}
+              </span>
+            </button>
+          </li>
+        } @empty {
+          <li class="px-3 py-4 text-sm text-secondary">
+            {{ "matches.program.noOptions" | transloco }}
+          </li>
+        }
+      </ul>
+
+      @if (target(); as other) {
+        <p class="m-0 text-sm">
+          {{
+            "matches.program.swapSummary"
+              | transloco
+                : {
+                    a: nameOf(data.match),
+                    slotA: slotOf(data.match),
+                    b: nameOf(other),
+                    slotB: slotOf(other),
+                  }
+          }}
+        </p>
+      }
+    </section>
+  }
+
+  <mat-progress-bar [class.invisible]="!working()" mode="indeterminate" />
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (warnings().length) {
+    <button (click)="close()" color="primary" mat-flat-button type="button">
+      {{ "common.close" | transloco }}
+    </button>
+  } @else if (view() === "edit") {
+    <div class="flex flex-wrap gap-1 mr-auto">
+      <button
+        (click)="openSwap()"
+        [disabled]="working()"
+        mat-stroked-button
+        type="button"
+      >
+        {{ "matches.program.swap" | transloco }}
+      </button>
+      @if (hasSchedule) {
+        <button
+          (click)="clear()"
+          [disabled]="working()"
+          color="warn"
+          mat-button
+          type="button"
+        >
+          {{ "matches.program.clearAction" | transloco }}
+        </button>
+      }
+    </div>
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      (click)="save()"
+      [disabled]="working()"
+      color="primary"
+      mat-flat-button
+      type="button"
+    >
+      {{ "common.save" | transloco }}
+    </button>
+  } @else {
+    <button (click)="backToEdit()" mat-button type="button">
+      {{ "common.back" | transloco }}
+    </button>
+    <button
+      (click)="swap()"
+      [disabled]="!target() || working()"
+      color="primary"
+      mat-flat-button
+      type="button"
+    >
+      {{ "matches.program.swapConfirm" | transloco }}
+    </button>
+  }
+</mat-dialog-actions>

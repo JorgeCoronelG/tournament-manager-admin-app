@@ -45,6 +45,10 @@ import {
   ScheduleConfigDialogData,
 } from "../schedule-config-dialog/schedule-config-dialog.component";
 import {
+  ProgramMatchDialogComponent,
+  ProgramMatchDialogData,
+} from "../program-match-dialog/program-match-dialog.component";
+import {
   MatchResultDialogComponent,
   MatchResultDialogData,
 } from "../match-result-dialog/match-result-dialog.component";
@@ -234,6 +238,11 @@ export class MatchesPageComponent {
     () => (this.configResource.value()?.windows.length ?? 0) > 0,
   );
 
+  /** Matches fixed by hand that fall outside the configured hours */
+  readonly lockedOutside = computed(
+    () => this.capacityResource.value()?.locked_outside_schedule ?? 0,
+  );
+
   /** The assigned hours no longer match the configuration */
   readonly outdated = computed(
     () => this.capacityResource.value()?.schedule_outdated === true,
@@ -321,6 +330,15 @@ export class MatchesPageComponent {
     return slotLabel(match.match_datetime ?? "", match.field?.name, (weekday) =>
       this.transloco.translate(`matches.config.weekdays.${weekday}`),
     );
+  }
+
+  /** "Antes: Sáb 07/11 · 8:00 a.m." for a match that was moved by hand */
+  previousSlot(match: Match): string {
+    return this.transloco.translate("matches.rescheduledHint", {
+      slot: slotLabel(match.original_match_datetime ?? "", null, (weekday) =>
+        this.transloco.translate(`matches.config.weekdays.${weekday}`),
+      ),
+    });
   }
 
   /** "02/11 - 08/11" when the matchday has dated matches */
@@ -526,6 +544,38 @@ export class MatchesPageComponent {
   reloadTournament(): void {
     this.tournamentsResource.reload();
     this.bracketResource.reload();
+  }
+
+  /** Sets the hour, field and referee of a match by hand, or swaps it with another */
+  programMatch(match: Match): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.editable() || match.status !== "scheduled") {
+      return;
+    }
+
+    this.dialog
+      .open<ProgramMatchDialogComponent, ProgramMatchDialogData, boolean>(
+        ProgramMatchDialogComponent,
+        {
+          data: {
+            tournamentId: tournament.id,
+            match,
+            candidates: this.groups()
+              .flatMap((group) => group.matchdays)
+              .flatMap((day) => day.matches)
+              .filter((other) => other.status === "scheduled"),
+          },
+          width: "720px",
+          maxWidth: "95vw",
+        },
+      )
+      .afterClosed()
+      .subscribe((changed) => {
+        if (changed) {
+          this.reloadSchedule();
+        }
+      });
   }
 
   /** Opens the score of a match to capture, change or void it */

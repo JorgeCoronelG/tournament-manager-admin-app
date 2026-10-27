@@ -1640,6 +1640,51 @@ export async function mockMatchesApi(
       },
     }),
   );
+  // Hours, field and referee of one match
+  await page.route(/\/leagues\/\d+\/matches\/\d+\/.+$/, (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+
+    if (path.endsWith("/available-slots")) {
+      return route.fulfill({
+        json: {
+          date: "2026-11-10",
+          slots: [
+            {
+              start_time: "10:00",
+              end_time: "11:00",
+              field_id: 1,
+              field_name: "Cancha 1",
+            },
+          ],
+        },
+      });
+    }
+
+    if (path.endsWith("/available-referees")) {
+      return route.fulfill({
+        json: {
+          referees: [
+            { id: 7, name: "Ana Ruiz", available: true, reason: null },
+            {
+              id: 8,
+              name: "Luis Paz",
+              available: false,
+              reason: "Ocupado en Águilas vs Búhos.",
+            },
+          ],
+        },
+      });
+    }
+
+    api.writes.push([request.method(), path, request.postDataJSON()]);
+
+    return route.fulfill({
+      json: path.endsWith("/swap-schedule")
+        ? { match: {}, with_match: {}, warnings: [] }
+        : { warnings: [{ code: "past_date", message: "La fecha ya pasó." }] },
+    });
+  });
   const proposal = {
     seed: 42,
     scheduled: 1,

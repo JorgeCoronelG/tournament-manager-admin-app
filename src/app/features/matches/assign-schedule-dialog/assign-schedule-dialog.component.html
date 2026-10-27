@@ -54,6 +54,11 @@
           {{ "matches.assign.scopeUnscheduled" | transloco }}
         </mat-radio-button>
       </mat-radio-group>
+      @if (scope() === "all") {
+        <p class="m-0 text-xs text-secondary">
+          {{ "matches.assign.scopeAllNote" | transloco }}
+        </p>
+      }
     </section>
   </div>
 

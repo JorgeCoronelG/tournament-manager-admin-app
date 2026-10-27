@@ -2,7 +2,9 @@ import { expect, Page, test } from "@playwright/test";
 import {
   freezeTime,
   gotoApp,
+  makeFields,
   makeTournaments,
+  mockFieldsApi,
   mockGroupsApi,
   mockMatchesApi,
   mockTournamentsApi,
@@ -35,6 +37,7 @@ async function open(
     groups: [{ id: 1, name: "Grupo A", type: "regular_stage" }],
     teams: TEAMS,
   });
+  await mockFieldsApi(page, { fields: makeFields(2) });
   const api = await mockMatchesApi(page, options);
   await gotoApp(page, "/dashboard/torneos/calendario");
   await page.getByRole("combobox", { name: "Torneo" }).click();
@@ -403,5 +406,62 @@ test.describe("matches", () => {
     await page.getByRole("button", { name: "Quitar horarios" }).click();
     await page.getByRole("button", { name: "Quitar", exact: true }).click();
     await expect(page.getByText("Horarios quitados: 3 partidos")).toBeVisible();
+  });
+
+  test("programs a match by hand with a suggestion and a referee", async ({
+    page,
+  }) => {
+    const api = await open(page, "Torneo 02", { generated: true });
+
+    await page.getByRole("button", { name: "Programar" }).first().click();
+    const dialog = page.getByRole("dialog");
+
+    await dialog.getByRole("button", { name: "Abrir calendario" }).click();
+    await page
+      .locator(".mat-calendar-body-cell")
+      .getByText("10", { exact: true })
+      .click();
+    await dialog.getByRole("button", { name: "10:00 · Cancha 1" }).click();
+
+    await dialog.getByRole("combobox", { name: "Árbitro" }).click();
+    await expect(page.getByRole("option", { name: /Luis Paz/ })).toBeDisabled();
+    await page.getByRole("option", { name: /Ana Ruiz/ }).click();
+
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expect(dialog.getByText("La fecha ya pasó.")).toBeVisible();
+    expect(api.writes.at(-1)).toEqual([
+      "PATCH",
+      expect.stringMatching(/\/matches\/\d+\/schedule$/),
+      expect.objectContaining({
+        field_id: 1,
+        referee_user_id: 7,
+        schedule_locked: true,
+      }),
+    ]);
+
+    await dialog.getByRole("button", { name: "Cerrar" }).click();
+  });
+
+  test("swaps the schedule with another match", async ({ page }) => {
+    const api = await open(page, "Torneo 02", { generated: true });
+
+    await page.getByRole("button", { name: "Programar" }).first().click();
+    const dialog = page.getByRole("dialog");
+
+    await dialog
+      .getByRole("button", { name: "Intercambiar con otro partido" })
+      .click();
+    await dialog
+      .getByRole("button", { name: /Jornada 2/ })
+      .first()
+      .click();
+    await expect(
+      dialog.getByText(/El árbitro viaja con el horario/),
+    ).toBeVisible();
+    await dialog
+      .getByRole("button", { name: "Intercambiar", exact: true })
+      .click();
+
+    expect(api.writes.at(-1)?.[1]).toMatch(/\/swap-schedule$/);
   });
 });

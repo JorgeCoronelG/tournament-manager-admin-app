@@ -20,6 +20,12 @@ export interface Match {
   match_datetime: string | null;
   /** Field it is played in; null until the hours are assigned */
   field?: { id: number; name: string | null } | null;
+  /** Person who referees it; null while none is assigned */
+  referee?: { id: number; name: string | null } | null;
+  /** Fixed by hand: the generator does not move it */
+  schedule_locked?: boolean;
+  /** Date it had before being rescheduled by hand; null when it was not */
+  original_match_datetime?: string | null;
   home: MatchSide | null;
   away: MatchSide | null;
   home_score: number | null;
