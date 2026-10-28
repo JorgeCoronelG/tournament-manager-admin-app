@@ -6,6 +6,7 @@ import {
   signal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MAT_DATE_FORMATS, MatDateFormats } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import {
@@ -13,12 +14,12 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { form, FormField, required } from "@angular/forms/signals";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatTimepickerModule } from "@angular/material/timepicker";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { Observable } from "rxjs";
@@ -45,13 +46,13 @@ export interface ProgramMatchDialogData {
   candidates: Match[];
 }
 
-/** The picker of this dialog works in 24 h */
-const FORMATS_24H: MatDateFormats = {
+/** The picker of this dialog works in 12 h (a. m. / p. m.) */
+const FORMATS_12H: MatDateFormats = {
   parse: { dateInput: null, timeInput: null },
   display: {
     dateInput: { day: "2-digit", month: "2-digit", year: "numeric" },
-    timeInput: { hour: "2-digit", minute: "2-digit", hour12: false },
-    timeOptionLabel: { hour: "2-digit", minute: "2-digit", hour12: false },
+    timeInput: { hour: "2-digit", minute: "2-digit", hour12: true },
+    timeOptionLabel: { hour: "2-digit", minute: "2-digit", hour12: true },
     monthYearLabel: { year: "numeric", month: "short" },
     dateA11yLabel: { year: "numeric", month: "long", day: "numeric" },
     monthYearA11yLabel: { year: "numeric", month: "long" },
@@ -66,9 +67,11 @@ const FORMATS_24H: MatDateFormats = {
   selector: "app-program-match-dialog",
   templateUrl: "./program-match-dialog.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MAT_DATE_FORMATS, useValue: FORMATS_24H }],
+  providers: [{ provide: MAT_DATE_FORMATS, useValue: FORMATS_12H }],
   imports: [
     MatButtonModule,
+    FormField,
+    MatCheckboxModule,
     MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -76,7 +79,6 @@ const FORMATS_24H: MatDateFormats = {
     MatInputModule,
     MatProgressBarModule,
     MatSelectModule,
-    MatSlideToggleModule,
     MatTimepickerModule,
     TranslocoPipe,
   ],
@@ -99,21 +101,36 @@ export class ProgramMatchDialogComponent {
   readonly view = signal<"edit" | "swap">("edit");
 
   // What the user picked
-  readonly date = signal<Date | null>(
-    this.data.match.match_datetime
+  private readonly model = signal<{
+    date: Date | null;
+    time: Date | null;
+    field: number | null;
+    referee: number | null;
+  }>({
+    date: this.data.match.match_datetime
       ? parseDate(this.data.match.match_datetime.slice(0, 10))
       : null,
-  );
-  readonly time = signal<Date | null>(
-    this.data.match.match_datetime
+    time: this.data.match.match_datetime
       ? clockToDate(this.data.match.match_datetime.slice(11, 16))
       : null,
-  );
-  readonly fieldId = signal<number | null>(this.data.match.field?.id ?? null);
-  readonly refereeId = signal<number | null>(
-    this.data.match.referee?.id ?? null,
-  );
+    field: this.data.match.field?.id ?? null,
+    referee: this.data.match.referee?.id ?? null,
+  });
+  readonly programForm = form(this.model, (program) => {
+    required(program.date);
+    required(program.time);
+    required(program.field);
+    required(program.referee);
+  });
+
+  private readonly date = computed(() => this.model().date);
+  private readonly time = computed(() => this.model().time);
+  private readonly fieldId = computed(() => this.model().field);
+  private readonly refereeId = computed(() => this.model().referee);
   readonly locked = signal(true);
+
+  /** Past days cannot be picked */
+  readonly today = new Date();
 
   private readonly fieldsQuery = signal<FieldsQuery>({
     search: "",
@@ -184,8 +201,11 @@ export class ProgramMatchDialogComponent {
 
   /** A suggestion fills the hour and the field */
   pickSlot(slot: { start_time: string; field_id: number }): void {
-    this.time.set(clockToDate(slot.start_time));
-    this.fieldId.set(slot.field_id);
+    this.model.update((value) => ({
+      ...value,
+      time: clockToDate(slot.start_time),
+      field: slot.field_id,
+    }));
   }
 
   isPicked(slot: { start_time: string; field_id: number }): boolean {

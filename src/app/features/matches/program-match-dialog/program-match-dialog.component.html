@@ -35,13 +35,13 @@
       </div>
     </div>
   } @else if (view() === "edit") {
-    <div class="flex flex-wrap items-start gap-3">
-      <mat-form-field class="w-44">
+    <div class="grid gap-x-3 sm:grid-cols-3">
+      <mat-form-field class="w-full">
         <mat-label>{{ "matches.program.date" | transloco }}</mat-label>
         <input
-          (dateChange)="date.set($event.value)"
+          [formField]="programForm.date"
           [matDatepicker]="datePicker"
-          [value]="date()"
+          [min]="today"
           matInput
           placeholder="DD/MM/AAAA"
         />
@@ -51,16 +51,18 @@
           matIconSuffix
         />
         <mat-datepicker #datePicker />
+        @if (programForm.date().errors().length) {
+          <mat-error>{{ "validation.required" | transloco }}</mat-error>
+        }
       </mat-form-field>
 
-      <mat-form-field class="w-40">
+      <mat-form-field class="w-full">
         <mat-label>{{ "matches.program.time" | transloco }}</mat-label>
         <input
-          (valueChange)="time.set($event)"
+          [formField]="programForm.time"
           [matTimepicker]="timePicker"
-          [value]="time()"
           matInput
-          placeholder="HH:mm"
+          placeholder="hh:mm a. m."
         />
         <mat-timepicker-toggle
           [for]="timePicker"
@@ -68,21 +70,21 @@
           matIconSuffix
         />
         <mat-timepicker #timePicker interval="15 minutes" />
+        @if (programForm.time().errors().length) {
+          <mat-error>{{ "validation.required" | transloco }}</mat-error>
+        }
       </mat-form-field>
 
-      <mat-form-field class="w-48">
+      <mat-form-field class="w-full">
         <mat-label>{{ "matches.program.field" | transloco }}</mat-label>
-        <mat-select
-          (selectionChange)="fieldId.set($event.value)"
-          [value]="fieldId()"
-        >
-          <mat-option [value]="null">{{
-            "matches.program.noField" | transloco
-          }}</mat-option>
+        <mat-select [formField]="programForm.field">
           @for (field of fields(); track field.id) {
             <mat-option [value]="field.id">{{ field.name }}</mat-option>
           }
         </mat-select>
+        @if (programForm.field().errors().length) {
+          <mat-error>{{ "validation.required" | transloco }}</mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -111,15 +113,9 @@
       </section>
     }
 
-    <mat-form-field class="w-full max-w-md">
+    <mat-form-field class="w-full">
       <mat-label>{{ "matches.program.referee" | transloco }}</mat-label>
-      <mat-select
-        (selectionChange)="refereeId.set($event.value)"
-        [value]="refereeId()"
-      >
-        <mat-option [value]="null">{{
-          "matches.program.noReferee" | transloco
-        }}</mat-option>
+      <mat-select [formField]="programForm.referee">
         @for (referee of referees(); track referee.id) {
           <mat-option [disabled]="!referee.available" [value]="referee.id">
             {{ referee.name }}
@@ -131,19 +127,21 @@
           </mat-option>
         }
       </mat-select>
+      @if (programForm.referee().errors().length) {
+        <mat-error>{{ "validation.required" | transloco }}</mat-error>
+      }
     </mat-form-field>
 
-    <div>
-      <mat-slide-toggle
-        (change)="locked.set($event.checked)"
-        [checked]="locked()"
-      >
-        {{ "matches.program.lock" | transloco }}
-      </mat-slide-toggle>
-      <p class="m-0 text-xs text-secondary">
-        {{ "matches.program.lockHint" | transloco }}
-      </p>
-    </div>
+    <mat-checkbox
+      (change)="locked.set($event.checked)"
+      [checked]="locked()"
+      class="-ml-3 -mt-3"
+    >
+      {{ "matches.program.lock" | transloco }}
+      <span class="text-secondary">
+        ({{ "matches.program.lockHint" | transloco }})
+      </span>
+    </mat-checkbox>
   } @else {
     <section class="flex flex-col gap-2">
       <mat-form-field class="w-full">
@@ -237,7 +235,7 @@
     </button>
     <button
       (click)="save()"
-      [disabled]="working()"
+      [disabled]="programForm().invalid() || working()"
       color="primary"
       mat-flat-button
       type="button"

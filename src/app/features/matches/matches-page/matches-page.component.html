@@ -441,10 +441,11 @@
                                 away: match.away?.team_name ?? '—',
                               }
                       "
+                      [matTooltip]="'matches.result.editTooltip' | transloco"
                       mat-icon-button
                       type="button"
                     >
-                      <mat-icon svgIcon="mat:edit" />
+                      <mat-icon color="primary" svgIcon="mat:scoreboard" />
                     </button>
                   }
                 </span>

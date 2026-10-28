@@ -387,9 +387,8 @@ test.describe("matches", () => {
     await expect(
       dialog.getByText("Faltan 1 espacios en la jornada 1."),
     ).toBeVisible();
-    await expect(
-      dialog.getByText("Sáb 07/11 · 8:00 a.m. · Cancha 1"),
-    ).toBeVisible();
+    await dialog.getByRole("button", { name: /Jornada 1/ }).click();
+    await expect(dialog.getByText(/Sáb, 07 nov · 8:00/)).toBeVisible();
 
     await dialog.getByText("Aleatorio").click();
     await expect(confirm).toBeDisabled();
@@ -417,10 +416,7 @@ test.describe("matches", () => {
     const dialog = page.getByRole("dialog");
 
     await dialog.getByRole("button", { name: "Abrir calendario" }).click();
-    await page
-      .locator(".mat-calendar-body-cell")
-      .getByText("10", { exact: true })
-      .click();
+    await page.locator(".mat-calendar-body-today").click();
     await dialog.getByRole("button", { name: "10:00 · Cancha 1" }).click();
 
     await dialog.getByRole("combobox", { name: "Árbitro" }).click();

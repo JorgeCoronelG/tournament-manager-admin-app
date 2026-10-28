@@ -397,6 +397,7 @@ export class MatchesPageComponent {
       .open<AssignScheduleDialogComponent, AssignScheduleDialogData, boolean>(
         AssignScheduleDialogComponent,
         {
+          autoFocus: "dialog",
           data: { tournamentId: tournament.id, phase: this.scheduling() },
           width: "960px",
           maxWidth: "95vw",
@@ -469,6 +470,7 @@ export class MatchesPageComponent {
       .afterClosed()
       .subscribe((saved) => {
         if (saved) {
+          this.configResource.reload();
           this.capacityResource.reload();
           this.snackbar.notifySuccess("matches.config.saved");
         }

@@ -2,6 +2,7 @@ import { DatePipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from "@angular/core";
@@ -12,6 +13,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatRadioModule } from "@angular/material/radio";
@@ -24,9 +26,34 @@ import {
   SchedulePhase,
   ScheduleMode,
   SchedulePreview,
+  ScheduleProposal,
   ScheduleScope,
   slotLabel,
 } from "../schedule.model";
+
+/** A matchday (or a playoff round) of the preview with its proposed matches */
+interface ProposalGroup {
+  key: string;
+  number: number;
+  title: string;
+  /** "02 nov – 08 nov de 2026" */
+  range: string | null;
+  total: number;
+  scheduled: number;
+  matches: ScheduleProposal[];
+}
+
+const dayMonth = (date: Date) =>
+  date.toLocaleDateString("es", { day: "2-digit", month: "short" });
+
+/** "02 nov – 08 nov de 2026", or one day when both ends are the same */
+function rangeLabel(start: Date, end: Date): string {
+  const year = end.getFullYear();
+
+  return start.getTime() === end.getTime()
+    ? `${dayMonth(end)} de ${year}`
+    : `${dayMonth(start)} – ${dayMonth(end)} de ${year}`;
+}
 
 export interface AssignScheduleDialogData {
   tournamentId: number;
@@ -48,6 +75,7 @@ export interface AssignScheduleDialogData {
     MatButtonModule,
     MatCheckboxModule,
     MatDialogModule,
+    MatExpansionModule,
     MatIconModule,
     MatProgressBarModule,
     MatRadioModule,
@@ -76,6 +104,76 @@ export class AssignScheduleDialogComponent {
   readonly error = signal<string | null>(null);
 
   readonly parseDate = parseDate;
+
+  /** The proposed matches by matchday (regular phase) or by round (playoffs) */
+  readonly groups = computed<ProposalGroup[]>(() => {
+    const result = this.preview();
+
+    if (!result) {
+      return [];
+    }
+
+    if (!this.playoffs) {
+      return result.matchdays.map((day) => ({
+        key: String(day.matchday),
+        number: day.matchday,
+        title: this.transloco.translate("matches.matchday", {
+          number: day.matchday,
+        }),
+        range:
+          day.week_start && day.week_end
+            ? rangeLabel(parseDate(day.week_start), parseDate(day.week_end))
+            : null,
+        total: day.matches,
+        scheduled: day.scheduled,
+        matches: result.matches.filter((m) => m.matchday === day.matchday),
+      }));
+    }
+
+    const rounds = new Map<string, ScheduleProposal[]>();
+
+    for (const match of result.matches) {
+      const key = this.roundName(match.round_name ?? "", match.leg ?? null);
+
+      rounds.set(key, [...(rounds.get(key) ?? []), match]);
+    }
+
+    return [...rounds].map(([title, matches], index) => {
+      const dates = matches
+        .filter((m) => m.match_datetime)
+        .map((m) => parseDate((m.match_datetime as string).slice(0, 10)))
+        .sort((a, b) => a.getTime() - b.getTime());
+
+      return {
+        key: title,
+        number: index + 1,
+        title,
+        range: dates.length
+          ? rangeLabel(dates[0], dates[dates.length - 1])
+          : null,
+        total: matches.length,
+        scheduled: dates.length,
+        matches,
+      };
+    });
+  });
+
+  /** "Sáb, 07 nov · 9:00 a. m." */
+  when(iso: string): string {
+    const date = new Date(iso);
+    const day = date.toLocaleDateString("es", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    });
+    const time = date.toLocaleTimeString("es", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return `${day.charAt(0).toUpperCase()}${day.slice(1)} · ${time}`;
+  }
 
   setMode(mode: ScheduleMode): void {
     this.mode.set(mode);
