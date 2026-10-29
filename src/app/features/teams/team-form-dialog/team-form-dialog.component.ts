@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from "@angular/core";
@@ -24,6 +25,7 @@ import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { catchError, map, Observable, of, switchMap, throwError } from "rxjs";
 import { fieldErrors } from "../../../core/http/api-errors";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import { LogoPickerComponent } from "../../../shared/logo-picker/logo-picker.component";
 import { ManagerFieldsComponent } from "../manager-fields/manager-fields.component";
 import {
@@ -89,6 +91,16 @@ export class TeamFormDialogComponent {
     name: this.team?.name ?? "",
   });
 
+  /** Editing with the same name and no logo change: Save stays disabled */
+  private readonly sameValues = formUnchanged(this.model);
+  private readonly unchanged = computed(
+    () =>
+      this.team !== null &&
+      this.sameValues() &&
+      this.logoFile() === null &&
+      !this.logoRemoved(),
+  );
+
   /**
    * The name the server rejected as repeated. Whether it is repeated depends on
    * the name *and* the delegate, so it is checked here (not as a field
@@ -138,6 +150,7 @@ export class TeamFormDialogComponent {
   canSave(): boolean {
     return (
       !this.teamForm().submitting() &&
+      !this.unchanged() &&
       (this.model().mode !== "code" || !!this.found())
     );
   }

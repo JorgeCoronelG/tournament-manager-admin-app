@@ -483,6 +483,7 @@
     "label": "Archivo de imagen del logo",
     "drop": "Arrastra tu imagen aquí o selecciónala",
     "choose": "Elegir imagen",
+    "change": "Cambiar imagen",
     "remove": "Quitar",
     "hint": "JPG, PNG o WebP de hasta 2 MB.",
     "errors": {
@@ -1151,7 +1152,7 @@
     "updated": "Equipo actualizado",
     "deleted": "Equipo eliminado",
     "banned": "Equipo vetado",
-    "reactivated": "Equipo reactivado",
+    "reactivated": "Se levantó el veto del equipo {{name}}",
     "managerSaved": "Delegado guardado",
     "managerUpdated": "Datos del delegado actualizados",
     "managerRemoved": "Delegado quitado",
@@ -1183,24 +1184,24 @@
       "resendInvitation": "Reenviar invitación",
       "removeManager": "Quitar delegado",
       "ban": "Vetar",
-      "reactivate": "Reactivar",
+      "reactivate": "Levantar veto",
       "delete": "Eliminar"
     },
     "withManager": "{{name}} (delegado: {{manager}})",
     "withoutManager": "{{name}} (sin delegado)",
     "removeManager": {
-      "title": "Quitar delegado",
-      "message": "¿Seguro que quieres quitar a {{name}} como delegado de {{team}}?\nSu cuenta seguirá existiendo.",
+      "title": "¿Quitar delegado?",
+      "message": "Se quitará a <b>{{name}}</b> como delegado de <b>{{team}}</b>.\nEl equipo se quedará sin delegado y la cuenta del usuario seguirá existiendo.",
       "confirm": "Quitar"
     },
     "ban": {
-      "title": "Vetar equipo",
-      "message": "¿Seguro que quieres vetar a {{name}}?\nNo podrá participar hasta que lo reactives.",
+      "title": "¿Vetar equipo?",
+      "message": "Se vetará al equipo <b>{{name}}</b> y no podrá participar en la liga hasta que se levante el veto.",
       "confirm": "Vetar"
     },
     "delete": {
-      "title": "Eliminar equipo",
-      "message": "¿Seguro que quieres eliminar a {{name}}?\nEsta acción no se puede deshacer.",
+      "title": "¿Eliminar equipo?",
+      "message": "Se eliminará al equipo <b>{{name}}</b>.\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -1211,6 +1212,9 @@
     "manager": {
       "title": "Delegado",
       "assignTitle": "Asignar delegado",
+      "assignAction": "Asignar delegado",
+      "changeAction": "Cambiar delegado",
+      "current": "Delegado actual:",
       "changeTitle": "Cambiar delegado",
       "editTitle": "Editar datos del delegado",
       "modes": {
@@ -1226,8 +1230,8 @@
       "phone": "Teléfono",
       "phoneHint": "Opcional, 10 dígitos",
       "userCode": "Clave",
-      "duplicate": "Ese correo o teléfono ya está registrado. Si es un delegado, ¿ya tiene clave?",
-      "goToCode": "Asígnalo con ella",
+      "duplicate": "Ya existe un usuario con estos datos.\nSi la persona ya está registrada como delegado y tiene una clave, puedes asignarla a este equipo.\n",
+      "goToCode": "Buscar por clave",
       "codeHelp": "Pídele su clave a la persona y escríbela aquí.",
       "search": "Buscar",
       "lookup": {

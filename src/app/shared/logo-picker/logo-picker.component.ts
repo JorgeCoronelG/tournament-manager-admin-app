@@ -38,7 +38,7 @@ let nextId = 0;
           ? 'border-primary-600 bg-primary-600/5'
           : 'border-gray-500/50'
       "
-      class="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed p-4 text-center transition-colors"
+      class="flex flex-col items-center gap-1 rounded-lg border-2 border-dashed p-3 text-center transition-colors"
     >
       @if (hasImage()) {
         <app-logo-image
@@ -48,11 +48,11 @@ let nextId = 0;
         />
       } @else {
         <mat-icon
-          class="!w-10 !h-10 text-primary-600"
+          class="!w-8 !h-8 text-primary-600"
           svgIcon="mat:cloud_upload"
         />
       }
-      <p class="m-0 text-sm font-medium">
+      <p class="m-0 text-xs font-medium">
         {{ "logoPicker.drop" | transloco }}
       </p>
       <label [for]="inputId" class="sr-only">{{
@@ -67,26 +67,33 @@ let nextId = 0;
         tabindex="-1"
         type="file"
       />
-      <div class="flex flex-wrap justify-center gap-2">
-        <button (click)="input.click()" mat-flat-button type="button">
-          {{ "logoPicker.choose" | transloco }}
+      <div class="flex flex-wrap justify-center gap-1">
+        <button
+          (click)="input.click()"
+          class="!text-xs"
+          mat-flat-button
+          type="button"
+        >
+          {{
+            (hasImage() ? "logoPicker.change" : "logoPicker.choose") | transloco
+          }}
         </button>
         @if (hasImage()) {
-          <button (click)="clear()" mat-button type="button">
+          <button (click)="clear()" class="!text-xs" mat-button type="button">
             {{ "logoPicker.remove" | transloco }}
           </button>
         }
       </div>
+      @if (error(); as error) {
+        <p class="m-0 text-xs text-red-600 dark:text-red-400" role="alert">
+          {{ "logoPicker.errors." + error | transloco }}
+        </p>
+      } @else {
+        <p class="m-0 text-xs text-secondary">
+          {{ "logoPicker.hint" | transloco }}
+        </p>
+      }
     </div>
-    @if (error(); as error) {
-      <p class="m-0 mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
-        {{ "logoPicker.errors." + error | transloco }}
-      </p>
-    } @else {
-      <p class="m-0 mt-2 text-sm text-secondary">
-        {{ "logoPicker.hint" | transloco }}
-      </p>
-    }
   `,
 })
 export class LogoPickerComponent {

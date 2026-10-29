@@ -16,6 +16,12 @@
         <p class="m-0 text-sm">{{ message }}</p>
       </div>
     }
+    @if (team.manager; as current) {
+      <p class="m-0 mb-3 text-sm">
+        {{ "teams.manager.current" | transloco }}
+        <b>{{ current.first_name }} {{ current.last_name }}</b>
+      </p>
+    }
     <app-manager-fields
       (searched)="serverError.set(null)"
       [(found)]="found"
@@ -34,7 +40,12 @@
       mat-flat-button
       type="submit"
     >
-      {{ "common.save" | transloco }}
+      {{
+        (team.manager
+          ? "teams.manager.changeAction"
+          : "teams.manager.assignAction"
+        ) | transloco
+      }}
     </button>
   </mat-dialog-actions>
 </form>

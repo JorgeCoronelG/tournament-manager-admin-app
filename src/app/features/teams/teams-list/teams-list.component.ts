@@ -148,7 +148,13 @@ export class TeamsListComponent {
     this.dialog
       .open<TeamFormDialogComponent, Team | null, TeamFormResult>(
         TeamFormDialogComponent,
-        { data: team ?? null, width: "560px", maxWidth: "95vw" },
+        {
+          data: team ?? null,
+          width: "560px",
+          maxWidth: "95vw",
+          // Creating focuses the first field; editing focuses the dialog, so nothing is typed by mistake
+          autoFocus: team ? "dialog" : "first-tabbable",
+        },
       )
       .afterClosed()
       .subscribe((result) => {
@@ -170,7 +176,13 @@ export class TeamsListComponent {
     this.dialog
       .open<TeamManagerDialogComponent, Team, Team>(
         TeamManagerDialogComponent,
-        { data: team, width: "560px", maxWidth: "95vw" },
+        {
+          data: team,
+          width: "560px",
+          maxWidth: "95vw",
+          // Focus the dialog, so no tab or field looks selected
+          autoFocus: "dialog",
+        },
       )
       .afterClosed()
       .subscribe((saved) => {
@@ -219,7 +231,9 @@ export class TeamsListComponent {
   /** Banning asks first; reactivating does not */
   toggleStatus(team: Team): void {
     if (team.status === "banned") {
-      this.run(this.api.setStatus(team.id, "active"), "teams.reactivated");
+      this.run(this.api.setStatus(team.id, "active"), "teams.reactivated", {
+        name: team.name,
+      });
 
       return;
     }
@@ -262,11 +276,15 @@ export class TeamsListComponent {
     this.managersResource.reload();
   }
 
-  private run(request: Observable<unknown>, successKey: string): void {
+  private run(
+    request: Observable<unknown>,
+    successKey: string,
+    params?: Record<string, unknown>,
+  ): void {
     request.subscribe({
       next: () => {
         this.reloadAll();
-        this.snackbar.notifySuccess(successKey);
+        this.snackbar.notifySuccess(successKey, params);
       },
       error: (error: unknown) => this.snackbar.notifyFailure(error),
     });

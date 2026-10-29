@@ -174,13 +174,13 @@ test.describe("teams", () => {
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("tab", { name: "Ya tiene clave" }).click();
     await expect(
-      dialog.getByRole("button", { name: "Guardar" }),
+      dialog.getByRole("button", { name: "Asignar delegado" }),
     ).toBeDisabled();
 
     await dialog.getByRole("textbox", { name: "Clave" }).fill("zoe0007");
     await dialog.getByRole("button", { name: "Buscar" }).click();
     await expect(dialog).toContainText("Zoe Ruiz");
-    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await dialog.getByRole("button", { name: "Asignar delegado" }).click();
 
     await expect(dialog).toBeHidden();
     expect(api.managerSet).toEqual([
@@ -233,7 +233,7 @@ test.describe("teams", () => {
     await expect(
       dialog.getByText("El correo ya está registrado."),
     ).toBeVisible();
-    await dialog.getByRole("button", { name: "Asígnalo con ella" }).click();
+    await dialog.getByRole("button", { name: "Buscar por clave" }).click();
     await expect(dialog.getByRole("textbox", { name: "Clave" })).toBeVisible();
   });
 
@@ -250,7 +250,7 @@ test.describe("teams", () => {
     await expect(row).toContainText("Vetado");
     expect(api.statusChanges).toEqual([{ id: 1, status: "banned" }]);
 
-    await row.getByRole("button", { name: "Reactivar" }).click();
+    await row.getByRole("button", { name: "Levantar veto" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(row).toContainText("Activo");
     expect(api.statusChanges.at(-1)).toEqual({ id: 1, status: "active" });
@@ -379,7 +379,7 @@ test.describe("teams", () => {
     await dialog.getByRole("textbox", { name: "Nombre" }).fill("Ana");
     await dialog.getByRole("textbox", { name: "Apellido" }).fill("Pérez");
     await dialog.getByRole("textbox", { name: "Correo" }).fill("ana@e.com");
-    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await dialog.getByRole("button", { name: "Asignar delegado" }).click();
 
     await expect(dialog.getByRole("alert")).toContainText(
       "Este delegado ya tiene un equipo con ese nombre.",
