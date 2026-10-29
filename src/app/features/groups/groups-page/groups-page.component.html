@@ -149,10 +149,11 @@
                           'groups.actions.rename'
                             | transloco: { name: group.name }
                         "
+                        class="app-action-primary"
                         mat-icon-button
                         type="button"
                       >
-                        <mat-icon color="primary" svgIcon="mat:edit" />
+                        <mat-icon svgIcon="mat:edit" />
                       </button>
                       <span
                         [matTooltip]="
@@ -168,10 +169,11 @@
                               | transloco: { name: group.name }
                           "
                           [disabled]="!canDelete(group)"
+                          class="app-action-danger"
                           mat-icon-button
                           type="button"
                         >
-                          <mat-icon color="warn" svgIcon="mat:delete" />
+                          <mat-icon svgIcon="mat:delete" />
                         </button>
                       </span>
                     }
@@ -257,10 +259,11 @@
                           'groups.actions.edit'
                             | transloco: { name: playoff.name }
                         "
+                        class="app-action-primary"
                         mat-icon-button
                         type="button"
                       >
-                        <mat-icon color="primary" svgIcon="mat:edit" />
+                        <mat-icon svgIcon="mat:edit" />
                       </button>
                       <button
                         (click)="remove(playoff)"
@@ -272,10 +275,11 @@
                           'groups.actions.delete'
                             | transloco: { name: playoff.name }
                         "
+                        class="app-action-danger"
                         mat-icon-button
                         type="button"
                       >
-                        <mat-icon color="warn" svgIcon="mat:delete" />
+                        <mat-icon svgIcon="mat:delete" />
                       </button>
                     }
                   </header>

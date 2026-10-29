@@ -114,6 +114,8 @@ export class UsersListComponent {
         UserFormDialogComponent,
         {
           data: user ?? null,
+          // Creating focuses the first field; editing focuses the dialog, so nothing is typed by mistake
+          autoFocus: user ? "dialog" : "first-tabbable",
           // Same width for create and edit (otherwise it follows the create-only notice)
           width: "560px",
           maxWidth: "95vw",
@@ -135,10 +137,21 @@ export class UsersListComponent {
   }
 
   toggleActive(user: User): void {
-    this.run(
-      this.api.setStatus(user.id, !user.is_active),
-      user.is_active ? "users.deactivated" : "users.activated",
-    );
+    this.confirmDialog
+      .confirm({
+        key: user.is_active ? "users.deactivate" : "users.activate",
+        params: { name: `${user.first_name} ${user.last_name}` },
+        tone: "primary",
+        cancelOutlined: true,
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.run(
+            this.api.setStatus(user.id, !user.is_active),
+            user.is_active ? "users.deactivated" : "users.activated",
+          );
+        }
+      });
   }
 
   resendInvitation(user: User): void {

@@ -95,11 +95,11 @@
           [disabled]="!freeWeekdays().length"
           [matMenuTriggerFor]="dayMenu"
           [matTooltip]="'matches.config.addDay' | transloco"
+          class="app-action-primary"
           mat-icon-button
-          matTooltipPosition="above"
           type="button"
         >
-          <mat-icon color="primary" svgIcon="mat:add" />
+          <mat-icon svgIcon="mat:add" />
         </button>
         <mat-menu #dayMenu="matMenu">
           @for (weekday of freeWeekdays(); track weekday) {
@@ -185,11 +185,11 @@
             <button
               (click)="removeDay(d)"
               [attr.aria-label]="'matches.config.removeDay' | transloco"
-              class="mt-1"
+              class="mt-1 app-action-danger"
               mat-icon-button
               type="button"
             >
-              <mat-icon color="warn" svgIcon="mat:delete" />
+              <mat-icon svgIcon="mat:delete" />
             </button>
           </div>
 
@@ -209,22 +209,22 @@
                   (click)="addWindow(d, f)"
                   [attr.aria-label]="'matches.config.split' | transloco"
                   [matTooltip]="'matches.config.split' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
-                  matTooltipPosition="above"
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:add" />
+                  <mat-icon svgIcon="mat:add" />
                 </button>
                 <button
                   (click)="resetField(d, f)"
                   [attr.aria-label]="'matches.config.reset' | transloco"
                   [disabled]="!field.edited"
                   [matTooltip]="'matches.config.reset' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
-                  matTooltipPosition="above"
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:refresh" />
+                  <mat-icon svgIcon="mat:refresh" />
                 </button>
               </div>
               @let overlaps = overlappingWindows(field.windows);
@@ -296,11 +296,11 @@
                       [attr.aria-label]="
                         'matches.config.removeWindow' | transloco
                       "
-                      class="mt-1"
+                      class="mt-1 app-action-danger"
                       mat-icon-button
                       type="button"
                     >
-                      <mat-icon color="warn" svgIcon="mat:close" />
+                      <mat-icon svgIcon="mat:close" />
                     </button>
                   }
                 </div>
@@ -328,11 +328,11 @@
           (click)="addBlock()"
           [attr.aria-label]="'matches.config.addBlock' | transloco"
           [matTooltip]="'matches.config.addBlock' | transloco"
+          class="app-action-primary"
           mat-icon-button
-          matTooltipPosition="above"
           type="button"
         >
-          <mat-icon color="primary" svgIcon="mat:add" />
+          <mat-icon svgIcon="mat:add" />
         </button>
       </div>
 
@@ -415,11 +415,11 @@
           <button
             (click)="removeBlock(b)"
             [attr.aria-label]="'matches.config.removeBlock' | transloco"
-            class="mt-1"
+            class="mt-1 app-action-danger"
             mat-icon-button
             type="button"
           >
-            <mat-icon color="warn" svgIcon="mat:delete" />
+            <mat-icon svgIcon="mat:delete" />
           </button>
         </div>
       }
@@ -435,11 +435,11 @@
           [disabled]="!valid() || calculating()"
           [attr.aria-label]="'matches.config.capacity.calculate' | transloco"
           [matTooltip]="'matches.config.capacity.calculate' | transloco"
+          class="app-action-primary"
           mat-icon-button
-          matTooltipPosition="above"
           type="button"
         >
-          <mat-icon color="primary" svgIcon="mat:refresh" />
+          <mat-icon svgIcon="mat:refresh" />
         </button>
       </div>
       <p class="m-0 text-xs text-secondary">

@@ -146,7 +146,13 @@ export class RefereesListComponent {
     this.dialog
       .open<RefereeEditDialogComponent, Referee, Referee>(
         RefereeEditDialogComponent,
-        { data: referee, width: "560px", maxWidth: "95vw" },
+        {
+          data: referee,
+          width: "560px",
+          maxWidth: "95vw",
+          // Focus the dialog, not the first field, so nothing is typed by mistake
+          autoFocus: "dialog",
+        },
       )
       .afterClosed()
       .subscribe((saved) => {
@@ -165,12 +171,26 @@ export class RefereesListComponent {
 
   /** Deactivates or reactivates them in this league */
   toggleStatus(referee: Referee): void {
-    const active = referee.status === "active";
+    if (referee.status !== "active") {
+      this.run(this.api.setStatus(referee.id, "active"), "referees.activated");
 
-    this.run(
-      this.api.setStatus(referee.id, active ? "inactive" : "active"),
-      active ? "referees.deactivated" : "referees.activated",
-    );
+      return;
+    }
+
+    this.confirmDialog
+      .confirm({
+        key: "referees.deactivate",
+        params: { name: `${referee.first_name} ${referee.last_name}` },
+        tone: "primary",
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.run(
+            this.api.setStatus(referee.id, "inactive"),
+            "referees.deactivated",
+          );
+        }
+      });
   }
 
   resendInvitation(referee: Referee): void {

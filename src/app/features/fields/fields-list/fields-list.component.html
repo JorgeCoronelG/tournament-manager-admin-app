@@ -100,10 +100,11 @@
                   (click)="openForm(field)"
                   [attr.aria-label]="'fields.actions.edit' | transloco"
                   [matTooltip]="'fields.actions.edit' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:edit" />
+                  <mat-icon svgIcon="mat:edit" />
                 </button>
                 <button
                   (click)="toggleStatus(field)"
@@ -119,15 +120,11 @@
                       : 'fields.actions.activate'
                     ) | transloco
                   "
+                  [class.app-action-success]="!(field.status === 'active')"
                   mat-icon-button
                   type="button"
                 >
                   <mat-icon
-                    [class]="
-                      field.status === 'active'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-500 dark:text-gray-400'
-                    "
                     [svgIcon]="
                       field.status === 'active'
                         ? 'mat:toggle_on'
@@ -139,10 +136,11 @@
                   (click)="remove(field)"
                   [attr.aria-label]="'fields.actions.delete' | transloco"
                   [matTooltip]="'fields.actions.delete' | transloco"
+                  class="app-action-danger"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="warn" svgIcon="mat:delete" />
+                  <mat-icon svgIcon="mat:delete" />
                 </button>
               </td>
             </ng-container>

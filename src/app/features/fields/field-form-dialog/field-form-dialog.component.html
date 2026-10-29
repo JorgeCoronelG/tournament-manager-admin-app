@@ -31,7 +31,7 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
-      [disabled]="fieldForm().submitting()"
+      [disabled]="fieldForm().submitting() || unchanged()"
       color="primary"
       mat-flat-button
       type="submit"

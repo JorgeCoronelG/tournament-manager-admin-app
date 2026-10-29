@@ -5,7 +5,13 @@ import { failureMessage } from "../http/api-errors";
 import { AppSnackbarComponent } from "./app-snackbar.component";
 import { SnackbarVariant } from "./snackbar-variant.type";
 
-const DURATION_MS = 5000;
+/** The more serious the message, the longer it stays */
+const DURATION_MS: Record<SnackbarVariant, number> = {
+  success: 4000,
+  info: 5000,
+  warning: 7000,
+  error: 9000,
+};
 
 /**
  * Shows system messages (mainly ones coming from the API) as a snackbar,
@@ -53,7 +59,7 @@ export class SnackbarService {
   private show(message: string, variant: SnackbarVariant): void {
     this.snackBar.openFromComponent(AppSnackbarComponent, {
       data: { message, variant },
-      duration: DURATION_MS,
+      duration: DURATION_MS[variant],
       horizontalPosition: "end",
       verticalPosition: "top",
       panelClass: ["app-snackbar", `app-snackbar--${variant}`],

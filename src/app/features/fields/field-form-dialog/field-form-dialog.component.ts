@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from "@angular/core";
@@ -22,6 +23,7 @@ import {
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import { Field, FIELD_STATUSES, FieldStatus } from "../field.model";
 import { FieldsApi } from "../fields.api";
 
@@ -66,6 +68,10 @@ export class FieldFormDialogComponent {
     name: this.field?.name ?? "",
     status: "active",
   });
+
+  /** Editing with the same values as when it opened: Save stays disabled */
+  private readonly sameValues = formUnchanged(this.model);
+  readonly unchanged = computed(() => this.field !== null && this.sameValues());
 
   readonly fieldForm = form(this.model, (field) => {
     required(field.name);

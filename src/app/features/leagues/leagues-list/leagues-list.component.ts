@@ -95,7 +95,13 @@ export class LeaguesListComponent {
     this.dialog
       .open<LeagueFormDialogComponent, League | null, League>(
         LeagueFormDialogComponent,
-        { data: league ?? null, width: "560px", maxWidth: "95vw" },
+        {
+          data: league ?? null,
+          width: "560px",
+          maxWidth: "95vw",
+          // Creating focuses the first field; editing focuses the dialog, so nothing is typed by mistake
+          autoFocus: league ? "dialog" : "first-tabbable",
+        },
       )
       .afterClosed()
       .subscribe((saved) => {

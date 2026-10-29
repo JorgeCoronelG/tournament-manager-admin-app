@@ -26,7 +26,7 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
-      [disabled]="leagueForm().submitting()"
+      [disabled]="leagueForm().submitting() || unchanged()"
       color="primary"
       mat-flat-button
       type="submit"

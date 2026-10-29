@@ -26,6 +26,7 @@ import {
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import { User } from "../user.model";
 import { UsersApi } from "../users.api";
 
@@ -104,6 +105,12 @@ export class UserFormDialogComponent {
       },
     });
   });
+
+  /** Editing with the same values as when it opened: Save stays disabled */
+  private readonly sameValues = formUnchanged(this.model, {
+    unordered: ["roles"],
+  });
+  readonly unchanged = computed(() => this.user !== null && this.sameValues());
 
   /** Server messages win over the generic text of the failed rule */
   errorText(errors: readonly ValidationError[], value: unknown): string {

@@ -4,6 +4,7 @@ import {
   computed,
   input,
 } from "@angular/core";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe } from "@jsverse/transloco";
 import { UserStatus } from "../user.model";
 
@@ -16,9 +17,12 @@ const CLASSES: Record<UserStatus, string> = {
 @Component({
   selector: "app-user-status-chip",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe],
+  imports: [MatTooltipModule, TranslocoPipe],
   template: `<span
     [class]="classes()"
+    [matTooltip]="
+      status() === 'pending' ? ('users.statusHint.pending' | transloco) : ''
+    "
     class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
     >{{ labelPrefix() + "." + status() | transloco }}</span
   >`,

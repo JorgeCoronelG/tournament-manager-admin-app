@@ -155,19 +155,21 @@
                   (click)="openDetail(player)"
                   [attr.aria-label]="'players.actions.detail' | transloco"
                   [matTooltip]="'players.actions.detail' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:visibility" />
+                  <mat-icon svgIcon="mat:visibility" />
                 </button>
                 <button
                   (click)="changeGender(player)"
                   [attr.aria-label]="'players.actions.gender' | transloco"
                   [matTooltip]="'players.actions.gender' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:edit" />
+                  <mat-icon svgIcon="mat:edit" />
                 </button>
                 <button
                   (click)="toggleBan(player)"
@@ -183,15 +185,12 @@
                       : 'players.actions.ban'
                     ) | transloco
                   "
+                  [class.app-action-danger]="!player.is_banned"
+                  [class.app-action-success]="player.is_banned"
                   mat-icon-button
                   type="button"
                 >
                   <mat-icon
-                    [class]="
-                      player.is_banned
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-amber-600 dark:text-amber-400'
-                    "
                     [svgIcon]="
                       player.is_banned ? 'mat:check_circle' : 'mat:block'
                     "

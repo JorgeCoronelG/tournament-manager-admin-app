@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from "@angular/core";
@@ -24,6 +25,7 @@ import { catchError, throwError } from "rxjs";
 import { fieldErrors } from "../../../core/http/api-errors";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import { LeagueAdminSelectComponent } from "../league-admin-select/league-admin-select.component";
 import { League } from "../league.model";
 import { LeaguesApi } from "../leagues.api";
@@ -71,6 +73,12 @@ export class LeagueFormDialogComponent {
    * fields, so it is checked here (not as a field submission error) and clears
    * as soon as either one changes.
    */
+  /** Editing with the same values as when it opened: Save stays disabled */
+  private readonly sameValues = formUnchanged(this.model);
+  readonly unchanged = computed(
+    () => this.league !== null && this.sameValues(),
+  );
+
   private readonly taken = signal<{
     name: string;
     adminId: number | "";

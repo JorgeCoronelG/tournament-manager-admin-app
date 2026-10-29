@@ -171,44 +171,43 @@
                 "users.fields.actions" | transloco
               }}</span>
             </th>
-            <td *matCellDef="let user" mat-cell class="whitespace-nowrap">
+            <td *matCellDef="let user" class="whitespace-nowrap" mat-cell>
               <button
                 (click)="openForm(user)"
                 [attr.aria-label]="'users.actions.edit' | transloco"
                 [matTooltip]="'users.actions.edit' | transloco"
+                class="app-action-primary"
                 mat-icon-button
                 type="button"
               >
-                <mat-icon color="primary" svgIcon="mat:edit" />
+                <mat-icon svgIcon="mat:edit" />
               </button>
-              <button
-                (click)="toggleActive(user)"
-                [attr.aria-label]="
-                  (user.is_active
-                    ? 'users.actions.deactivate'
-                    : 'users.actions.activate'
-                  ) | transloco
-                "
-                [matTooltip]="
-                  (user.is_active
-                    ? 'users.actions.deactivate'
-                    : 'users.actions.activate'
-                  ) | transloco
-                "
-                mat-icon-button
-                type="button"
-              >
-                <mat-icon
-                  [class]="
-                    user.is_active
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-gray-500 dark:text-gray-400'
+              @if (user.status !== "pending") {
+                <button
+                  (click)="toggleActive(user)"
+                  [attr.aria-label]="
+                    (user.is_active
+                      ? 'users.actions.deactivate'
+                      : 'users.actions.activate'
+                    ) | transloco
                   "
-                  [svgIcon]="
-                    user.is_active ? 'mat:toggle_on' : 'mat:toggle_off'
+                  [matTooltip]="
+                    (user.is_active
+                      ? 'users.actions.deactivate'
+                      : 'users.actions.activate'
+                    ) | transloco
                   "
-                />
-              </button>
+                  [class.app-action-success]="!user.is_active"
+                  mat-icon-button
+                  type="button"
+                >
+                  <mat-icon
+                    [svgIcon]="
+                      user.is_active ? 'mat:toggle_on' : 'mat:toggle_off'
+                    "
+                  />
+                </button>
+              }
               @if (user.status === "pending") {
                 <button
                   (click)="resendInvitation(user)"
@@ -216,20 +215,22 @@
                     'users.actions.resendInvitation' | transloco
                   "
                   [matTooltip]="'users.actions.resendInvitation' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:forward_to_inbox" />
+                  <mat-icon svgIcon="mat:forward_to_inbox" />
                 </button>
               }
               <button
                 (click)="remove(user)"
                 [attr.aria-label]="'users.actions.delete' | transloco"
                 [matTooltip]="'users.actions.delete' | transloco"
+                class="app-action-danger"
                 mat-icon-button
                 type="button"
               >
-                <mat-icon color="warn" svgIcon="mat:delete" />
+                <mat-icon svgIcon="mat:delete" />
               </button>
             </td>
           </ng-container>

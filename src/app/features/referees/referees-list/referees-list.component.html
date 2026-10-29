@@ -160,10 +160,11 @@
                     (click)="openEdit(referee)"
                     [attr.aria-label]="'referees.actions.edit' | transloco"
                     [matTooltip]="'referees.actions.edit' | transloco"
+                    class="app-action-primary"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="primary" svgIcon="mat:edit" />
+                    <mat-icon svgIcon="mat:edit" />
                   </button>
                   <button
                     (click)="resendInvitation(referee)"
@@ -173,10 +174,11 @@
                     [matTooltip]="
                       'referees.actions.resendInvitation' | transloco
                     "
+                    class="app-action-primary"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="primary" svgIcon="mat:forward_to_inbox" />
+                    <mat-icon svgIcon="mat:forward_to_inbox" />
                   </button>
                 }
                 <button
@@ -193,15 +195,11 @@
                       : 'referees.actions.activate'
                     ) | transloco
                   "
+                  [class.app-action-success]="!(referee.status === 'active')"
                   mat-icon-button
                   type="button"
                 >
                   <mat-icon
-                    [class]="
-                      referee.status === 'active'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-500 dark:text-gray-400'
-                    "
                     [svgIcon]="
                       referee.status === 'active'
                         ? 'mat:toggle_on'
@@ -213,10 +211,11 @@
                   (click)="remove(referee)"
                   [attr.aria-label]="'referees.actions.remove' | transloco"
                   [matTooltip]="'referees.actions.remove' | transloco"
+                  class="app-action-danger"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="warn" svgIcon="mat:person_remove" />
+                  <mat-icon svgIcon="mat:person_remove" />
                 </button>
               </td>
             </ng-container>

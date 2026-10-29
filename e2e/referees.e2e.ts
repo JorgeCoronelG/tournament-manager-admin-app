@@ -55,6 +55,10 @@ test.describe("referees", () => {
 
     const row = page.locator("tr[mat-row]").first();
     await row.getByRole("button", { name: "Dar de baja en la liga" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Desactivar" })
+      .click();
     await expect(row).toContainText("Inactivo");
     expect(api.statusChanges).toEqual([{ id: 1, status: "inactive" }]);
 
@@ -132,12 +136,12 @@ test.describe("referees", () => {
     await dialog.getByLabel("Nombre").fill("Ana");
     await dialog.getByLabel("Apellido").fill("Pérez");
     await dialog.getByLabel("Correo").fill("ana@example.com");
-    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await dialog.getByRole("button", { name: "Crear árbitro" }).click();
 
     await expect(
       dialog.getByText("El correo ya está registrado."),
     ).toBeVisible();
-    await dialog.getByRole("button", { name: "Agrégalo con ella" }).click();
+    await dialog.getByRole("button", { name: "Buscar por clave" }).click();
     await expect(dialog.getByRole("textbox", { name: "Clave" })).toBeVisible();
     await expect(dialog).toContainText("Pídele su clave");
   });

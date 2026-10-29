@@ -159,10 +159,11 @@
                   (click)="openForm(team)"
                   [attr.aria-label]="'teams.actions.edit' | transloco"
                   [matTooltip]="'teams.actions.edit' | transloco"
+                  class="app-action-primary"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="primary" svgIcon="mat:edit" />
+                  <mat-icon svgIcon="mat:edit" />
                 </button>
                 <button
                   (click)="openManager(team)"
@@ -178,6 +179,7 @@
                       : 'teams.actions.assignManager'
                     ) | transloco
                   "
+                  class="app-action-primary"
                   mat-icon-button
                   type="button"
                 >
@@ -185,7 +187,6 @@
                     [svgIcon]="
                       team.manager ? 'mat:swap_horiz' : 'mat:person_add'
                     "
-                    color="primary"
                   />
                 </button>
                 @if (team.manager?.account_status === "pending") {
@@ -193,10 +194,11 @@
                     (click)="openManagerEdit(team)"
                     [attr.aria-label]="'teams.actions.editManager' | transloco"
                     [matTooltip]="'teams.actions.editManager' | transloco"
+                    class="app-action-primary"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="primary" svgIcon="mat:manage_accounts" />
+                    <mat-icon svgIcon="mat:manage_accounts" />
                   </button>
                   <button
                     (click)="resendInvitation(team)"
@@ -204,10 +206,11 @@
                       'teams.actions.resendInvitation' | transloco
                     "
                     [matTooltip]="'teams.actions.resendInvitation' | transloco"
+                    class="app-action-primary"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="primary" svgIcon="mat:forward_to_inbox" />
+                    <mat-icon svgIcon="mat:forward_to_inbox" />
                   </button>
                 }
                 @if (team.manager) {
@@ -217,10 +220,11 @@
                       'teams.actions.removeManager' | transloco
                     "
                     [matTooltip]="'teams.actions.removeManager' | transloco"
+                    class="app-action-danger"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="warn" svgIcon="mat:person_remove" />
+                    <mat-icon svgIcon="mat:person_remove" />
                   </button>
                 }
                 <button
@@ -237,15 +241,12 @@
                       : 'teams.actions.ban'
                     ) | transloco
                   "
+                  [class.app-action-danger]="!(team.status === 'banned')"
+                  [class.app-action-success]="team.status === 'banned'"
                   mat-icon-button
                   type="button"
                 >
                   <mat-icon
-                    [class]="
-                      team.status === 'banned'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-amber-600 dark:text-amber-400'
-                    "
                     [svgIcon]="
                       team.status === 'banned'
                         ? 'mat:check_circle'
@@ -257,10 +258,11 @@
                   (click)="remove(team)"
                   [attr.aria-label]="'teams.actions.delete' | transloco"
                   [matTooltip]="'teams.actions.delete' | transloco"
+                  class="app-action-danger"
                   mat-icon-button
                   type="button"
                 >
-                  <mat-icon color="warn" svgIcon="mat:delete" />
+                  <mat-icon svgIcon="mat:delete" />
                 </button>
               </td>
             </ng-container>

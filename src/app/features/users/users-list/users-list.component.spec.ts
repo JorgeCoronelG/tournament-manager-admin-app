@@ -210,11 +210,21 @@ describe("UsersListComponent", () => {
     expect(labels).toEqual([false, true]);
   });
 
-  it("toggles the active flag and reloads", () => {
+  it("toggles the active flag only after the user confirms", () => {
     const { componentInstance: list } = setup();
 
+    confirm.mockReturnValue(of(false));
     list.toggleActive(user(1));
+    expect(setStatus).not.toHaveBeenCalled();
 
+    confirm.mockReturnValue(of(true));
+    list.toggleActive(user(1));
+    expect(confirm).toHaveBeenCalledWith({
+      key: "users.deactivate",
+      params: { name: "Ana1 Pérez" },
+      tone: "primary",
+      cancelOutlined: true,
+    });
     expect(setStatus).toHaveBeenCalledWith(1, false);
     expect(reload).toHaveBeenCalled();
     expect(notifySuccess).toHaveBeenCalledWith("users.deactivated");
@@ -249,6 +259,7 @@ describe("UsersListComponent", () => {
   it("reports a failed action", () => {
     setStatus.mockReturnValue(throwError(() => new Error("boom")));
     const { componentInstance: list } = setup();
+    confirm.mockReturnValue(of(true));
 
     list.toggleActive(user(1));
 

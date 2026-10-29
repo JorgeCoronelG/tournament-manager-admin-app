@@ -35,9 +35,9 @@ describe("ConfirmDialogService", () => {
     expect(open).toHaveBeenCalledWith(ConfirmDialogComponent, {
       autoFocus: "dialog",
       data: {
-        title: "Eliminar usuario",
+        title: "¿Eliminar usuario?",
         message:
-          "¿Seguro que quieres eliminar a Ana Pérez?\nEsta acción no se puede deshacer.",
+          "¿Seguro que quieres eliminar a <b>Ana Pérez</b>?\nEsta acción no se puede deshacer.",
         confirmLabel: "Eliminar",
       },
     });

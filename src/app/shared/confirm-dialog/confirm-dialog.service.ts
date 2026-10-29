@@ -17,7 +17,19 @@ export interface ConfirmOptions {
   params?: Record<string, unknown>;
   /** Confirm button color: `danger` (red, default) or `primary` */
   tone?: "danger" | "primary";
+  /** Cancel button with an outline instead of plain text */
+  cancelOutlined?: boolean;
 }
+
+/** The message is shown as HTML (so a text can bold a value): values are escaped */
+const escapeHtml = (value: unknown): unknown =>
+  typeof value === "string"
+    ? value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+    : value;
 
 /** Asks the user to confirm a destructive action */
 @Service()
@@ -26,7 +38,12 @@ export class ConfirmDialogService {
   private readonly transloco = inject(TranslocoService);
 
   /** Emits once: `true` if the user confirmed, `false` if they cancelled or dismissed it */
-  confirm({ key, params, tone }: ConfirmOptions): Observable<boolean> {
+  confirm({
+    key,
+    params,
+    tone,
+    cancelOutlined,
+  }: ConfirmOptions): Observable<boolean> {
     return this.dialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(
         ConfirmDialogComponent,
@@ -36,8 +53,15 @@ export class ConfirmDialogService {
           autoFocus: "dialog",
           data: {
             tone,
+            cancelOutlined,
             title: this.transloco.translate(`${key}.title`),
-            message: this.transloco.translate(`${key}.message`, params),
+            message: this.transloco.translate(
+              `${key}.message`,
+              params &&
+                Object.fromEntries(
+                  Object.entries(params).map(([k, v]) => [k, escapeHtml(v)]),
+                ),
+            ),
             confirmLabel: this.transloco.translate(`${key}.confirm`),
           },
         },

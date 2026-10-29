@@ -26,6 +26,7 @@ import {
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { tap } from "rxjs";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import { Referee } from "../referee.model";
 import {
   NAME_MAX,
@@ -77,6 +78,9 @@ export class RefereeEditDialogComponent {
     email: this.referee.email,
     phone: this.referee.phone ?? "",
   });
+
+  /** The same values as when it opened: Save stays disabled */
+  readonly unchanged = formUnchanged(this.model);
 
   readonly refereeForm = form(this.model, (referee) => {
     required(referee.first_name);

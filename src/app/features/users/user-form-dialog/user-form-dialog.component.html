@@ -95,7 +95,7 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
-      [disabled]="userForm().submitting()"
+      [disabled]="userForm().submitting() || unchanged()"
       color="primary"
       mat-flat-button
       type="submit"

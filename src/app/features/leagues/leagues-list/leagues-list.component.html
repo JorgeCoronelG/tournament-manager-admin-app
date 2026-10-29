@@ -74,8 +74,8 @@
                   <span class="text-xs text-secondary">{{
                     league.admin.email
                   }}</span>
+                  <app-user-status-chip [status]="league.admin.status" />
                 </div>
-                <app-user-status-chip [status]="league.admin.status" />
               </div>
             </td>
           </ng-container>
@@ -100,19 +100,21 @@
                 (click)="openForm(league)"
                 [attr.aria-label]="'leagues.actions.edit' | transloco"
                 [matTooltip]="'leagues.actions.edit' | transloco"
+                class="app-action-primary"
                 mat-icon-button
                 type="button"
               >
-                <mat-icon color="primary" svgIcon="mat:edit" />
+                <mat-icon svgIcon="mat:edit" />
               </button>
               <button
                 (click)="remove(league)"
                 [attr.aria-label]="'leagues.actions.delete' | transloco"
                 [matTooltip]="'leagues.actions.delete' | transloco"
+                class="app-action-danger"
                 mat-icon-button
                 type="button"
               >
-                <mat-icon color="warn" svgIcon="mat:delete" />
+                <mat-icon svgIcon="mat:delete" />
               </button>
             </td>
           </ng-container>

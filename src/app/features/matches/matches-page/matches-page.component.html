@@ -70,11 +70,11 @@
               (click)="clearSchedule()"
               [attr.aria-label]="clearLabel() | transloco"
               [matTooltip]="clearLabel() | transloco"
-              class="mt-2 [&_.mat-mdc-button-touch-target]:hidden"
+              class="mt-2 [&_.mat-mdc-button-touch-target]:hidden app-action-danger"
               mat-icon-button
               type="button"
             >
-              <mat-icon color="warn" svgIcon="mat:event_busy" />
+              <mat-icon svgIcon="mat:event_busy" />
             </button>
           }
         </div>
@@ -267,10 +267,11 @@
               (click)="regenerate()"
               [attr.aria-label]="'matches.regenerate.action' | transloco"
               [disabled]="locked()"
+              class="app-action-primary"
               mat-icon-button
               type="button"
             >
-              <mat-icon color="primary" svgIcon="mat:autorenew" />
+              <mat-icon svgIcon="mat:autorenew" />
             </button>
           </span>
           @if (canClose()) {
@@ -278,13 +279,11 @@
               (click)="closePhase()"
               [attr.aria-label]="'matches.close.action' | transloco"
               [matTooltip]="'matches.close.action' | transloco"
+              class="app-action-success"
               mat-icon-button
               type="button"
             >
-              <mat-icon
-                class="text-green-600 dark:text-green-400"
-                svgIcon="mat:flag"
-              />
+              <mat-icon svgIcon="mat:flag" />
             </button>
           }
           <span
@@ -296,12 +295,12 @@
             <button
               (click)="remove()"
               [attr.aria-label]="'matches.delete.action' | transloco"
-              class="[&_.mat-mdc-button-touch-target]:hidden"
+              class="[&_.mat-mdc-button-touch-target]:hidden app-action-danger"
               [disabled]="locked()"
               mat-icon-button
               type="button"
             >
-              <mat-icon color="warn" svgIcon="mat:delete_sweep" />
+              <mat-icon svgIcon="mat:delete_sweep" />
             </button>
           </span>
         </div>
@@ -424,10 +423,11 @@
                       (click)="programMatch(match)"
                       [attr.aria-label]="'matches.program.action' | transloco"
                       [matTooltip]="'matches.program.action' | transloco"
+                      class="app-action-primary"
                       mat-icon-button
                       type="button"
                     >
-                      <mat-icon color="primary" svgIcon="mat:calendar_month" />
+                      <mat-icon svgIcon="mat:calendar_month" />
                     </button>
                   }
                   @if (editable()) {
@@ -442,10 +442,11 @@
                               }
                       "
                       [matTooltip]="'matches.result.editTooltip' | transloco"
+                      class="app-action-primary"
                       mat-icon-button
                       type="button"
                     >
-                      <mat-icon color="primary" svgIcon="mat:scoreboard" />
+                      <mat-icon svgIcon="mat:scoreboard" />
                     </button>
                   }
                 </span>

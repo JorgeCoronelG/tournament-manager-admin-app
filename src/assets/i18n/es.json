@@ -80,6 +80,9 @@
       "active": "Activo",
       "inactive": "Inactivo"
     },
+    "statusHint": {
+      "pending": "Este usuario aún no ha activado su cuenta."
+    },
     "filters": {
       "allRoles": "Todos los roles",
       "allStatuses": "Todos los estados"
@@ -92,15 +95,25 @@
       "delete": "Eliminar",
       "copyCode": "Copiar clave {{code}}"
     },
+    "activate": {
+      "title": "¿Activar usuario?",
+      "message": "Se habilitará la cuenta de <b>{{name}}</b> para que pueda acceder al sistema nuevamente.",
+      "confirm": "Activar"
+    },
+    "deactivate": {
+      "title": "¿Desactivar usuario?",
+      "message": "El usuario <b>{{name}}</b> no podrá acceder al sistema mientras su cuenta esté desactivada. Podrás volver a activarla en cualquier momento.",
+      "confirm": "Desactivar"
+    },
     "delete": {
-      "title": "Eliminar usuario",
-      "message": "¿Seguro que quieres eliminar a {{name}}?\nEsta acción no se puede deshacer.",
+      "title": "¿Eliminar usuario?",
+      "message": "¿Seguro que quieres eliminar a <b>{{name}}</b>?\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
       "newTitle": "Nuevo usuario",
       "editTitle": "Editar usuario",
-      "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
+      "invitationNotice": "Le enviaremos un correo para que active su cuenta y establezca su contraseña.",
       "phoneHint": "Obligatorio para jugadores",
       "rolesError": "No pudimos cargar los roles."
     },
@@ -128,8 +141,8 @@
       "delete": "Eliminar"
     },
     "delete": {
-      "title": "Eliminar liga",
-      "message": "¿Seguro que quieres eliminar la liga {{name}}?\nEsta acción no se puede deshacer.",
+      "title": "¿Eliminar liga?",
+      "message": "¿Seguro que quieres eliminar la liga <b>{{name}}</b>?\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -385,9 +398,14 @@
       "deactivate": "Dar de baja en la liga",
       "remove": "Quitar de la liga"
     },
+    "deactivate": {
+      "title": "¿Desactivar árbitro?",
+      "message": "El árbitro <b>{{name}}</b> dejará de estar disponible para nuevas asignaciones en esta liga. Podrás volver a activarlo en cualquier momento.",
+      "confirm": "Desactivar"
+    },
     "remove": {
-      "title": "Quitar árbitro",
-      "message": "¿Seguro que quieres quitar a {{name}} de la liga?\nSu cuenta seguirá existiendo y podrás volver a agregarlo con su clave.",
+      "title": "¿Quitar árbitro de la liga?",
+      "message": "Se quitará a <b>{{name}}</b> de esta liga.\nSu cuenta seguirá existiendo y podrás volver a agregarlo con su clave.",
       "confirm": "Quitar"
     },
     "form": {
@@ -398,11 +416,12 @@
       "title": "Agregar árbitro",
       "newTab": "Árbitro nuevo",
       "codeTab": "Ya tiene clave",
-      "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
-      "duplicate": "Ese correo o teléfono ya está registrado. Si es un árbitro, ¿ya tiene clave?",
-      "goToCode": "Agrégalo con ella",
+      "invitationNotice": "Le enviaremos un correo para que active su cuenta y establezca su contraseña.",
+      "duplicate": "Ya existe un usuario con estos datos.\nSi la persona ya está registrada como árbitro y tiene una clave, puedes agregarla a esta liga usando esa clave.\n",
+      "goToCode": "Buscar por clave",
       "codeHelp": "Pídele su clave de árbitro a la persona y escríbela aquí.",
       "search": "Buscar",
+      "create": "Crear árbitro",
       "attach": "Agregar a la liga",
       "alreadyInLeague": "Ya está en esta liga.",
       "lookup": {
@@ -446,13 +465,13 @@
       "delete": "Eliminar"
     },
     "deactivate": {
-      "title": "Desactivar cancha",
-      "message": "¿Seguro que quieres desactivar la cancha {{name}}?\nNo podrá usarse hasta que la vuelvas a activar.",
+      "title": "¿Desactivar cancha?",
+      "message": "¿Seguro que quieres desactivar la cancha <b>{{name}}</b>?\nNo podrá usarse hasta que la vuelvas a activar.",
       "confirm": "Desactivar"
     },
     "delete": {
-      "title": "Eliminar cancha",
-      "message": "¿Seguro que quieres eliminar la cancha {{name}}?\nEsta acción no se puede deshacer.",
+      "title": "¿Eliminar cancha?",
+      "message": "¿Seguro que quieres eliminar la cancha <b>{{name}}</b>?\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -1200,7 +1219,7 @@
         "code": "Ya tiene clave"
       },
       "noneHelp": "Podrás asignar un delegado más adelante desde la lista.",
-      "invitationNotice": "Le enviaremos un correo para que active su cuenta y elija su contraseña.",
+      "invitationNotice": "Le enviaremos un correo para que active su cuenta y establezca su contraseña.",
       "firstName": "Nombre",
       "lastName": "Apellido",
       "email": "Correo",

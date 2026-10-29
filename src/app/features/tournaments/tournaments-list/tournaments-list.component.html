@@ -137,10 +137,11 @@
                     (click)="openForm(tournament)"
                     [attr.aria-label]="'tournaments.actions.edit' | transloco"
                     [matTooltip]="'tournaments.actions.edit' | transloco"
+                    class="app-action-primary"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="primary" svgIcon="mat:edit" />
+                    <mat-icon svgIcon="mat:edit" />
                   </button>
                   <button
                     (click)="advance(tournament)"
@@ -156,18 +157,16 @@
                         : 'tournaments.actions.finish'
                       ) | transloco
                     "
+                    [class.app-action-primary]="
+                      tournament.status === 'planning'
+                    "
+                    [class.app-action-success]="
+                      tournament.status !== 'planning'
+                    "
                     mat-icon-button
                     type="button"
                   >
                     <mat-icon
-                      [class]="
-                        tournament.status === 'planning'
-                          ? ''
-                          : 'text-green-600 dark:text-green-400'
-                      "
-                      [color]="
-                        tournament.status === 'planning' ? 'primary' : undefined
-                      "
                       [svgIcon]="
                         tournament.status === 'planning'
                           ? 'mat:play_circle'
@@ -181,10 +180,11 @@
                     (click)="remove(tournament)"
                     [attr.aria-label]="'tournaments.actions.delete' | transloco"
                     [matTooltip]="'tournaments.actions.delete' | transloco"
+                    class="app-action-danger"
                     mat-icon-button
                     type="button"
                   >
-                    <mat-icon color="warn" svgIcon="mat:delete" />
+                    <mat-icon svgIcon="mat:delete" />
                   </button>
                 }
               </td>

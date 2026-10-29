@@ -106,7 +106,13 @@ export class FieldsListComponent {
     this.dialog
       .open<FieldFormDialogComponent, Field | undefined, Field>(
         FieldFormDialogComponent,
-        { data: field ?? null, width: "480px", maxWidth: "95vw" },
+        {
+          data: field ?? null,
+          width: "480px",
+          maxWidth: "95vw",
+          // Creating focuses the first field; editing focuses the dialog, so nothing is typed by mistake
+          autoFocus: field ? "dialog" : "first-tabbable",
+        },
       )
       .afterClosed()
       .subscribe((saved) => {
@@ -128,7 +134,11 @@ export class FieldsListComponent {
     }
 
     this.confirmDialog
-      .confirm({ key: "fields.deactivate", params: { name: field.name } })
+      .confirm({
+        key: "fields.deactivate",
+        params: { name: field.name },
+        tone: "primary",
+      })
       .subscribe((confirmed) => {
         if (confirmed) {
           this.run(

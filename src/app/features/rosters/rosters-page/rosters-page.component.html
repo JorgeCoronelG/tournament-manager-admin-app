@@ -236,10 +236,11 @@
                             ? ('rosters.actions.remove' | transloco)
                             : ''
                         "
+                        class="app-action-danger"
                         mat-icon-button
                         type="button"
                       >
-                        <mat-icon color="warn" svgIcon="mat:remove_circle" />
+                        <mat-icon svgIcon="mat:remove_circle" />
                       </button>
                     </span>
                   } @else if (row.status === "removed") {
@@ -258,11 +259,12 @@
                           : 'rosters.actions.authorize'
                         ) | transloco
                       "
+                      [class.app-action-danger]="revoke"
+                      [class.app-action-primary]="!revoke"
                       mat-icon-button
                       type="button"
                     >
                       <mat-icon
-                        [color]="revoke ? 'warn' : 'primary'"
                         [svgIcon]="revoke ? 'mat:block' : 'mat:how_to_reg'"
                       />
                     </button>

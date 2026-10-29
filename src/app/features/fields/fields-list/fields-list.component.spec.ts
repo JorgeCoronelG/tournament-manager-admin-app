@@ -218,6 +218,7 @@ describe("FieldsListComponent", () => {
     expect(confirm).toHaveBeenCalledWith({
       key: "fields.deactivate",
       params: { name: "Cancha 1" },
+      tone: "primary",
     });
     expect(setStatus).toHaveBeenCalledWith(1, "inactive");
     expect(reload).toHaveBeenCalled();

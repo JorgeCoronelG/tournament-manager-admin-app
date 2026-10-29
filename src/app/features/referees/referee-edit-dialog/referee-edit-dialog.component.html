@@ -73,7 +73,7 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
-      [disabled]="refereeForm().submitting()"
+      [disabled]="refereeForm().submitting() || unchanged()"
       color="primary"
       mat-flat-button
       type="submit"

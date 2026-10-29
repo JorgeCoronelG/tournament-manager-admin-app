@@ -1,0 +1,33 @@
+// Tables: soft row lines, the actions column set apart on its left, and row
+// action buttons that are neutral until hovered. Then the icon and the hover
+// circle (the button's state layer) take the colour of the action:
+//   .app-action-primary  edit, view, send, change
+//   .app-action-danger   delete, remove
+//   .app-action-success  activate (add it only while the action would activate)
+.mat-mdc-table {
+  --mat-table-row-item-outline-color: var(--mat-sys-outline-variant);
+
+  .mat-column-actions {
+    border-left: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+@mixin app-action($color) {
+  &:hover,
+  &:focus-visible {
+    --mat-icon-button-state-layer-color: #{$color};
+    --mat-icon-button-icon-color: #{$color};
+  }
+}
+
+.app-action-primary {
+  @include app-action(var(--mat-sys-primary));
+}
+
+.app-action-danger {
+  @include app-action(var(--mat-sys-error));
+}
+
+.app-action-success {
+  @include app-action(rgb(var(--app-status-success)));
+}

@@ -259,10 +259,20 @@ describe("RefereesListComponent", () => {
     expect(notifySuccess).toHaveBeenCalledWith("referees.codeCopied");
   });
 
-  it("deactivates an active referee and activates an inactive one", () => {
+  it("deactivates an active referee after confirming and activates an inactive one at once", () => {
     const { componentInstance: list } = setup();
 
+    confirm.mockReturnValue(of(false));
     list.toggleStatus(referee(1));
+    expect(setStatus).not.toHaveBeenCalled();
+
+    confirm.mockReturnValue(of(true));
+    list.toggleStatus(referee(1));
+    expect(confirm).toHaveBeenCalledWith({
+      key: "referees.deactivate",
+      params: { name: expect.any(String) },
+      tone: "primary",
+    });
     expect(setStatus).toHaveBeenLastCalledWith(1, "inactive");
     expect(notifySuccess).toHaveBeenLastCalledWith("referees.deactivated");
 
@@ -301,6 +311,7 @@ describe("RefereesListComponent", () => {
   it("reports a failed action", () => {
     setStatus.mockReturnValue(throwError(() => new Error("boom")));
     const { componentInstance: list } = setup();
+    confirm.mockReturnValue(of(true));
 
     list.toggleStatus(referee(1));
 

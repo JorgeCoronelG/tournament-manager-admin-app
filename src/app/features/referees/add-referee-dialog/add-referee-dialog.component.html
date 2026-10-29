@@ -89,7 +89,7 @@
             role="status"
           >
             <mat-icon class="shrink-0" svgIcon="mat:warning" />
-            <p class="m-0 text-sm">
+            <p class="m-0 text-sm whitespace-pre-line">
               {{ "referees.add.duplicate" | transloco }}
               <button
                 (click)="goToCode()"
@@ -110,18 +110,6 @@
           <p class="text-secondary m-0 mb-2">
             {{ "referees.add.codeHelp" | transloco }}
           </p>
-        }
-
-        @if (lookupError(); as error) {
-          <div
-            class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
-            role="alert"
-          >
-            <mat-icon class="shrink-0" svgIcon="mat:warning" />
-            <p class="m-0 text-sm">
-              {{ "referees.add.lookup." + error | transloco }}
-            </p>
-          </div>
         }
 
         <form
@@ -158,6 +146,18 @@
 
         @if (searching()) {
           <mat-progress-bar mode="indeterminate" />
+        }
+
+        @if (lookupError(); as error) {
+          <div
+            class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+            role="alert"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:warning" />
+            <p class="m-0 text-sm">
+              {{ "referees.add.lookup." + error | transloco }}
+            </p>
+          </div>
         }
 
         @if (found(); as referee) {
@@ -197,7 +197,7 @@
       mat-flat-button
       type="submit"
     >
-      {{ "common.save" | transloco }}
+      {{ "referees.add.create" | transloco }}
     </button>
   } @else {
     <button

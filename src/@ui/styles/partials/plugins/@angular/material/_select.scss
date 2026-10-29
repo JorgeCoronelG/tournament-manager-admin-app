@@ -35,6 +35,11 @@
       @apply icon-sm transition duration-100 ease-out;
     }
 
+    // The text fills the option, so content inside it can use justify-between
+    .mdc-list-item__primary-text {
+      flex-grow: 1;
+    }
+
     &.mdc-list-item--selected:not(.mdc-list-item--disabled):not(
         .mat-mdc-option-multiple
       ) {

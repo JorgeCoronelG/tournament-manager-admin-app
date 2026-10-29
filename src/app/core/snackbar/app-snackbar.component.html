@@ -1,6 +1,6 @@
 <div class="flex items-center gap-3">
   <mat-icon [svgIcon]="icon" class="icon-sm flex-none" />
-  <span class="flex-1">{{ data.message }}</span>
+  <span [innerHTML]="data.message" class="flex-1"></span>
   <button
     (click)="dismiss()"
     [attr.aria-label]="'common.close' | transloco"

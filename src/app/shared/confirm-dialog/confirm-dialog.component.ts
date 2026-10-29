@@ -9,6 +9,8 @@ export interface ConfirmDialogData {
   confirmLabel: string;
   /** `danger` (default, red) for destructive actions; `primary` for the rest */
   tone?: "danger" | "primary";
+  /** Cancel button with an outline instead of plain text */
+  cancelOutlined?: boolean;
 }
 
 /** Closes with `true` when confirmed, `undefined` otherwise */
@@ -18,13 +20,20 @@ export interface ConfirmDialogData {
   imports: [MatButtonModule, MatDialogModule, TranslocoPipe],
   template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
-    <mat-dialog-content class="whitespace-pre-line">{{
-      data.message
-    }}</mat-dialog-content>
+    <mat-dialog-content
+      [innerHTML]="data.message"
+      class="whitespace-pre-line"
+    />
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">
-        {{ "common.cancel" | transloco }}
-      </button>
+      @if (data.cancelOutlined) {
+        <button mat-stroked-button mat-dialog-close type="button">
+          {{ "common.cancel" | transloco }}
+        </button>
+      } @else {
+        <button mat-button mat-dialog-close type="button">
+          {{ "common.cancel" | transloco }}
+        </button>
+      }
       <button
         [color]="data.tone === 'primary' ? undefined : 'warn'"
         [mat-dialog-close]="true"
