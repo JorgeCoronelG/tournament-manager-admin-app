@@ -265,6 +265,9 @@
                 tabindex="0"
               />
             </legend>
+            <p class="text-secondary text-xs m-0 mb-2">
+              {{ "tournaments.form.tiebreakersOrder" | transloco }}
+            </p>
             <ol class="m-0 p-0 list-none flex flex-col gap-1">
               @for (
                 criterion of tournamentForm.tiebreakers().value();
@@ -361,7 +364,7 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
-      [disabled]="tournamentForm().submitting()"
+      [disabled]="tournamentForm().submitting() || unchanged()"
       color="primary"
       mat-flat-button
       type="submit"

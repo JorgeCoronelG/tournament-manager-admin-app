@@ -37,6 +37,7 @@ import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { catchError, throwError } from "rxjs";
 import { fieldErrors } from "../../../core/http/api-errors";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import {
   DEFAULT_MATCH_DURATION,
   DEFAULT_ROUNDS,
@@ -132,6 +133,12 @@ export class TournamentFormDialogComponent {
       this.tournament?.match_duration_minutes ?? DEFAULT_MATCH_DURATION,
     tiebreakers: [...(this.tournament?.tiebreakers ?? DEFAULT_TIEBREAKERS)],
   });
+
+  /** Editing with the same values as when it opened: Save stays disabled */
+  private readonly sameValues = formUnchanged(this.model);
+  readonly unchanged = computed(
+    () => this.tournament !== null && this.sameValues(),
+  );
 
   /** Criteria not yet in the list, in their canonical order */
   readonly availableTiebreakers = computed(() => {

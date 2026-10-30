@@ -75,7 +75,7 @@ test.describe("tournaments", () => {
       .getByRole("button", { name: "Iniciar torneo" })
       .click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("no se puede revertir");
+    await expect(dialog).toContainText("no se puede deshacer");
     await dialog.getByRole("button", { name: "Cancelar" }).click();
     await expect(dialog).toBeHidden();
     expect(api.statusChanges).toEqual([]);

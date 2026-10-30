@@ -154,7 +154,12 @@ export class TournamentsListComponent {
     this.dialog
       .open<TournamentFormDialogComponent, Tournament | null, Tournament>(
         TournamentFormDialogComponent,
-        { data: tournament ?? null, width: "560px", maxWidth: "95vw" },
+        {
+          data: tournament ?? null,
+          width: "560px",
+          maxWidth: "95vw",
+          autoFocus: tournament ? "dialog" : "first-tabbable",
+        },
       )
       .afterClosed()
       .subscribe((saved) => {

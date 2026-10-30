@@ -308,18 +308,18 @@
       "delete": "Eliminar"
     },
     "start": {
-      "title": "Iniciar torneo",
-      "message": "¿Seguro que quieres iniciar el torneo {{name}}?\nSolo podrás editar su nombre y esta acción no se puede revertir.",
+      "title": "¿Iniciar torneo?",
+      "message": "¿Quieres iniciar el torneo <b>{{name}}</b>?\nUna vez iniciado, solo podrás modificar su nombre. Esta acción no se puede deshacer.",
       "confirm": "Iniciar"
     },
     "finish": {
-      "title": "Finalizar torneo",
-      "message": "¿Seguro que quieres finalizar el torneo {{name}}?\nYa no podrás editarlo y esta acción no se puede revertir.",
+      "title": "¿Finalizar torneo?",
+      "message": "¿Quieres finalizar el torneo <b>{{name}}</b>?\nUna vez finalizado, ya no podrás modificarlo. Esta acción no se puede deshacer.",
       "confirm": "Finalizar"
     },
     "delete": {
-      "title": "Eliminar torneo",
-      "message": "¿Seguro que quieres eliminar el torneo {{name}}?\nEsta acción no se puede deshacer.",
+      "title": "¿Eliminar torneo?",
+      "message": "¿Quieres eliminar el torneo <b>{{name}}</b>?\nSe eliminará el torneo y toda su información asociada. Esta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -331,12 +331,13 @@
       "ageBounds": "Ingresa una edad entre {{min}} y {{max}}",
       "ageRange": "La edad máxima no puede ser menor que la mínima",
       "positiveInteger": "Debe ser un número entero mayor a 0",
-      "maxRosterSizeHint": "Cuentan los jugadores activos y las solicitudes pendientes. Déjalo vacío si no hay límite.",
-      "minMatchesForPlayoffsHint": "Partidos de la fase regular en los que el jugador debe tener asistencia para jugar la liguilla. Déjalo vacío si no aplica.",
+      "maxRosterSizeHint": "Incluye los jugadores activos y las solicitudes pendientes. Déjalo vacío si no hay límite.",
+      "minMatchesForPlayoffsHint": "Número mínimo de partidos de fase regular que debe registar asistencia un jugador para participar en la liguilla. Déjalo vacío si no hay requisito.",
       "roundsHint": "Cuántas veces se enfrentan todos los equipos en la fase regular.",
-      "matchDurationHint": "Incluye los medios tiempos y descansos. Cómo se reparte la hora lo define el reglamento del torneo.",
+      "matchDurationHint": "Duración total del partido en minutos, incluyendo los descansos. La distribución del tiempo depende del reglamento del torneo.",
       "durationRange": "Ingresa una duración entre {{min}} y {{max}} minutos",
-      "tiebreakersHint": "Se aplican en este orden cuando hay empate en la tabla de posiciones. Si el empate continúa, el administrador define el orden.",
+      "tiebreakersOrder": "Se aplican en el orden mostrado.",
+      "tiebreakersHint": "Los criterios se aplican en el orden mostrado para desempatar equipos con los mismos puntos. Puedes cambiar su prioridad usando las flechas.",
       "tiebreakersRequired": "Selecciona al menos un criterio",
       "moveUp": "Subir {{name}}",
       "moveDown": "Bajar {{name}}",
