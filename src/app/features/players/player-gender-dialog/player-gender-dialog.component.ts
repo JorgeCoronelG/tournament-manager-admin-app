@@ -21,7 +21,14 @@ import {
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
-import { Player, PLAYER_GENDERS, PlayerGender } from "../player.model";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
+import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
+import {
+  fullName,
+  Player,
+  PLAYER_GENDERS,
+  PlayerGender,
+} from "../player.model";
 import { PlayersApi } from "../players.api";
 
 /**
@@ -35,6 +42,7 @@ import { PlayersApi } from "../players.api";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormField,
+    LogoImageComponent,
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -53,10 +61,14 @@ export class PlayerGenderDialogComponent {
   readonly player = inject<Player>(MAT_DIALOG_DATA);
 
   readonly genders = PLAYER_GENDERS;
+  protected readonly name = fullName(this.player);
 
   private readonly model = signal<{ gender: PlayerGender }>({
     gender: this.player.gender,
   });
+
+  /** Same gender as when it opened: Save stays disabled */
+  readonly unchanged = formUnchanged(this.model);
 
   /** A refusal that belongs to no field, with the tournaments that block it */
   readonly serverError = signal<string | null>(null);

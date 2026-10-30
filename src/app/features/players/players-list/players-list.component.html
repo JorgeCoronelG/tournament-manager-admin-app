@@ -39,11 +39,11 @@
             <mat-option value="">{{
               "players.filters.allStatuses" | transloco
             }}</mat-option>
-            <mat-option value="banned">{{
-              "players.filters.banned" | transloco
-            }}</mat-option>
             <mat-option value="not_banned">{{
               "players.filters.notBanned" | transloco
+            }}</mat-option>
+            <mat-option value="banned">{{
+              "players.filters.banned" | transloco
             }}</mat-option>
           </mat-select>
         </mat-form-field>
@@ -93,6 +93,15 @@
                   @for (team of teams(player); track $index) {
                     <div class="text-secondary text-sm">{{ team }}</div>
                   }
+                  @let more = moreTeams(player);
+                  @if (more > 0) {
+                    <div class="text-secondary text-sm">
+                      {{
+                        (more === 1 ? "players.moreOne" : "players.more")
+                          | transloco: { count: more }
+                      }}
+                    </div>
+                  }
                 </div>
               </td>
             </ng-container>
@@ -139,6 +148,11 @@
                   <span
                     class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
                     >{{ "players.status.banned" | transloco }}</span
+                  >
+                } @else {
+                  <span
+                    class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/10 text-green-800 dark:text-green-400"
+                    >{{ "players.status.active" | transloco }}</span
                   >
                 }
               </td>

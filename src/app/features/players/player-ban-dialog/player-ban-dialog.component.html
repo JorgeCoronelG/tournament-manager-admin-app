@@ -12,9 +12,12 @@
       </div>
     }
 
-    <p class="m-0 mb-2">
-      {{ "players.ban.message" | transloco: { name } }}
-    </p>
+    <p
+      class="m-0 mb-2"
+      [innerHTML]="
+        'players.ban.message' | transloco: { name, code: player.user_code }
+      "
+    ></p>
 
     <mat-form-field>
       <mat-label>{{ "players.ban.reason" | transloco }}</mat-label>
@@ -29,7 +32,9 @@
       role="status"
     >
       <mat-icon class="shrink-0" svgIcon="mat:warning" />
-      <p class="m-0 text-sm">{{ "players.ban.info" | transloco }}</p>
+      <p class="m-0 text-sm whitespace-pre-line">
+        {{ "players.ban.info" | transloco }}
+      </p>
     </div>
   </mat-dialog-content>
 

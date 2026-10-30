@@ -496,6 +496,8 @@
     "search": "Buscar por nombre o clave",
     "empty": "Todavía no hay jugadores con plantilla en esta liga.",
     "error": "No pudimos cargar los jugadores.",
+    "moreOne": "+1 participación más",
+    "more": "+{{count}} participaciones más",
     "genderUpdated": "Rama actualizada",
     "banned": "Jugador vetado.",
     "unbanned": "Jugador reactivado.",
@@ -506,21 +508,21 @@
       "birthDate": "Fecha de nacimiento",
       "age": "Edad",
       "phone": "Teléfono",
-      "status": "Estado",
+      "status": "Estado en la liga",
       "actions": "Acciones"
     },
     "gender": {
       "male": "Varonil",
       "female": "Femenil",
       "title": "Corregir rama",
-      "hint": "Solo cámbiala si el jugador se registró con la rama equivocada. Si está inscrito en un torneo que no acepta la nueva rama, primero hay que quitarlo de ese torneo."
+      "hint": "Cambia la rama solo si el jugador se registró incorrectamente. Si participa en un torneo que no admite la nueva rama, primero deberás retirarlo de ese torneo."
     },
-    "status": { "banned": "Vetado" },
+    "status": { "active": "Activo", "banned": "Vetado" },
     "filters": {
       "allGenders": "Todas",
       "allStatuses": "Todos",
-      "banned": "Vetados",
-      "notBanned": "No vetados"
+      "banned": "Vetado",
+      "notBanned": "Activo"
     },
     "actions": {
       "detail": "Ver detalle",
@@ -529,9 +531,9 @@
       "reactivate": "Reactivar"
     },
     "ban": {
-      "title": "Vetar jugador",
-      "message": "¿Seguro que quieres vetar a {{name}}?",
-      "info": "Se quitará de las plantillas de los torneos en planeación y en curso de esta liga, y no podrá recibir nuevas solicitudes hasta que lo reactives. Sus estadísticas se conservan.",
+      "title": "¿Vetar jugador?",
+      "message": "¿Seguro que quieres vetar a <b>{{name}} ({{code}})</b>?",
+      "info": "Consecuencias del veto.\nEl jugador será retirado de las plantillas de los torneos en planeación y en curso de esta liga. No podrá recibir nuevas solicitudes de inscripción hasta que se reactive. Sus estadísticas se conservarán.",
       "reason": "Motivo",
       "confirm": "Vetar"
     },
@@ -557,7 +559,9 @@
       "rosters": "Plantillas",
       "noRosters": "Todavía no tiene plantillas en esta liga.",
       "jersey": "Dorsal {{number}}",
-      "bans": "Vetos",
+      "bans": "Historial de vetos",
+      "banActive": "Vigente",
+      "banLifted": "Levantado",
       "noBans": "Nunca ha sido vetado en esta liga.",
       "bannedBy": "Vetado por {{name}} · {{date}}",
       "liftedBy": "Reactivado por {{name}} · {{date}}"

@@ -45,6 +45,9 @@ import {
 } from "../player.model";
 import { PlayersApi } from "../players.api";
 
+/** Teams listed under a player; the rest are summed up as "+N participaciones más" */
+const MAX_TEAMS_SHOWN = 3;
+
 @Component({
   selector: "app-players-list",
   templateUrl: "./players-list.component.html",
@@ -126,11 +129,18 @@ export class PlayersListComponent {
   protected readonly fullName = fullName;
   protected readonly formatBirthDate = formatBirthDate;
 
-  /** "Halcones · Torneo Apertura" for each team the player is active in */
+  /** "Halcones · Torneo Apertura" for each team the player is active in, up to the first few */
   teams(player: Player): string[] {
-    return player.active_teams.map(({ team, tournament }) =>
-      [team, tournament].filter(Boolean).join(" · "),
-    );
+    return player.active_teams
+      .slice(0, MAX_TEAMS_SHOWN)
+      .map(({ team, tournament }) =>
+        [team, tournament].filter(Boolean).join(" · "),
+      );
+  }
+
+  /** How many teams do not fit in the list */
+  moreTeams(player: Player): number {
+    return Math.max(0, player.active_teams.length - MAX_TEAMS_SHOWN);
   }
 
   openDetail(player: Player): void {
@@ -138,7 +148,8 @@ export class PlayersListComponent {
       PlayerDetailDialogComponent,
       {
         data: { playerId: player.id },
-        width: "560px",
+        autoFocus: "dialog",
+        width: "640px",
         maxWidth: "95vw",
       },
     );
@@ -148,7 +159,12 @@ export class PlayersListComponent {
     this.dialog
       .open<PlayerGenderDialogComponent, Player, boolean>(
         PlayerGenderDialogComponent,
-        { data: player, width: "480px", maxWidth: "95vw" },
+        {
+          data: player,
+          width: "480px",
+          maxWidth: "95vw",
+          autoFocus: "dialog",
+        },
       )
       .afterClosed()
       .subscribe((saved) => {

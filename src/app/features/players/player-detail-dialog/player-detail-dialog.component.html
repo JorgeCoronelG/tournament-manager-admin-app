@@ -16,92 +16,120 @@
       </button>
     </div>
   } @else if (player(); as player) {
-    <div class="flex items-center gap-4 mb-4">
-      <app-logo-image
-        [alt]="fullName(player)"
-        [src]="player.photo_url"
-        class="w-16 h-16 rounded-full shrink-0"
-      />
-      <div>
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-lg font-medium">{{ fullName(player) }}</span>
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-4 mb-6">
+      <div class="flex items-center gap-4">
+        @if (player.photo_url) {
+          <a
+            [href]="player.photo_url"
+            class="shrink-0"
+            rel="noopener"
+            target="_blank"
+          >
+            <app-logo-image
+              [alt]="fullName(player)"
+              [src]="player.photo_url"
+              class="w-24 h-24 rounded-full"
+            />
+          </a>
+        } @else {
+          <app-logo-image
+            [alt]="fullName(player)"
+            [src]="player.photo_url"
+            class="w-24 h-24 rounded-full shrink-0"
+          />
+        }
+        <div>
+          <div class="text-xl font-medium">{{ fullName(player) }}</div>
+          <div class="text-secondary">{{ player.user_code }}</div>
           @if (player.is_banned) {
             <span
-              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+              class="inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
               >{{ "players.status.banned" | transloco }}</span
             >
           }
         </div>
-        <div class="text-secondary text-sm">{{ player.user_code }}</div>
       </div>
+
+      <dl
+        class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 m-0 sm:border-l sm:pl-6 border-[var(--app-border-color,rgb(128_128_128/0.25))]"
+      >
+        <dt class="font-semibold">
+          {{ "players.fields.gender" | transloco }}
+        </dt>
+        <dd class="m-0 text-secondary">
+          {{ "players.gender." + player.gender | transloco }}
+        </dd>
+        <dt class="font-semibold">
+          {{ "players.fields.birthDate" | transloco }}
+        </dt>
+        <dd class="m-0 text-secondary">
+          {{ formatBirthDate(player.birth_date) }}
+        </dd>
+        <dt class="font-semibold">{{ "players.fields.age" | transloco }}</dt>
+        <dd class="m-0 text-secondary">{{ player.age }}</dd>
+        <dt class="font-semibold">{{ "players.fields.phone" | transloco }}</dt>
+        <dd class="m-0 text-secondary">{{ player.phone ?? "—" }}</dd>
+      </dl>
     </div>
 
-    <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 m-0 mb-6">
-      <dt class="text-secondary font-semibold">
-        {{ "players.fields.gender" | transloco }}
-      </dt>
-      <dd class="m-0">{{ "players.gender." + player.gender | transloco }}</dd>
-      <dt class="text-secondary font-semibold">
-        {{ "players.fields.birthDate" | transloco }}
-      </dt>
-      <dd class="m-0">{{ formatBirthDate(player.birth_date) }}</dd>
-      <dt class="text-secondary font-semibold">
-        {{ "players.fields.age" | transloco }}
-      </dt>
-      <dd class="m-0">{{ player.age }}</dd>
-      <dt class="text-secondary font-semibold">
-        {{ "players.fields.phone" | transloco }}
-      </dt>
-      <dd class="m-0">{{ player.phone ?? "—" }}</dd>
-    </dl>
-
-    <h3 class="text-base font-medium m-0 mb-2">
-      {{ "players.detail.rosters" | transloco }}
+    <h3 class="text-lg font-medium m-0 mb-2">
+      {{ "players.detail.rosters" | transloco }} ({{ player.rosters.length }})
     </h3>
     @if (player.rosters.length === 0) {
       <p class="text-secondary mt-0 mb-6">
         {{ "players.detail.noRosters" | transloco }}
       </p>
     } @else {
-      <ul class="list-none p-0 m-0 mb-6 flex flex-col gap-3">
+      <ul
+        class="list-none p-0 m-0 mb-6 rounded border border-solid border-[rgb(128_128_128/0.25)] divide-y divide-[rgb(128_128_128/0.25)]"
+      >
         @for (roster of player.rosters; track roster.id) {
-          <li class="flex flex-col gap-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="font-medium">{{ roster.team }}</span>
-              <span class="text-secondary">· {{ roster.tournament }}</span>
-              <app-roster-status-chip [status]="roster.status" />
-            </div>
-            <div class="text-secondary text-sm">
-              {{
-                "players.detail.jersey"
-                  | transloco: { number: roster.jersey_number }
-              }}
-            </div>
-            @if (roster.status === "removed") {
+          <li class="flex items-start gap-3 p-3">
+            <span
+              class="flex items-center justify-center w-10 h-10 rounded-full shrink-0 bg-[rgb(128_128_128/0.15)] text-secondary"
+            >
+              <mat-icon svgIcon="mat:shield" />
+            </span>
+            <div class="flex flex-col gap-1 flex-1 min-w-0">
+              <div class="flex flex-wrap items-baseline gap-x-3">
+                <span class="font-semibold">{{ roster.team }}</span>
+                <span class="text-secondary text-sm">{{
+                  roster.tournament
+                }}</span>
+              </div>
               <div class="text-secondary text-sm">
                 {{
-                  "rosters.removedBy"
-                    | transloco
-                      : {
-                          name: roster.removed_by?.name ?? "—",
-                          date: (roster.removed_at | appDateFormatRelative),
-                        }
+                  "players.detail.jersey"
+                    | transloco: { number: roster.jersey_number }
                 }}
-                @if (roster.removal_reason) {
-                  <br />{{
-                    "rosters.removalReason"
-                      | transloco: { reason: roster.removal_reason }
-                  }}
-                }
               </div>
-            }
+              @if (roster.status === "removed") {
+                <div class="text-secondary text-sm">
+                  {{
+                    "rosters.removedBy"
+                      | transloco
+                        : {
+                            name: roster.removed_by?.name ?? "—",
+                            date: (roster.removed_at | appDateFormatRelative),
+                          }
+                  }}
+                  @if (roster.removal_reason) {
+                    <br />{{
+                      "rosters.removalReason"
+                        | transloco: { reason: roster.removal_reason }
+                    }}
+                  }
+                </div>
+              }
+            </div>
+            <app-roster-status-chip [status]="roster.status" />
           </li>
         }
       </ul>
     }
 
-    <h3 class="text-base font-medium m-0 mb-2">
-      {{ "players.detail.bans" | transloco }}
+    <h3 class="text-lg font-medium m-0 mb-2">
+      {{ "players.detail.bans" | transloco }} ({{ player.bans.length }})
     </h3>
     @if (player.bans.length === 0) {
       <p class="text-secondary mt-0">
@@ -110,32 +138,72 @@
     } @else {
       <ul class="list-none p-0 m-0 flex flex-col gap-3">
         @for (ban of player.bans; track ban.id) {
-          <li class="flex flex-col gap-1">
-            <div>
-              {{ "rosters.removalReason" | transloco: { reason: ban.reason } }}
-            </div>
-            <div class="text-secondary text-sm">
-              {{
-                "players.detail.bannedBy"
-                  | transloco
-                    : {
-                        name: ban.banned_by?.name ?? "—",
-                        date: (ban.banned_at | appDateFormatRelative),
-                      }
-              }}
-            </div>
-            @if (ban.lifted_at) {
+          <li
+            [class]="
+              ban.lifted_at ? 'bg-[rgb(128_128_128/0.08)]' : 'bg-red-600/10'
+            "
+            class="flex items-start gap-3 p-3 rounded"
+          >
+            <span
+              [class]="
+                ban.lifted_at
+                  ? 'text-secondary'
+                  : 'text-red-700 dark:text-red-400'
+              "
+              class="flex items-center justify-center w-10 h-10 rounded-full shrink-0 bg-white/60 dark:bg-white/10"
+            >
+              <mat-icon svgIcon="mat:block" />
+            </span>
+            <div class="flex flex-col gap-1 flex-1 min-w-0">
+              <div
+                [class.text-red-800]="!ban.lifted_at"
+                [class.dark:text-red-400]="!ban.lifted_at"
+                class="font-semibold"
+              >
+                {{ "players.status.banned" | transloco }}
+              </div>
               <div class="text-secondary text-sm">
                 {{
-                  "players.detail.liftedBy"
+                  "players.detail.bannedBy"
                     | transloco
                       : {
-                          name: ban.lifted_by?.name ?? "—",
-                          date: (ban.lifted_at | appDateFormatRelative),
+                          name: ban.banned_by?.name ?? "—",
+                          date: (ban.banned_at | appDateFormatRelative),
                         }
                 }}
               </div>
-            }
+              <div class="text-secondary text-sm">
+                {{
+                  "rosters.removalReason" | transloco: { reason: ban.reason }
+                }}
+              </div>
+              @if (ban.lifted_at) {
+                <div class="text-secondary text-sm">
+                  {{
+                    "players.detail.liftedBy"
+                      | transloco
+                        : {
+                            name: ban.lifted_by?.name ?? "—",
+                            date: (ban.lifted_at | appDateFormatRelative),
+                          }
+                  }}
+                </div>
+              }
+            </div>
+            <span
+              [class]="
+                ban.lifted_at
+                  ? 'bg-gray-500/10 text-gray-600 dark:text-gray-400'
+                  : 'bg-red-600/10 text-red-800 dark:text-red-400'
+              "
+              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+              >{{
+                (ban.lifted_at
+                  ? "players.detail.banLifted"
+                  : "players.detail.banActive"
+                ) | transloco
+              }}</span
+            >
           </li>
         }
       </ul>
