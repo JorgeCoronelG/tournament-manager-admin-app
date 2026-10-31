@@ -100,4 +100,26 @@ describe("RegistrationsApi", () => {
     );
     expect(request.request.method).toBe("DELETE");
   });
+
+  it("withdraws a team with the trimmed reason and handles the errors itself", () => {
+    api.withdraw(8, 5, "  No se presentó  ").subscribe();
+
+    const request = controller.expectOne(
+      "/api/leagues/3/tournaments/8/registrations/5/withdraw",
+    );
+    expect(request.request.method).toBe("POST");
+    expect(request.request.body).toEqual({ reason: "No se presentó" });
+    expect(request.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+  });
+
+  it("replaces a team with the new team and the reason", () => {
+    api.replace(8, 5, 12, "Se retiró").subscribe();
+
+    const request = controller.expectOne(
+      "/api/leagues/3/tournaments/8/registrations/5/replace",
+    );
+    expect(request.request.method).toBe("POST");
+    expect(request.request.body).toEqual({ team_id: 12, reason: "Se retiró" });
+    expect(request.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+  });
 });

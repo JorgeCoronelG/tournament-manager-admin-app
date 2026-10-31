@@ -90,4 +90,21 @@ describe("MatchesApi", () => {
     expect(remove.request.method).toBe("DELETE");
     remove.flush({});
   });
+
+  it("registers a default win, sending the reason only when there is one", () => {
+    api.walkover(7, 5, 21, "").subscribe();
+    const bare = controller.expectOne(`${URL}/5/walkover`);
+    expect(bare.request.method).toBe("POST");
+    expect(bare.request.body).toEqual({ loser_registration_id: 21 });
+    expect(bare.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+    bare.flush({});
+
+    api.walkover(7, 6, 22, " No llegó ").subscribe();
+    const reasoned = controller.expectOne(`${URL}/6/walkover`);
+    expect(reasoned.request.body).toEqual({
+      loser_registration_id: 22,
+      reason: "No llegó",
+    });
+    reasoned.flush({});
+  });
 });

@@ -162,6 +162,8 @@
                   (programmed)="reloadSchedule()"
                   [editable]="bracketEditable()"
                   [playoffs]="bracket()"
+                  [walkoverGoals]="tournament()!.walkover_goals"
+                  [withdrawnIds]="withdrawnIds()"
                   [schedulable]="bracketEditable()"
                   [tournamentId]="tournament()!.id"
                   [tournamentName]="tournament()!.name"
@@ -212,6 +214,24 @@
         <mat-icon class="shrink-0" svgIcon="mat:warning" />
         <p class="m-0 text-sm">
           {{ "matches.config.capacity.outdated" | transloco }}
+        </p>
+      </div>
+    }
+    @if (withdrawnCount() > 0) {
+      <div
+        class="flex items-center gap-3 p-3 mb-4 rounded border border-gray-400 bg-gray-100 text-gray-800 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:info" />
+        <p class="m-0 text-sm">
+          {{
+            (withdrawnCount() === 1
+              ? "matches.withdrawnNoticeOne"
+              : "matches.withdrawnNotice"
+            )
+              | transloco
+                : { count: withdrawnCount(), matches: withdrawnMatches() }
+          }}
         </p>
       </div>
     }
@@ -356,6 +376,14 @@
                 style="grid-template-columns: 1fr auto 1fr auto"
               >
                 <span class="flex items-center gap-2 min-w-0 justify-end">
+                  @if (
+                    match.status === "scheduled" && isWithdrawn(match.home)
+                  ) {
+                    <span
+                      class="inline-block shrink-0 rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                      >{{ "matches.withdrawnTeam" | transloco }}</span
+                    >
+                  }
                   <span class="truncate font-medium">{{
                     match.home?.team_name ?? "—"
                   }}</span>
@@ -368,6 +396,13 @@
                 <span class="text-secondary text-sm font-medium px-2">
                   @if (match.status === "played") {
                     {{ match.home_score }} - {{ match.away_score }}
+                    @if (match.is_walkover) {
+                      <span
+                        [matTooltip]="walkoverHint(match)"
+                        class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                        >{{ "matches.walkover.tag" | transloco }}</span
+                      >
+                    }
                   } @else {
                     {{ "matches.vs" | transloco }}
                   }
@@ -381,6 +416,14 @@
                   <span class="truncate font-medium">{{
                     match.away?.team_name ?? "—"
                   }}</span>
+                  @if (
+                    match.status === "scheduled" && isWithdrawn(match.away)
+                  ) {
+                    <span
+                      class="inline-block shrink-0 rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                      >{{ "matches.withdrawnTeam" | transloco }}</span
+                    >
+                  }
                 </span>
                 <span
                   class="flex items-center justify-end gap-2 text-sm text-secondary whitespace-nowrap"
@@ -430,6 +473,23 @@
                       <mat-icon svgIcon="mat:calendar_month" />
                     </button>
                   }
+                  @if (
+                    editable() &&
+                    match.status === "scheduled" &&
+                    match.home &&
+                    match.away
+                  ) {
+                    <button
+                      (click)="walkover(match)"
+                      [attr.aria-label]="'matches.walkover.action' | transloco"
+                      [matTooltip]="'matches.walkover.action' | transloco"
+                      class="app-action-primary"
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon svgIcon="mat:flag" />
+                    </button>
+                  }
                   @if (editable()) {
                     <button
                       (click)="editResult(match)"
@@ -441,7 +501,13 @@
                                 away: match.away?.team_name ?? '—',
                               }
                       "
-                      [matTooltip]="'matches.result.editTooltip' | transloco"
+                      [disabled]="hasWithdrawn(match)"
+                      [matTooltip]="
+                        (hasWithdrawn(match)
+                          ? 'matches.result.withdrawnTooltip'
+                          : 'matches.result.editTooltip'
+                        ) | transloco
+                      "
                       class="app-action-primary"
                       mat-icon-button
                       type="button"

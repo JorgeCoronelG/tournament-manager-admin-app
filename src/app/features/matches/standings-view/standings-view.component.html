@@ -69,6 +69,12 @@
               class="w-6 h-6 rounded-full shrink-0"
             />
             <span class="font-medium">{{ row.team_name }}</span>
+            @if (row.withdrawn) {
+              <span
+                class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                >{{ "matches.standings.withdrawn" | transloco }}</span
+              >
+            }
             @if (isTied(group, row)) {
               <span
                 class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-800 dark:text-amber-400"
@@ -109,7 +115,8 @@
       <tr *matHeaderRowDef="columns" mat-header-row></tr>
       <tr
         *matRowDef="let row; columns: columns"
-        [class]="isTied(group, row) ? 'bg-amber-500/10' : ''"
+        [class.bg-amber-500/10]="isTied(group, row)"
+        [class.opacity-60]="row.withdrawn"
         mat-row
       ></tr>
     </table>

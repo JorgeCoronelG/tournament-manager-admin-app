@@ -40,12 +40,15 @@ import { FormSubmitService } from "../../../shared/form-submit/form-submit.servi
 import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import {
   DEFAULT_MATCH_DURATION,
+  DEFAULT_WALKOVER_GOALS,
   DEFAULT_ROUNDS,
   DEFAULT_TIEBREAKERS,
   MAX_AGE,
   MAX_MATCH_DURATION,
+  MAX_WALKOVER_GOALS,
   MIN_AGE,
   MIN_MATCH_DURATION,
+  MIN_WALKOVER_GOALS,
   formatDate,
   parseDate,
   TIEBREAKERS,
@@ -68,6 +71,7 @@ interface TournamentFormModel {
   min_matches_for_playoffs: number | null;
   rounds: TournamentRounds;
   match_duration_minutes: number | null;
+  walkover_goals: number | null;
   tiebreakers: Tiebreaker[];
 }
 
@@ -131,6 +135,7 @@ export class TournamentFormDialogComponent {
     rounds: this.tournament?.rounds ?? DEFAULT_ROUNDS,
     match_duration_minutes:
       this.tournament?.match_duration_minutes ?? DEFAULT_MATCH_DURATION,
+    walkover_goals: this.tournament?.walkover_goals ?? DEFAULT_WALKOVER_GOALS,
     tiebreakers: [...(this.tournament?.tiebreakers ?? DEFAULT_TIEBREAKERS)],
   });
 
@@ -208,6 +213,16 @@ export class TournamentFormDialogComponent {
         ? { kind: "durationRange" }
         : undefined;
     });
+    validate(tournament.walkover_goals, ({ value }) => {
+      const goals = value();
+
+      return goals === null ||
+        !Number.isInteger(goals) ||
+        goals < MIN_WALKOVER_GOALS ||
+        goals > MAX_WALKOVER_GOALS
+        ? { kind: "walkoverRange" }
+        : undefined;
+    });
     validate(tournament.tiebreakers, ({ value }) =>
       value().length === 0 ? { kind: "tiebreakersRequired" } : undefined,
     );
@@ -231,6 +246,14 @@ export class TournamentFormDialogComponent {
     disabled(tournament.rounds, closed);
     disabled(tournament.match_duration_minutes, closed);
     disabled(tournament.tiebreakers, closed);
+
+    // The default win can still change in progress, but not in the playoffs
+    disabled(
+      tournament.walkover_goals,
+      () =>
+        this.tournament?.status === "playoffs" ||
+        this.tournament?.status === "finished",
+    );
   });
 
   /** An error in the hidden tab would block saving with nothing visible */
@@ -241,6 +264,7 @@ export class TournamentFormDialogComponent {
       form.gender,
       form.start_date,
       form.match_duration_minutes,
+      form.walkover_goals,
     ];
 
     if (general.some((field) => field().invalid())) {
@@ -317,6 +341,11 @@ export class TournamentFormDialogComponent {
           min: MIN_MATCH_DURATION,
           max: MAX_MATCH_DURATION,
         });
+      case "walkoverRange":
+        return this.transloco.translate("tournaments.form.walkoverRange", {
+          min: MIN_WALKOVER_GOALS,
+          max: MAX_WALKOVER_GOALS,
+        });
       case "tiebreakersRequired":
         return this.transloco.translate("tournaments.form.tiebreakersRequired");
       case "ageRange":
@@ -343,6 +372,7 @@ export class TournamentFormDialogComponent {
           min_matches_for_playoffs,
           rounds,
           match_duration_minutes,
+          walkover_goals,
           tiebreakers,
         } = this.model();
         const body = {
@@ -355,6 +385,7 @@ export class TournamentFormDialogComponent {
           min_matches_for_playoffs,
           rounds,
           match_duration_minutes: match_duration_minutes as number,
+          walkover_goals: walkover_goals as number,
           tiebreakers,
         };
 

@@ -20,6 +20,7 @@ const existing = (status: Tournament["status"] = "planning"): Tournament => ({
   min_matches_for_playoffs: null,
   rounds: 1,
   match_duration_minutes: 60,
+  walkover_goals: 3,
   tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
   playoffs_started: false,
   status,
@@ -130,6 +131,7 @@ describe("TournamentFormDialogComponent", () => {
       min_matches_for_playoffs: null,
       rounds: 1,
       match_duration_minutes: 60,
+      walkover_goals: 3,
       tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
     });
     expect(close).toHaveBeenCalledWith({ id: 1 });
@@ -153,6 +155,7 @@ describe("TournamentFormDialogComponent", () => {
       min_matches_for_playoffs: null,
       rounds: 1,
       match_duration_minutes: 60,
+      walkover_goals: 3,
       tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
     });
   });
@@ -166,7 +169,7 @@ describe("TournamentFormDialogComponent", () => {
       expect(match_duration_minutes().invalid()).toBe(true);
     }
     expect(component.errorText(match_duration_minutes().errors())).toBe(
-      "Ingresa una duración entre 20 y 180 minutos",
+      "Ingresa un valor entre 20 y 180",
     );
 
     match_duration_minutes().value.set(20);

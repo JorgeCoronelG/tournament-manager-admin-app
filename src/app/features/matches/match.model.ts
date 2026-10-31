@@ -32,6 +32,11 @@ export interface Match {
   away: MatchSide | null;
   home_score: number | null;
   away_score: number | null;
+  /** Won by default: the rival did not show up or was withdrawn */
+  is_walkover?: boolean;
+  walkover_cause?: "no_show" | "team_withdrawn" | null;
+  walkover_loser_registration_id?: number | null;
+  walkover_reason?: string | null;
 }
 
 /** A team that has no match in a matchday */
@@ -152,6 +157,8 @@ export interface StandingRow {
   goal_difference: number;
   points: number;
   tied: boolean;
+  /** The team was withdrawn: it stays in the table but does not qualify */
+  withdrawn?: boolean;
 }
 
 export interface StandingGroup {

@@ -102,7 +102,14 @@ export type CloseBlocker =
       group: string;
       positions: number[];
     }
-  | { type: string; message?: string; group?: string; count?: number };
+  | {
+      type: string;
+      message?: string;
+      group?: string;
+      count?: number;
+      /** Names of the withdrawn teams that would have qualified */
+      withdrawn_teams?: string[];
+    };
 
 export interface CloseWarning {
   type: string;
@@ -165,6 +172,9 @@ export interface BracketMatch {
   home_penalties: number | null;
   away_penalties: number | null;
   status: "scheduled" | "played" | "cancelled";
+  /** Won by default: the rival did not show up or was withdrawn */
+  is_walkover?: boolean;
+  walkover_cause?: "no_show" | "team_withdrawn" | null;
 }
 
 export interface BracketTie {
@@ -180,7 +190,7 @@ export interface BracketTie {
   aggregate: { a: number; b: number } | null;
   winner_team_id: number | null;
   winner_registration_id: number | null;
-  decided_by: "goals" | "penalties" | null;
+  decided_by: "goals" | "penalties" | "walkover" | null;
 }
 
 export interface BracketRound {

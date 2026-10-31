@@ -1,0 +1,93 @@
+<h2 mat-dialog-title>{{ "registrations.withdraw.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (serverError(); as message) {
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+      </div>
+    }
+
+    <p
+      class="m-0 mb-2"
+      [innerHTML]="
+        'registrations.withdraw.message' | transloco: { name: team.name }
+      "
+    ></p>
+
+    <p class="m-0 mb-2 text-sm">
+      {{ "registrations.withdraw.info" | transloco }}
+    </p>
+
+    <mat-progress-bar
+      [class.invisible]="!preview.isLoading()"
+      mode="indeterminate"
+    />
+
+    @if (preview.error()) {
+      <div class="py-4 text-center" role="alert">
+        <p class="text-secondary mb-4">
+          {{ "registrations.withdraw.previewError" | transloco }}
+        </p>
+        <button (click)="preview.reload()" mat-stroked-button type="button">
+          {{ "common.retry" | transloco }}
+        </button>
+      </div>
+    } @else if (summary(); as info) {
+      <ul class="list-none m-0 mb-2 p-0 flex flex-col gap-1 text-sm">
+        <li>
+          {{
+            (info.pending_matches === 1
+              ? "registrations.withdraw.pendingOne"
+              : "registrations.withdraw.pending"
+            ) | transloco: { count: info.pending_matches }
+          }}
+        </li>
+        <li>
+          {{
+            (info.players_released === 1
+              ? "registrations.withdraw.releasedOne"
+              : "registrations.withdraw.released"
+            ) | transloco: { count: info.players_released }
+          }}
+        </li>
+      </ul>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "registrations.withdraw.reason" | transloco }}</mat-label>
+      <textarea [formField]="withdrawForm.reason" matInput rows="3"></textarea>
+      @if (withdrawForm.reason().errors().length) {
+        <mat-error>{{ errorText(withdrawForm.reason().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div
+      class="flex items-center gap-3 mb-2 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:warning" />
+      <p class="m-0 text-sm">
+        {{ "registrations.withdraw.warning" | transloco }}
+      </p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="!canSave() || withdrawForm().submitting()"
+      color="warn"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "registrations.withdraw.confirm" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

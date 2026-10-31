@@ -261,6 +261,7 @@ export interface MockTournament {
   min_matches_for_playoffs: number | null;
   rounds: 1 | 2;
   match_duration_minutes: number;
+  walkover_goals: number;
   tiebreakers: string[];
   playoffs_started: boolean;
   status: "planning" | "in_progress" | "playoffs" | "finished";
@@ -284,6 +285,7 @@ export function makeTournaments(count: number): MockTournament[] {
     min_matches_for_playoffs: null,
     rounds: 1,
     match_duration_minutes: 60,
+    walkover_goals: 3,
     tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
     playoffs_started: false,
     status: STATUSES[i % 3],

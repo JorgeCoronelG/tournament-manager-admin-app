@@ -30,7 +30,11 @@ import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dia
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
-import { isBanned, Registration } from "../../registrations/registration.model";
+import {
+  isBanned,
+  isWithdrawn,
+  Registration,
+} from "../../registrations/registration.model";
 import { RegistrationsApi } from "../../registrations/registrations.api";
 import { TournamentStatusChipComponent } from "../../tournaments/tournament-status-chip/tournament-status-chip.component";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
@@ -123,15 +127,13 @@ export class RostersPageComponent {
     }
   });
 
-  /** Teams with an active enrollment in the tournament */
+  /** Teams enrolled in the tournament, the withdrawn ones too (their players show as released) */
   protected readonly teamsResource = inject(RegistrationsApi).all(
     this.tournamentId,
   );
   readonly teams = computed(() =>
     this.tournamentId() !== undefined && this.teamsResource.hasValue()
-      ? this.teamsResource
-          .value()
-          .data.filter((registration) => registration.status === "active")
+      ? this.teamsResource.value().data
       : [],
   );
 
@@ -171,13 +173,13 @@ export class RostersPageComponent {
   readonly hasFilters = this.list.hasFilters;
   readonly changePage = this.list.changePage;
 
-  /** Active and pending players against the tournament's maximum, if it has one */
+  /** Active players against the tournament's maximum, if it has one */
   readonly counter = computed(() => {
     const summary = this.rosterResource.value()?.summary;
 
     return summary
       ? {
-          count: (summary["active"] ?? 0) + (summary["pending"] ?? 0),
+          count: summary["active"] ?? 0,
           max: summary["max_roster_size"] ?? null,
         }
       : undefined;
@@ -221,6 +223,7 @@ export class RostersPageComponent {
   }
 
   protected readonly playerName = playerName;
+  protected readonly isWithdrawn = isWithdrawn;
 
   remove(entry: RosterEntry): void {
     const tournament = this.tournament();

@@ -117,6 +117,36 @@
               }}</mat-error>
             }
           </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>{{
+              "tournaments.fields.walkoverGoals" | transloco
+            }}</mat-label>
+            <input
+              [formField]="tournamentForm.walkover_goals"
+              autocomplete="off"
+              inputmode="numeric"
+              matInput
+              type="number"
+            />
+            <button
+              [attr.aria-label]="
+                'tournaments.form.walkoverGoalsHint' | transloco
+              "
+              [matTooltip]="'tournaments.form.walkoverGoalsHint' | transloco"
+              class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+              matIconButton
+              matSuffix
+              type="button"
+            >
+              <mat-icon svgIcon="mat:info" />
+            </button>
+            @if (tournamentForm.walkover_goals().errors().length) {
+              <mat-error>{{
+                errorText(tournamentForm.walkover_goals().errors())
+              }}</mat-error>
+            }
+          </mat-form-field>
         </div>
       </mat-tab>
       <mat-tab [label]="'tournaments.form.tabSettings' | transloco">

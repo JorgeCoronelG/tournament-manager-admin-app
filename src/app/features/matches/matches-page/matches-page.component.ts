@@ -59,6 +59,7 @@ import {
   hasPlayedMatches,
   Match,
   matchCount,
+  MatchSide,
   playedCount,
 } from "../match.model";
 import { MatchesApi } from "../matches.api";
@@ -70,6 +71,11 @@ import {
   ClosePhaseResult,
 } from "../close-phase-dialog/close-phase-dialog.component";
 import { PlayoffsApi } from "../playoffs.api";
+import { RegistrationsApi } from "../../registrations/registrations.api";
+import {
+  WalkoverDialogComponent,
+  WalkoverDialogData,
+} from "../walkover-dialog/walkover-dialog.component";
 import { GroupsApi } from "../../groups/groups.api";
 import { StandingsViewComponent } from "../standings-view/standings-view.component";
 import { StandingsApi } from "../standings.api";
@@ -111,6 +117,7 @@ export class MatchesPageComponent {
   private readonly standingsApi = inject(StandingsApi);
   private readonly playoffsApi = inject(PlayoffsApi);
   private readonly groupsApi = inject(GroupsApi);
+  private readonly registrationsApi = inject(RegistrationsApi);
   private readonly scheduleApi = inject(ScheduleApi);
   private readonly configApi = inject(ScheduleConfigApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -231,6 +238,85 @@ export class MatchesPageComponent {
   readonly editable = computed(
     () => this.tournament()?.status === "in_progress",
   );
+
+  private readonly registrationsResource = this.registrationsApi.all(
+    computed(() =>
+      this.tournament()?.status === "in_progress" ||
+      this.tournament()?.status === "playoffs"
+        ? this.tournament()?.id
+        : undefined,
+    ),
+  );
+
+  /** Registrations withdrawn from the tournament */
+  readonly withdrawnIds = computed(
+    () =>
+      new Set(
+        this.registrationsResource
+          .value()
+          ?.data.filter((registration) => registration.status === "withdrawn")
+          .map((registration) => registration.id) ?? [],
+      ),
+  );
+
+  /** Withdrawn registrations that still have pending matches, and how many pending matches they have */
+  private readonly withdrawnPending = computed(() => {
+    const withdrawn = this.withdrawnIds();
+    const teams = new Set<number>();
+    let matches = 0;
+    const count = (home?: number, away?: number) => {
+      const ids = [home, away].filter(
+        (id): id is number => id !== undefined && withdrawn.has(id),
+      );
+
+      if (ids.length) {
+        matches++;
+        ids.forEach((id) => teams.add(id));
+      }
+    };
+
+    for (const group of this.groups()) {
+      for (const day of group.matchdays) {
+        for (const match of day.matches) {
+          if (match.status === "scheduled") {
+            count(match.home?.registration_id, match.away?.registration_id);
+          }
+        }
+      }
+    }
+
+    for (const playoff of this.bracket()) {
+      for (const round of playoff.rounds) {
+        for (const tie of round.ties) {
+          for (const match of tie.matches) {
+            if (match.status === "scheduled") {
+              count(
+                match.home_team?.registration_id,
+                match.away_team?.registration_id,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    return { teams: teams.size, matches };
+  });
+  readonly withdrawnCount = computed(() => this.withdrawnPending().teams);
+  readonly withdrawnMatches = computed(() => this.withdrawnPending().matches);
+
+  /** A side of a pending match that is withdrawn: its score cannot be captured */
+  isWithdrawn(side: MatchSide | null): boolean {
+    return side !== null && this.withdrawnIds().has(side.registration_id);
+  }
+
+  /** The match has a withdrawn side and no result yet */
+  hasWithdrawn(match: Match): boolean {
+    return (
+      match.status === "scheduled" &&
+      (this.isWithdrawn(match.home) || this.isWithdrawn(match.away))
+    );
+  }
 
   /** Hours can be assigned once the calendar of pairings exists */
   readonly assignable = computed(() =>
@@ -561,6 +647,7 @@ export class MatchesPageComponent {
             lastRegularDate: this.lastRegularDate(),
             matchDuration: tournament.match_duration_minutes,
             tournamentStartDate: tournament.start_date,
+            withdrawnCount: this.withdrawnIds().size,
           },
           width: "720px",
           maxWidth: "95vw",
@@ -643,6 +730,61 @@ export class MatchesPageComponent {
         if (saved) {
           this.reloadAll();
           this.snackbar.notifySuccess("matches.result.saved");
+        }
+      });
+  }
+
+  /** The only withdrawn side of the match, to preselect it as the loser */
+  private withdrawnLoser(match: Match): number | undefined {
+    const sides = [match.home, match.away].filter((side) =>
+      this.isWithdrawn(side),
+    );
+
+    return sides.length === 1 ? sides[0]?.registration_id : undefined;
+  }
+
+  /** Reason of a default win, for the tooltip of its tag */
+  walkoverHint(match: Match): string {
+    return match.walkover_reason ?? "";
+  }
+
+  /** Registers a default win: asks which team did not show up */
+  walkover(match: Match): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.editable() || !match.home || !match.away) {
+      return;
+    }
+
+    this.dialog
+      .open<WalkoverDialogComponent, WalkoverDialogData, boolean>(
+        WalkoverDialogComponent,
+        {
+          data: {
+            tournamentId: tournament.id,
+            matchId: match.id,
+            home: {
+              registration_id: match.home.registration_id,
+              name: match.home.team_name,
+            },
+            away: {
+              registration_id: match.away.registration_id,
+              name: match.away.team_name,
+            },
+            goals: tournament.walkover_goals,
+            playoff: false,
+            loserRegistrationId: this.withdrawnLoser(match),
+          },
+          width: "520px",
+          maxWidth: "95vw",
+          autoFocus: "dialog",
+        },
+      )
+      .afterClosed()
+      .subscribe((saved) => {
+        if (saved) {
+          this.reloadAll();
+          this.snackbar.notifySuccess("matches.walkover.saved");
         }
       });
   }

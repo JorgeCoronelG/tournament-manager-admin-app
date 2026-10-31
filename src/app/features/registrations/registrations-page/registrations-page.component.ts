@@ -11,6 +11,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
@@ -38,7 +39,25 @@ import {
   RegistrationDialogComponent,
   RegistrationDialogData,
 } from "../registration-dialog/registration-dialog.component";
-import { isBanned, Registration } from "../registration.model";
+import {
+  isBanned,
+  isWithdrawn,
+  Registration,
+  ReplaceResult,
+  WithdrawResult,
+} from "../registration.model";
+import {
+  ReplaceDialogComponent,
+  ReplaceDialogData,
+} from "../replace-dialog/replace-dialog.component";
+import {
+  WithdrawDialogComponent,
+  WithdrawDialogData,
+} from "../withdraw-dialog/withdraw-dialog.component";
+import {
+  TeamChangesDialogComponent,
+  TeamChangesDialogData,
+} from "../team-changes-dialog/team-changes-dialog.component";
 import { RegistrationsApi } from "../registrations.api";
 
 @Component({
@@ -59,6 +78,7 @@ import { RegistrationsApi } from "../registrations.api";
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatMenuModule,
     MatPaginatorModule,
     MatProgressBarModule,
     MatSelectModule,
@@ -100,6 +120,25 @@ export class RegistrationsPageComponent {
   /** Only a tournament in planning takes or loses teams */
   readonly editable = computed(() => this.tournament()?.status === "planning");
 
+  /** In progress or in the playoffs a team is withdrawn instead of removed */
+  readonly canWithdraw = computed(
+    () =>
+      this.tournament()?.status === "in_progress" ||
+      this.tournament()?.status === "playoffs",
+  );
+
+  /** Only the regular phase takes a replacement, for an active or a withdrawn team */
+  readonly canReplace = computed(
+    () => this.tournament()?.status === "in_progress",
+  );
+
+  /** Which notice explains why teams are not enrolled or removed here */
+  readonly readOnlyKey = computed(() =>
+    this.tournament()?.status === "in_progress"
+      ? "registrations.readOnlyInProgress"
+      : "registrations.readOnly",
+  );
+
   // A tournament that is no longer in the league (another league was picked) is dropped
   private readonly dropGoneTournament = effect(() => {
     if (
@@ -136,9 +175,13 @@ export class RegistrationsPageComponent {
     "actions",
   ]);
 
-  /** Name of the registration's group; null when it has none */
+  /** Name of the registration's group as the backend says it (withdrawn teams keep theirs); null when it has none */
   groupName(registration: Registration): string | null {
-    return this.groupNames()?.get(registration.id) ?? null;
+    return (
+      registration.group?.name ??
+      this.groupNames()?.get(registration.id) ??
+      null
+    );
   }
 
   readonly filters = signal({ search: "" });
@@ -167,6 +210,7 @@ export class RegistrationsPageComponent {
   );
   readonly bannedCount = computed(() => this.summary()?.["banned"] ?? 0);
   protected readonly isBanned = isBanned;
+  protected readonly isWithdrawn = isWithdrawn;
 
   readonly crumbs = computed(() => [
     this.transloco.translate("nav.tournaments"),
@@ -196,6 +240,99 @@ export class RegistrationsPageComponent {
           this.snackbar.notifySuccess("registrations.registered");
         }
       });
+  }
+
+  withdraw(registration: Registration): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.canWithdraw()) {
+      return;
+    }
+
+    this.dialog
+      .open<WithdrawDialogComponent, WithdrawDialogData, WithdrawResult>(
+        WithdrawDialogComponent,
+        {
+          data: {
+            tournamentId: tournament.id,
+            registration,
+          },
+          width: "560px",
+          maxWidth: "95vw",
+          autoFocus: "dialog",
+        },
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.resource.reload();
+          this.snackbar.success(this.withdrawMessage(result));
+        }
+      });
+  }
+
+  history(registration: Registration): void {
+    const tournament = this.tournament();
+
+    if (!tournament) {
+      return;
+    }
+
+    this.dialog.open<TeamChangesDialogComponent, TeamChangesDialogData>(
+      TeamChangesDialogComponent,
+      {
+        data: { tournamentId: tournament.id, registration },
+        width: "520px",
+        maxWidth: "95vw",
+        autoFocus: "dialog",
+      },
+    );
+  }
+
+  replace(registration: Registration): void {
+    const tournament = this.tournament();
+
+    if (!tournament || !this.canReplace()) {
+      return;
+    }
+
+    this.dialog
+      .open<ReplaceDialogComponent, ReplaceDialogData, ReplaceResult>(
+        ReplaceDialogComponent,
+        {
+          data: { tournamentId: tournament.id, registration },
+          width: "560px",
+          maxWidth: "95vw",
+          autoFocus: "dialog",
+        },
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.resource.reload();
+          this.snackbar.success(
+            `${this.transloco.translate("registrations.replaced")} ${this.transloco.translate("registrations.replacedRoster")}`,
+          );
+        }
+      });
+  }
+
+  /** "Equipo dado de baja. Sus 3 partidos pendientes se conservan; quedaron libres 12 jugadores." */
+  private withdrawMessage(result: WithdrawResult): string {
+    const t = (key: string, count: number) =>
+      this.transloco.translate(
+        `registrations.withdrawResult.${key}.${count === 1 ? "one" : "other"}`,
+        { count },
+      );
+    const parts = [
+      result.pending_matches > 0 ? t("pending", result.pending_matches) : "",
+      result.players_released > 0 ? t("released", result.players_released) : "",
+    ].filter(Boolean);
+    const done = this.transloco.translate("registrations.withdrawnDone");
+
+    return parts.length
+      ? `${done} ${parts.join(this.transloco.translate("registrations.withdrawResult.join"))}.`
+      : done;
   }
 
   /** The confirmation names the delegate too: teams can share a name */

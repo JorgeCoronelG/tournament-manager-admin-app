@@ -63,6 +63,23 @@ export class MatchesApi {
     );
   }
 
+  /** The team that did not show up loses by the tournament's default score; a playoff tie is decided by it */
+  walkover(
+    tournamentId: number,
+    matchId: number,
+    loserRegistrationId: number,
+    reason: string,
+  ) {
+    return this.http.post<Match>(
+      this.url(tournamentId, `/${matchId}/walkover`) ?? "",
+      {
+        loser_registration_id: loserRegistrationId,
+        ...(reason.trim() && { reason: reason.trim() }),
+      },
+      this.ownErrors,
+    );
+  }
+
   /** Voids the score: the match goes back to scheduled */
   clearResult(tournamentId: number, matchId: number) {
     return this.http.delete<Match>(

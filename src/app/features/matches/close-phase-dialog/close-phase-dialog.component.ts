@@ -57,6 +57,8 @@ export interface ClosePhaseDialogData {
   /** To open the hours' configuration from here */
   matchDuration: number | null;
   tournamentStartDate: string;
+  /** Teams withdrawn from the tournament: they do not qualify */
+  withdrawnCount?: number;
 }
 
 /** What closing the phase leaves to do: look at the standings, or nothing (it was closed) */
@@ -352,6 +354,11 @@ export class ClosePhaseDialogComponent {
     return blocker.type === "pending_matches"
       ? (blocker as Extract<CloseBlocker, { type: "pending_matches" }>)
       : null;
+  }
+
+  /** Withdrawn teams a blocker names; empty for the other ones */
+  withdrawnTeams(blocker: CloseBlocker): string[] {
+    return "withdrawn_teams" in blocker ? (blocker.withdrawn_teams ?? []) : [];
   }
 
   asTies(blocker: CloseBlocker) {

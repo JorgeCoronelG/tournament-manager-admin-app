@@ -31,6 +31,12 @@
                     class="w-6 h-6 rounded-full shrink-0"
                   />
                   <span class="truncate">{{ teamLabel(selected) }}</span>
+                  @if (isWithdrawn(selected)) {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                      >{{ "rosters.withdrawn" | transloco }}</span
+                    >
+                  }
                 </span>
               </mat-select-trigger>
             }
@@ -43,6 +49,12 @@
                     class="w-8 h-8 rounded-full shrink-0"
                   />
                   <span class="whitespace-nowrap">{{ teamLabel(item) }}</span>
+                  @if (isWithdrawn(item)) {
+                    <span
+                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                      >{{ "rosters.withdrawn" | transloco }}</span
+                    >
+                  }
                 </span>
               </mat-option>
             }
@@ -108,6 +120,14 @@
                   ) | transloco: { count: counter.count }
                 }}
               }
+            </span>
+            <span class="text-sm text-secondary">
+              {{
+                (total() === 1
+                  ? "rosters.records.one"
+                  : "rosters.records.other"
+                ) | transloco: { count: total() }
+              }}
             </span>
           }
           @if (banned()) {

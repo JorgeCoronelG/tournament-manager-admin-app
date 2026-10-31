@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>{{ "matches.walkover.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (formError(); as message) {
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+      </div>
+    }
+
+    <p class="m-0 font-medium">{{ "matches.walkover.question" | transloco }}</p>
+    <mat-radio-group
+      (change)="loser.set($event.value)"
+      [value]="loser()"
+      class="flex flex-col"
+    >
+      @for (team of teams; track team.registration_id) {
+        <mat-radio-button [value]="team">{{ team.name }}</mat-radio-button>
+      }
+    </mat-radio-group>
+
+    @if (winner(); as rival) {
+      <div
+        class="flex items-start gap-3 my-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:info" />
+        <p class="m-0 text-sm">
+          {{
+            "matches.walkover.summary"
+              | transloco: { team: rival.name, goals: data.goals }
+          }}
+          @if (data.playoff) {
+            {{ "matches.walkover.playoff" | transloco: { team: rival.name } }}
+          }
+        </p>
+      </div>
+    }
+
+    <mat-form-field class="mt-2">
+      <mat-label>{{ "matches.walkover.reason" | transloco }}</mat-label>
+      <textarea [formField]="walkoverForm.reason" matInput rows="2"></textarea>
+      @if (walkoverForm.reason().errors().length) {
+        <mat-error>{{ reasonError() }}</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="!loser() || walkoverForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "matches.walkover.confirm" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

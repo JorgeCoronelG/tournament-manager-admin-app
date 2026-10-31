@@ -17,6 +17,23 @@
       </div>
     }
 
+    @if ((data.withdrawnCount ?? 0) > 0) {
+      <div
+        class="flex items-center gap-3 p-3 rounded border border-gray-400 bg-gray-100 text-gray-800 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:info" />
+        <p class="m-0 text-sm">
+          {{
+            (data.withdrawnCount === 1
+              ? "matches.close.withdrawnOne"
+              : "matches.close.withdrawn"
+            ) | transloco: { count: data.withdrawnCount }
+          }}
+        </p>
+      </div>
+    }
+
     @for (warning of warnings(); track $index) {
       <div
         class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
@@ -110,6 +127,14 @@
                 }
                 @default {
                   {{ blocker.message ?? blocker.type }}
+                  @let withdrawn = withdrawnTeams(blocker);
+                  @if (withdrawn.length) {
+                    <ul class="m-0 mt-1 pl-4 text-secondary">
+                      @for (name of withdrawn; track $index) {
+                        <li>{{ name }}</li>
+                      }
+                    </ul>
+                  }
                 }
               }
             </li>

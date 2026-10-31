@@ -22,6 +22,10 @@ import { LogoImageComponent } from "../../../shared/logo-image/logo-image.compon
 import { parseDate } from "../../tournaments/tournament.model";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
 import { Match } from "../match.model";
+import {
+  WalkoverDialogComponent,
+  WalkoverDialogData,
+} from "../walkover-dialog/walkover-dialog.component";
 import { MatchesApi } from "../matches.api";
 import {
   ProgramMatchDialogComponent,
@@ -73,6 +77,12 @@ export class BracketViewComponent {
   readonly playoffs = input.required<readonly BracketPlayoff[]>();
   /** Only a tournament in its playoffs lets results be captured or the tournament be finished */
   readonly editable = input(false);
+
+  /** Goals the winner of a default win gets */
+  readonly walkoverGoals = input(3);
+
+  /** Registrations withdrawn from the tournament: their pending matches cannot get a score */
+  readonly withdrawnIds = input<ReadonlySet<number>>(new Set());
 
   /** Hours, fields and referees can be set (the tournament is in its playoffs) */
   readonly schedulable = input(false);
@@ -242,6 +252,67 @@ export class BracketViewComponent {
         if (saved) {
           this.changed.emit();
           this.snackbar.notifySuccess("matches.result.saved");
+        }
+      });
+  }
+
+  /** A side of the match is withdrawn and it has no result yet */
+  hasWithdrawn(match: BracketMatch): boolean {
+    return (
+      match.status === "scheduled" &&
+      [match.home_team, match.away_team].some(
+        (team) =>
+          team !== null && this.withdrawnIds().has(team.registration_id),
+      )
+    );
+  }
+
+  /** The only withdrawn side of the match, to preselect it as the loser */
+  private withdrawnLoser(match: BracketMatch): number | undefined {
+    const withdrawn = [match.home_team, match.away_team].filter(
+      (team) => team !== null && this.withdrawnIds().has(team.registration_id),
+    );
+
+    return withdrawn.length === 1 ? withdrawn[0]?.registration_id : undefined;
+  }
+
+  /** Registers a default win: it decides the whole tie */
+  walkover(match: BracketMatch): void {
+    const { home_team: home, away_team: away } = match;
+
+    if (!this.editable() || !home || !away) {
+      return;
+    }
+
+    this.dialog
+      .open<WalkoverDialogComponent, WalkoverDialogData, boolean>(
+        WalkoverDialogComponent,
+        {
+          data: {
+            tournamentId: this.tournamentId(),
+            matchId: match.id,
+            home: {
+              registration_id: home.registration_id,
+              name: home.team_name,
+            },
+            away: {
+              registration_id: away.registration_id,
+              name: away.team_name,
+            },
+            goals: this.walkoverGoals(),
+            playoff: true,
+            loserRegistrationId: this.withdrawnLoser(match),
+          },
+          width: "520px",
+          maxWidth: "95vw",
+          autoFocus: "dialog",
+        },
+      )
+      .afterClosed()
+      .subscribe((saved) => {
+        if (saved) {
+          this.changed.emit();
+          this.snackbar.notifySuccess("matches.walkover.saved");
         }
       });
   }

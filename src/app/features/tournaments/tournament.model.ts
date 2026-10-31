@@ -41,6 +41,7 @@ export const TIEBREAKERS: readonly Tiebreaker[] = [
 
 export const DEFAULT_ROUNDS: TournamentRounds = 1;
 export const DEFAULT_MATCH_DURATION = 60;
+export const DEFAULT_WALKOVER_GOALS = 3;
 export const DEFAULT_TIEBREAKERS: readonly Tiebreaker[] = [
   "points",
   "goal_difference",
@@ -51,6 +52,10 @@ export const DEFAULT_TIEBREAKERS: readonly Tiebreaker[] = [
 /** Match length (minutes) the backend accepts */
 export const MIN_MATCH_DURATION = 20;
 export const MAX_MATCH_DURATION = 180;
+
+/** Goals the backend accepts for a default win */
+export const MIN_WALKOVER_GOALS = 1;
+export const MAX_WALKOVER_GOALS = 99;
 
 /** Ages the backend accepts */
 export const MIN_AGE = 18;
@@ -69,6 +74,8 @@ export interface Tournament {
   min_matches_for_playoffs: number | null;
   rounds: TournamentRounds;
   match_duration_minutes: number;
+  /** Score in favor of the team that wins because its rival did not show up or was withdrawn */
+  walkover_goals: number;
   /** In the order they are applied */
   tiebreakers: Tiebreaker[];
   /** Once the playoffs start, rosters are closed */
@@ -90,6 +97,7 @@ export interface NewTournament {
   min_matches_for_playoffs: number | null;
   rounds: TournamentRounds;
   match_duration_minutes: number;
+  walkover_goals: number;
   tiebreakers: Tiebreaker[];
 }
 

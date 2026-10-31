@@ -83,7 +83,7 @@
           >
             <mat-icon class="shrink-0" svgIcon="mat:warning" />
             <p class="m-0 text-sm">
-              {{ "registrations.readOnly" | transloco }}
+              {{ readOnlyKey() | transloco }}
             </p>
           </div>
         }
@@ -118,6 +118,16 @@
                 <td *matCellDef="let row" mat-cell>
                   <span class="flex flex-wrap items-center gap-2 py-1">
                     <span class="font-medium">{{ row.team.name }}</span>
+                    @if (isWithdrawn(row)) {
+                      <span
+                        [matTooltip]="
+                          'registrations.withdrawnHint'
+                            | transloco: { reason: row.withdrawn_reason ?? '—' }
+                        "
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                        >{{ "registrations.withdrawn" | transloco }}</span
+                      >
+                    }
                     @if (isBanned(row.team)) {
                       <span
                         [matTooltip]="'registrations.bannedHint' | transloco"
@@ -183,6 +193,21 @@
                   }}</span>
                 </th>
                 <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
+                  @if (canWithdraw()) {
+                    <button
+                      [attr.aria-label]="
+                        'registrations.actions.menu' | transloco
+                      "
+                      [matMenuTriggerFor]="rowMenu"
+                      [matMenuTriggerData]="{ row }"
+                      [matTooltip]="'registrations.actions.menu' | transloco"
+                      class="app-action-primary"
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon svgIcon="mat:more_vert" />
+                    </button>
+                  }
                   @if (editable()) {
                     <button
                       (click)="remove(row)"
@@ -204,7 +229,11 @@
                 *matHeaderRowDef="columns(); sticky: true"
                 mat-header-row
               ></tr>
-              <tr *matRowDef="let row; columns: columns()" mat-row></tr>
+              <tr
+                *matRowDef="let row; columns: columns()"
+                [class.opacity-60]="isWithdrawn(row)"
+                mat-row
+              ></tr>
             </table>
           </div>
 
@@ -245,3 +274,21 @@
     }
   </app-page-layout-content>
 </app-page-layout>
+
+<mat-menu #rowMenu="matMenu">
+  <ng-template let-row="row" matMenuContent>
+    @if (!isWithdrawn(row)) {
+      <button (click)="withdraw(row)" mat-menu-item type="button">
+        {{ "registrations.actions.withdraw" | transloco }}
+      </button>
+    }
+    @if (canReplace()) {
+      <button (click)="replace(row)" mat-menu-item type="button">
+        {{ "registrations.actions.replace" | transloco }}
+      </button>
+    }
+    <button (click)="history(row)" mat-menu-item type="button">
+      {{ "registrations.actions.history" | transloco }}
+    </button>
+  </ng-template>
+</mat-menu>

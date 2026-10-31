@@ -35,6 +35,7 @@ const tournament = (
   min_matches_for_playoffs: null,
   rounds: 1,
   match_duration_minutes: 60,
+  walkover_goals: 3,
   tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
   playoffs_started: false,
   status,

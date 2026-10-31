@@ -13,6 +13,7 @@ const CLASSES: Record<RosterStatus, string> = {
   rejected: "bg-red-600/10 text-red-800 dark:text-red-400",
   cancelled: "bg-gray-500/10 text-gray-600 dark:text-gray-400",
   removed: "bg-orange-500/10 text-orange-800 dark:text-orange-400",
+  released: "bg-sky-500/10 text-sky-800 dark:text-sky-400",
 };
 
 @Component({

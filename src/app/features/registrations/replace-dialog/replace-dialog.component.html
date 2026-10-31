@@ -1,0 +1,125 @@
+<h2 mat-dialog-title>{{ "registrations.replace.title" | transloco }}</h2>
+
+<form (submit)="$event.preventDefault(); save()" novalidate>
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+    @if (serverError(); as message) {
+      <div
+        class="flex items-center gap-3 mb-2 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:error" />
+        <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+      </div>
+    }
+
+    <p
+      class="m-0 mb-2"
+      [innerHTML]="
+        'registrations.replace.message' | transloco: { name: team.name }
+      "
+    ></p>
+
+    <mat-form-field>
+      <mat-label>{{ "registrations.replace.search" | transloco }}</mat-label>
+      <mat-icon matPrefix svgIcon="mat:search" />
+      <input
+        [formField]="filtersForm.search"
+        autocomplete="off"
+        matInput
+        type="search"
+      />
+    </mat-form-field>
+
+    <mat-progress-bar
+      [class.invisible]="!resource.isLoading()"
+      mode="indeterminate"
+    />
+
+    @if (resource.error()) {
+      <div class="py-4 text-center" role="alert">
+        <p class="text-secondary mb-4">
+          {{ "registrations.dialog.error" | transloco }}
+        </p>
+        <button (click)="resource.reload()" mat-stroked-button type="button">
+          {{ "common.retry" | transloco }}
+        </button>
+      </div>
+    } @else if (!resource.isLoading() && teams().length === 0) {
+      <p class="py-4 text-center text-secondary">
+        {{ "registrations.replace.empty" | transloco }}
+      </p>
+    } @else {
+      <ul class="list-none m-0 mb-2 p-0 max-h-60 overflow-y-auto">
+        @for (candidate of teams(); track candidate.id) {
+          <li
+            [class.opacity-60]="isBanned(candidate)"
+            [matTooltip]="
+              isBanned(candidate)
+                ? ('registrations.dialog.bannedHint' | transloco)
+                : ''
+            "
+          >
+            <mat-radio-button
+              (change)="pick(candidate)"
+              [checked]="selected()?.id === candidate.id"
+              [disabled]="isBanned(candidate)"
+              class="w-full"
+              name="team"
+            >
+              <span class="flex items-center gap-3 py-1">
+                <app-logo-image
+                  [alt]="candidate.name"
+                  [src]="candidate.logo_url"
+                  class="w-8 h-8 rounded-full"
+                />
+                <span class="flex flex-col">
+                  <span class="font-medium">{{ candidate.name }}</span>
+                  <span class="text-sm text-secondary">
+                    @if (candidate.manager; as manager) {
+                      {{ manager.name }}
+                    } @else {
+                      {{ "registrations.dialog.noManager" | transloco }}
+                    }
+                  </span>
+                </span>
+              </span>
+            </mat-radio-button>
+          </li>
+        }
+      </ul>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ "registrations.replace.reason" | transloco }}</mat-label>
+      <textarea [formField]="replaceForm.reason" matInput rows="3"></textarea>
+      @if (replaceForm.reason().errors().length) {
+        <mat-error>{{ errorText(replaceForm.reason().errors()) }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div
+      class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:warning" />
+      <p class="m-0 text-sm">
+        {{ "registrations.replace.info" | transloco }}
+        {{ "registrations.replace.pendingNote" | transloco }}
+      </p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      [disabled]="!canSave() || replaceForm().submitting()"
+      color="primary"
+      mat-flat-button
+      type="submit"
+    >
+      {{ "registrations.replace.confirm" | transloco }}
+    </button>
+  </mat-dialog-actions>
+</form>

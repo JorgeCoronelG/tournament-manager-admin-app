@@ -1,7 +1,13 @@
 import { PageQuery } from "../../core/http/paginated-resource";
 
 export type RosterStatus =
-  "pending" | "active" | "rejected" | "cancelled" | "removed";
+  | "pending"
+  | "active"
+  | "rejected"
+  | "cancelled"
+  | "removed"
+  /** The team was withdrawn or replaced: the player is free for other teams */
+  | "released";
 
 export const ROSTER_STATUSES: readonly RosterStatus[] = [
   "pending",
@@ -9,6 +15,7 @@ export const ROSTER_STATUSES: readonly RosterStatus[] = [
   "rejected",
   "cancelled",
   "removed",
+  "released",
 ];
 
 /** Who did something, as the roster rows show it */

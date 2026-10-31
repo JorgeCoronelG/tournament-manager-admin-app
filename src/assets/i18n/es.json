@@ -265,6 +265,7 @@
       "minMatchesForPlayoffs": "Partidos mínimos para liguilla",
       "rounds": "Vueltas",
       "matchDuration": "Duración del partido (minutos)",
+      "walkoverGoals": "Goles por victoria por default",
       "tiebreakers": "Criterios de desempate",
       "status": "Estado",
       "actions": "Acciones"
@@ -335,7 +336,9 @@
       "minMatchesForPlayoffsHint": "Número mínimo de partidos de fase regular que debe registar asistencia un jugador para participar en la liguilla. Déjalo vacío si no hay requisito.",
       "roundsHint": "Cuántas veces se enfrentan todos los equipos en la fase regular.",
       "matchDurationHint": "Duración total del partido en minutos, incluyendo los descansos. La distribución del tiempo depende del reglamento del torneo.",
-      "durationRange": "Ingresa una duración entre {{min}} y {{max}} minutos",
+      "walkoverGoalsHint": "Cantidad de goles que se asignan al equipo ganador cuando su rival no se presenta o es dado de baja. El rival recibe 0 goles.",
+      "walkoverRange": "Ingresa un valor entre {{min}} y {{max}}",
+      "durationRange": "Ingresa un valor entre {{min}} y {{max}}",
       "tiebreakersOrder": "Se aplican en el orden mostrado.",
       "tiebreakersHint": "Los criterios se aplican en el orden mostrado para desempatar equipos con los mismos puntos. Puedes cambiar su prioridad usando las flechas.",
       "tiebreakersRequired": "Selecciona al menos un criterio",
@@ -574,6 +577,7 @@
     "team": "Equipo",
     "search": "Buscar por nombre o clave",
     "allStatuses": "Todos los estados",
+    "withdrawn": "Baja",
     "pickTeam": "Elige un torneo y un equipo para ver su plantilla.",
     "noTournaments": "Esta liga aún no tiene torneos.",
     "noTeams": "Este torneo aún no tiene equipos inscritos.",
@@ -582,12 +586,16 @@
     "banned": "Vetado",
     "bannedHint": "Este equipo está vetado.",
     "count": {
-      "one": "{{count}} jugador",
-      "other": "{{count}} jugadores"
+      "one": "{{count}} jugador activo",
+      "other": "{{count}} jugadores activos"
+    },
+    "records": {
+      "one": "({{count}} registro)",
+      "other": "({{count}} registros)"
     },
     "countOfMax": {
-      "one": "{{count}} de {{max}} jugador",
-      "other": "{{count}} de {{max}} jugadores"
+      "one": "{{count}} de {{max}} jugador activo",
+      "other": "{{count}} de {{max}} jugadores activos"
     },
     "fields": {
       "photo": "Foto",
@@ -602,7 +610,8 @@
       "active": "Activo",
       "rejected": "Rechazado",
       "cancelled": "Cancelado",
-      "removed": "Removido"
+      "removed": "Removido",
+      "released": "Liberado"
     },
     "removedBy": "Removido por {{name}} · {{date}}",
     "removalReason": "Motivo: {{reason}}",
@@ -771,6 +780,8 @@
       "playoffs": "Liguilla"
     },
     "close": {
+      "withdrawnOne": "El torneo tiene 1 equipo dado de baja: no clasifica y entra el siguiente.",
+      "withdrawn": "El torneo tiene {{count}} equipos dados de baja: no clasifican y entra el siguiente por cada uno.",
       "action": "Cerrar fase regular",
       "title": "Cerrar fase regular",
       "closed": "Fase regular cerrada",
@@ -830,6 +841,7 @@
       "penaltiesError": "Penales distintos, de 0 a {{max}}"
     },
     "bracket": {
+      "walkoverWin": "Gana por default",
       "error": "No pudimos cargar las llaves.",
       "playoff": "Liguilla",
       "champion": "Campeón: {{team}}",
@@ -845,10 +857,25 @@
       "penaltiesWin": "Gana por penales",
       "finish": "Terminar torneo"
     },
+    "walkover": {
+      "action": "Ganado por default",
+      "title": "Ganado por default",
+      "question": "¿Qué equipo no se presentó?",
+      "summary": "El rival ganará {{goals}}-0.",
+      "playoff": "Esto aplica a todos los partidos pendientes de este cruce y {{team}} avanza de ronda.",
+      "reason": "Motivo (opcional)",
+      "confirm": "Registrar victoria por default",
+      "tag": "Por default",
+      "saved": "Victoria por default registrada"
+    },
+    "withdrawnTeam": "Equipo en baja",
+    "withdrawnNoticeOne": "El torneo tiene 1 equipo dado de baja con partidos pendientes. Partidos pendientes: {{matches}}.",
+    "withdrawnNotice": "El torneo tiene {{count}} equipos dados de baja con partidos pendientes. Partidos pendientes: {{matches}}.",
     "result": {
       "title": "Resultado del partido",
       "edit": "Capturar resultado de {{home}} contra {{away}}",
       "editTooltip": "Editar resultado",
+      "withdrawnTooltip": "Un equipo está en baja: usa Ganado por default.",
       "goalsOf": "Goles de {{team}}",
       "scoreError": "Ingresa un entero de 0 a {{max}}",
       "saved": "Resultado guardado",
@@ -861,6 +888,7 @@
       }
     },
     "standings": {
+      "withdrawn": "Baja",
       "error": "No pudimos cargar la tabla de posiciones.",
       "criteria": "Orden: {{criteria}}.",
       "tied": "Hay equipos empatados sin resolver.",
@@ -1119,6 +1147,7 @@
     "removed": "Inscripción quitada",
     "error": "No pudimos cargar las inscripciones.",
     "emptyAction": "Aún no hay equipos inscritos en este torneo.",
+    "readOnlyInProgress": "Con el torneo en curso solo puedes dar de baja o reemplazar equipos.",
     "readOnly": "Solo se pueden inscribir o quitar equipos con el torneo en planeación.",
     "noManager": "Sin delegado",
     "noGroup": "Sin grupo",
@@ -1130,7 +1159,58 @@
       "registeredAt": "Inscrito",
       "actions": "Acciones"
     },
-    "actions": { "remove": "Quitar inscripción" },
+    "history": {
+      "title": "Historial de equipos",
+      "empty": "Esta inscripción no ha cambiado de equipo.",
+      "error": "No pudimos cargar el historial.",
+      "by": "Por {{name}} · {{date}}"
+    },
+    "withdrawn": "Baja",
+    "withdrawnHint": "Dado de baja: {{reason}}",
+    "withdrawnDone": "Equipo dado de baja.",
+    "replaced": "Equipo reemplazado.",
+    "replacedRoster": "El equipo nuevo debe registrar su plantilla.",
+    "actions": {
+      "remove": "Quitar inscripción",
+      "menu": "Acciones del equipo",
+      "withdraw": "Dar de baja",
+      "replace": "Reemplazar equipo",
+      "history": "Ver historial de equipos"
+    },
+    "withdrawResult": {
+      "pending": {
+        "one": "su partido pendiente se conserva",
+        "other": "sus {{count}} partidos pendientes se conservan"
+      },
+      "released": {
+        "one": "quedó libre {{count}} jugador",
+        "other": "quedaron libres {{count}} jugadores"
+      },
+      "join": "; "
+    },
+    "withdraw": {
+      "title": "Dar de baja equipo",
+      "message": "¿Seguro que quieres dar de baja a <b>{{name}}</b>?",
+      "info": "El equipo quedará en baja y sus partidos pendientes se conservarán. Podrás darles victoria por default partido por partido o reemplazar al equipo.",
+      "previewError": "No pudimos calcular lo que pasará con sus partidos.",
+      "pendingOne": "Tiene 1 partido pendiente.",
+      "pending": "Tiene {{count}} partidos pendientes.",
+      "releasedOne": "1 jugador quedará libre para otros equipos.",
+      "released": "{{count}} jugadores quedarán libres para otros equipos.",
+      "reason": "Motivo",
+      "warning": "Esta acción no se puede deshacer.",
+      "confirm": "Dar de baja"
+    },
+    "replace": {
+      "title": "Reemplazar equipo",
+      "message": "Elige el equipo que tomará el lugar de <b>{{name}}</b>.",
+      "search": "Buscar equipo por nombre",
+      "empty": "No hay equipos disponibles para el reemplazo.",
+      "reason": "Motivo",
+      "info": "El equipo nuevo toma la inscripción: hereda partidos, puntos y estadísticas del equipo anterior, pero no su plantel. Los jugadores actuales quedarán libres y el equipo nuevo debe registrar su plantilla.",
+      "pendingNote": "Los partidos pendientes pasarán al equipo nuevo con el mismo horario. Los resultados por default ya registrados se conservan.",
+      "confirm": "Reemplazar"
+    },
     "remove": {
       "title": "Quitar inscripción",
       "message": "¿Seguro que quieres quitar a {{name}} de este torneo?",

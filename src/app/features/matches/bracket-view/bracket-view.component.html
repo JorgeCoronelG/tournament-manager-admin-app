@@ -150,17 +150,30 @@
                         {{ match.home_team?.team_name }}
                         {{ "matches.vs" | transloco }}
                         {{ match.away_team?.team_name }}
+                        @if (hasWithdrawn(match)) {
+                          <span
+                            class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                            >{{ "matches.withdrawnTeam" | transloco }}</span
+                          >
+                        }
                       </span>
                       <span class="font-medium whitespace-nowrap">
                         {{
                           score(match) ?? ("matches.bracket.toPlay" | transloco)
                         }}
+                        @if (match.is_walkover) {
+                          <span
+                            class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                            >{{ "matches.walkover.tag" | transloco }}</span
+                          >
+                        }
                       </span>
                     </div>
                     @if (editable()) {
                       <div class="flex gap-2">
                         <button
                           (click)="editResult(tie, match)"
+                          [disabled]="hasWithdrawn(match)"
                           mat-stroked-button
                           type="button"
                         >
@@ -171,6 +184,15 @@
                             ) | transloco
                           }}
                         </button>
+                        @if (match.status === "scheduled") {
+                          <button
+                            (click)="walkover(match)"
+                            mat-stroked-button
+                            type="button"
+                          >
+                            {{ "matches.walkover.action" | transloco }}
+                          </button>
+                        }
                         @if (match.status === "played") {
                           <button
                             (click)="voidResult(match)"
@@ -197,6 +219,11 @@
                     "matches.bracket.global"
                       | transloco: { a: aggregate.a, b: aggregate.b }
                   }}
+                </p>
+              }
+              @if (tie.decided_by === "walkover") {
+                <p class="m-0 text-xs text-secondary">
+                  {{ "matches.bracket.walkoverWin" | transloco }}
                 </p>
               }
               @if (tie.decided_by === "penalties") {

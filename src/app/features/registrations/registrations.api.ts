@@ -8,6 +8,10 @@ import {
   AvailableTeam,
   Registration,
   RegistrationsQuery,
+  ReplaceResult,
+  TeamChange,
+  WithdrawPreview,
+  WithdrawResult,
 } from "./registration.model";
 
 /** How many candidate teams the dialog asks for at once */
@@ -89,6 +93,41 @@ export class RegistrationsApi {
   remove(tournamentId: number, registrationId: number) {
     return this.http.delete<void>(
       this.url(tournamentId, `/${registrationId}`) ?? "",
+      this.ownErrors,
+    );
+  }
+
+  /** What withdrawing the team would do; read when the dialog opens */
+  withdrawPreview(tournamentId: number, registrationId: number) {
+    return httpResource<WithdrawPreview>(() =>
+      this.url(tournamentId, `/${registrationId}/withdraw/preview`),
+    );
+  }
+
+  /** Teams that held the registration before, with why and who changed them */
+  teamChanges(tournamentId: number, registrationId: number) {
+    return httpResource<{ data: TeamChange[] }>(() =>
+      this.url(tournamentId, `/${registrationId}/team-changes`),
+    );
+  }
+
+  withdraw(tournamentId: number, registrationId: number, reason: string) {
+    return this.http.post<WithdrawResult>(
+      this.url(tournamentId, `/${registrationId}/withdraw`) ?? "",
+      { reason: reason.trim() },
+      this.ownErrors,
+    );
+  }
+
+  replace(
+    tournamentId: number,
+    registrationId: number,
+    teamId: number,
+    reason: string,
+  ) {
+    return this.http.post<ReplaceResult>(
+      this.url(tournamentId, `/${registrationId}/replace`) ?? "",
+      { team_id: teamId, reason: reason.trim() },
       this.ownErrors,
     );
   }

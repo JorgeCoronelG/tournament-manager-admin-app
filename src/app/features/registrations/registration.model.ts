@@ -15,8 +15,13 @@ export interface Registration {
   id: number;
   status: "active" | "withdrawn";
   team: RegistrationTeam;
+  /** Regular group of the team, whatever its status; null when it has none */
+  group?: { id: number; name: string } | null;
   /** ISO 8601 date */
   created_at: string;
+  /** ISO 8601 date; null while the team is in the tournament */
+  withdrawn_at?: string | null;
+  withdrawn_reason?: string | null;
 }
 
 export interface RegistrationsFilters {
@@ -34,4 +39,57 @@ export type AvailableTeam = RegistrationTeam;
 
 export function isBanned(team: RegistrationTeam): boolean {
   return team.status === "banned";
+}
+
+export function isWithdrawn(registration: Pick<Registration, "status">) {
+  return registration.status === "withdrawn";
+}
+
+/** A pending match of a team about to be withdrawn */
+export interface WithdrawMatch {
+  match_id: number;
+  /** "Jornada 3", "Semifinal (ida)" */
+  round_label: string;
+  group: string | null;
+  rival: string | null;
+  /** Y-m-d; null while it has no date */
+  date: string | null;
+}
+
+/** What withdrawing a team would do (GET .../withdraw/preview) */
+export interface WithdrawPreview {
+  kept_played: number;
+  /** Pending matches: they stay as they are, to be settled one by one or taken by a replacement */
+  pending_matches: number;
+  players_released: number;
+  warnings: string[];
+}
+
+/** What withdrawing a team did */
+export interface WithdrawResult {
+  kept_played: number;
+  pending_matches: number;
+  players_released: number;
+  registration: Registration;
+}
+
+export interface ReplaceResult {
+  registration: Registration;
+  warnings: string[];
+}
+
+/** Reason the backend asks for when withdrawing or replacing a team */
+export const REASON_MIN = 5;
+export const REASON_MAX = 255;
+
+/** A time the team of a registration was replaced (GET .../team-changes) */
+export interface TeamChange {
+  id: number;
+  old_team: { id: number; name: string };
+  new_team: { id: number; name: string };
+  reason: string;
+  /** Who replaced it; null when that user no longer exists */
+  changed_by: { id: number; name: string } | null;
+  /** ISO 8601 date */
+  created_at: string;
 }

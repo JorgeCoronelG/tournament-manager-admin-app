@@ -1,0 +1,57 @@
+<h2 mat-dialog-title>{{ "registrations.history.title" | transloco }}</h2>
+
+<mat-dialog-content class="!pt-2 min-w-[320px]">
+  <mat-progress-bar
+    [class.invisible]="!resource.isLoading()"
+    mode="indeterminate"
+  />
+
+  @if (resource.error()) {
+    <div class="py-6 text-center" role="alert">
+      <p class="text-secondary mb-4">
+        {{ "registrations.history.error" | transloco }}
+      </p>
+      <button (click)="resource.reload()" mat-stroked-button type="button">
+        {{ "common.retry" | transloco }}
+      </button>
+    </div>
+  } @else if (resource.hasValue() && changes().length === 0) {
+    <p class="py-6 text-center text-secondary">
+      {{ "registrations.history.empty" | transloco }}
+    </p>
+  } @else {
+    <ul class="list-none m-0 p-0 flex flex-col gap-3">
+      @for (change of changes(); track change.id) {
+        <li class="flex flex-col gap-1 p-3 rounded border">
+          <span class="font-medium">
+            {{ change.old_team.name }}
+            <mat-icon
+              class="!size-4 !text-base align-middle"
+              svgIcon="mat:arrow_forward"
+            />
+            {{ change.new_team.name }}
+          </span>
+          <span class="text-sm text-secondary">
+            {{
+              "registrations.history.by"
+                | transloco
+                  : {
+                      name: change.changed_by?.name ?? "—",
+                      date: (change.created_at | appDateFormatRelative),
+                    }
+            }}
+          </span>
+          <span class="text-sm">
+            {{ "rosters.removalReason" | transloco: { reason: change.reason } }}
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">
+    {{ "common.close" | transloco }}
+  </button>
+</mat-dialog-actions>

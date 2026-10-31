@@ -168,6 +168,7 @@ test.describe("tournaments", () => {
         min_matches_for_playoffs: null,
         rounds: 1,
         match_duration_minutes: 60,
+        walkover_goals: 3,
         tiebreakers: ["points", "goal_difference", "goals_for", "head_to_head"],
       },
     ]);
@@ -184,7 +185,7 @@ test.describe("tournaments", () => {
 
     await dialog.getByLabel("Duración del partido (minutos)").fill("10");
     await expect(
-      dialog.getByText("Ingresa una duración entre 20 y 180 minutos"),
+      dialog.getByText("Ingresa un valor entre 20 y 180"),
     ).toBeVisible();
     await dialog.getByLabel("Duración del partido (minutos)").fill("90");
 
@@ -249,7 +250,7 @@ test.describe("tournaments", () => {
 
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(
-      dialog.getByText("Ingresa una duración entre 20 y 180 minutos"),
+      dialog.getByText("Ingresa un valor entre 20 y 180"),
     ).toBeVisible();
 
     await dialog.getByLabel("Duración del partido (minutos)").fill("60");
