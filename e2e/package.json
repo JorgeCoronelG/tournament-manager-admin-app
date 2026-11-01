@@ -3,7 +3,7 @@
   "private": true,
   "description": "End-to-end tests (Playwright). Kept apart from the app so its dependencies stay out of the main install.",
   "devDependencies": {
-    "@axe-core/playwright": "4.13.0",
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.55.0"
   }
 }
