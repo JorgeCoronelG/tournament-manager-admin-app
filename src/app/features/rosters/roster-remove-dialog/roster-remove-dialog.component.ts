@@ -22,6 +22,7 @@ import {
   ValidationError,
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { escapeHtml } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { RostersApi } from "../rosters.api";
 
@@ -62,6 +63,12 @@ export class RosterRemoveDialogComponent {
   private readonly transloco = inject(TranslocoService);
 
   readonly data = inject<RosterRemoveDialogData>(MAT_DIALOG_DATA);
+
+  /** The message is shown as HTML (to bold the names): the values are escaped */
+  protected readonly messageParams = {
+    player: escapeHtml(this.data.player),
+    team: escapeHtml(this.data.team),
+  };
 
   readonly reasonMax = REASON_MAX;
 

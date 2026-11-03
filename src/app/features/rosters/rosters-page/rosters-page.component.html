@@ -19,86 +19,106 @@
           </mat-form-field>
         }
 
-        <mat-form-field class="w-72">
-          <mat-label>{{ "rosters.team" | transloco }}</mat-label>
-          <mat-select [formField]="teamPickerForm.team" [panelWidth]="null">
-            @if (registration(); as selected) {
-              <mat-select-trigger>
-                <span
-                  class="inline-flex h-6 items-center gap-2 align-top [&_.mat-icon]:!m-0 [&_.mat-icon]:!size-4"
-                >
-                  <app-logo-image
-                    [alt]="selected.team.name"
-                    [src]="selected.team.logo_url"
-                    class="w-6 h-6 rounded-full shrink-0"
-                  />
-                  <span class="truncate">{{ teamLabel(selected) }}</span>
-                  @if (isWithdrawn(selected)) {
-                    <span
-                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                      >{{ "rosters.withdrawn" | transloco }}</span
-                    >
-                  }
-                </span>
-              </mat-select-trigger>
-            }
-            @for (item of teams(); track item.id) {
-              <mat-option [value]="item.id">
-                <span class="flex items-center gap-3 [&_.mat-icon]:!m-0">
-                  <app-logo-image
-                    [alt]="item.team.name"
-                    [src]="item.team.logo_url"
-                    class="w-8 h-8 rounded-full shrink-0"
-                  />
-                  <span class="whitespace-nowrap">{{ teamLabel(item) }}</span>
-                  @if (isWithdrawn(item)) {
-                    <span
-                      class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                      >{{ "rosters.withdrawn" | transloco }}</span
-                    >
-                  }
-                </span>
-              </mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        @if (registration()) {
+        @if (tournament()) {
           <mat-form-field class="w-72">
-            <mat-label>{{ "rosters.search" | transloco }}</mat-label>
-            <mat-icon matPrefix svgIcon="mat:search" />
-            <input
-              [formField]="filtersForm.search"
-              autocomplete="off"
-              matInput
-              type="search"
-            />
-          </mat-form-field>
-
-          <mat-form-field class="w-48">
-            <mat-label>{{ "rosters.fields.status" | transloco }}</mat-label>
-            <mat-select [formField]="filtersForm.status">
-              <mat-option value="">{{
-                "rosters.allStatuses" | transloco
-              }}</mat-option>
-              @for (status of statuses; track status) {
-                <mat-option [value]="status">{{
-                  "rosters.status." + status | transloco
-                }}</mat-option>
+            <mat-label>{{ "rosters.team" | transloco }}</mat-label>
+            <mat-select [formField]="teamPickerForm.team" [panelWidth]="null">
+              @if (registration(); as selected) {
+                <mat-select-trigger>
+                  <span
+                    class="inline-flex h-6 items-center gap-2 align-top [&_.mat-icon]:!m-0 [&_.mat-icon]:!size-4"
+                  >
+                    <app-logo-image
+                      [alt]="selected.team.name"
+                      [src]="selected.team.logo_url"
+                      class="w-6 h-6 rounded-full shrink-0"
+                    />
+                    <span class="truncate">{{ selected.team.name }}</span>
+                    @if (isWithdrawn(selected)) {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                        >{{ "rosters.withdrawn" | transloco }}</span
+                      >
+                    }
+                  </span>
+                </mat-select-trigger>
+              }
+              @for (item of teams(); track item.id) {
+                <mat-option [value]="item.id">
+                  <span class="flex items-center gap-3 [&_.mat-icon]:!m-0">
+                    <app-logo-image
+                      [alt]="item.team.name"
+                      [src]="item.team.logo_url"
+                      class="w-8 h-8 rounded-full shrink-0"
+                    />
+                    <span class="flex flex-col leading-tight">
+                      <span class="flex items-center gap-2">
+                        <span class="whitespace-nowrap">{{
+                          item.team.name
+                        }}</span>
+                        @if (isWithdrawn(item)) {
+                          <span
+                            class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                            >{{ "rosters.withdrawn" | transloco }}</span
+                          >
+                        }
+                      </span>
+                      <span class="whitespace-nowrap text-xs text-secondary">
+                        @if (item.team.manager; as manager) {
+                          {{
+                            "rosters.manager"
+                              | transloco: { name: manager.name }
+                          }}
+                        } @else {
+                          {{ "rosters.noManager" | transloco }}
+                        }
+                      </span>
+                    </span>
+                  </span>
+                </mat-option>
               }
             </mat-select>
           </mat-form-field>
+
+          @if (registration()) {
+            <mat-form-field class="w-72">
+              <mat-label>{{ "rosters.search" | transloco }}</mat-label>
+              <mat-icon matPrefix svgIcon="mat:search" />
+              <input
+                [formField]="filtersForm.search"
+                autocomplete="off"
+                matInput
+                type="search"
+              />
+            </mat-form-field>
+
+            <mat-form-field class="w-48">
+              <mat-label>{{ "rosters.fields.status" | transloco }}</mat-label>
+              <mat-select [formField]="filtersForm.status">
+                <mat-option value="">{{
+                  "rosters.allStatuses" | transloco
+                }}</mat-option>
+                @for (status of statuses; track status) {
+                  <mat-option [value]="status">{{
+                    "rosters.status." + status | transloco
+                  }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
         }
       </div>
 
       @if (!registration()) {
         <p class="py-10 px-6 text-center text-secondary">
           {{
-            (tournament() && teamsResource.hasValue() && teams().length === 0
-              ? "rosters.noTeams"
+            (tournament()
+              ? teamsResource.hasValue() && teams().length === 0
+                ? "rosters.noTeams"
+                : "rosters.pickTeam"
               : tournamentsResource.hasValue() && tournaments().length === 0
                 ? "rosters.noTournaments"
-                : "rosters.pickTeam"
+                : "rosters.pickTournament"
             ) | transloco
           }}
         </p>

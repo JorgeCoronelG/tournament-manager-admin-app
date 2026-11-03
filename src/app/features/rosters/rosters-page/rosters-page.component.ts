@@ -30,11 +30,7 @@ import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dia
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
-import {
-  isBanned,
-  isWithdrawn,
-  Registration,
-} from "../../registrations/registration.model";
+import { isBanned, isWithdrawn } from "../../registrations/registration.model";
 import { RegistrationsApi } from "../../registrations/registrations.api";
 import { TournamentStatusChipComponent } from "../../tournaments/tournament-status-chip/tournament-status-chip.component";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
@@ -210,18 +206,6 @@ export class RostersPageComponent {
     this.transloco.translate("nav.tournaments"),
     this.transloco.translate("nav.rosters"),
   ]);
-
-  /** Teams can share a name, so the option shows the delegate too */
-  teamLabel(registration: Registration): string {
-    const { team } = registration;
-
-    return team.manager
-      ? this.transloco.translate("teams.withManager", {
-          name: team.name,
-          manager: team.manager.name,
-        })
-      : team.name;
-  }
 
   protected readonly playerName = playerName;
   protected readonly isWithdrawn = isWithdrawn;

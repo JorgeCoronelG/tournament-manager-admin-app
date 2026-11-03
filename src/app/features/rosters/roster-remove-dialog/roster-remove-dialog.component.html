@@ -12,12 +12,10 @@
       </div>
     }
 
-    <p class="m-0 mb-2">
-      {{
-        "rosters.remove.message"
-          | transloco: { player: data.player, team: data.team }
-      }}
-    </p>
+    <p
+      class="m-0 mb-2"
+      [innerHTML]="'rosters.remove.message' | transloco: messageParams"
+    ></p>
 
     <mat-form-field>
       <mat-label>{{ "rosters.remove.reason" | transloco }}</mat-label>

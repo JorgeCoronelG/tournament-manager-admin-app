@@ -22,7 +22,7 @@ export interface ConfirmOptions {
 }
 
 /** The message is shown as HTML (so a text can bold a value): values are escaped */
-const escapeHtml = (value: unknown): unknown =>
+export const escapeHtml = (value: unknown): unknown =>
   typeof value === "string"
     ? value
         .replaceAll("&", "&amp;")
