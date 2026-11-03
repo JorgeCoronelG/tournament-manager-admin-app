@@ -8,14 +8,16 @@
       <app-league-required />
     } @else {
       <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "rosters.tournament" | transloco }}</mat-label>
-          <mat-select [formField]="pickerForm.tournament">
-            @for (item of tournaments(); track item.id) {
-              <mat-option [value]="item.id">{{ item.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        @if (!tournamentsResource.hasValue() || tournaments().length > 0) {
+          <mat-form-field class="w-72">
+            <mat-label>{{ "rosters.tournament" | transloco }}</mat-label>
+            <mat-select [formField]="pickerForm.tournament">
+              @for (item of tournaments(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
 
         <mat-form-field class="w-72">
           <mat-label>{{ "rosters.team" | transloco }}</mat-label>

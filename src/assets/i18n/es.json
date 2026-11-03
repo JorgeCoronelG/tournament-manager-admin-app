@@ -102,12 +102,12 @@
     },
     "deactivate": {
       "title": "¿Desactivar usuario?",
-      "message": "El usuario <b>{{name}}</b> no podrá acceder al sistema mientras su cuenta esté desactivada. Podrás volver a activarla en cualquier momento.",
+      "message": "El usuario <b>{{name}}</b> no podrá acceder al sistema mientras su cuenta esté desactivada.\n\nPodrás volver a activarla en cualquier momento.",
       "confirm": "Desactivar"
     },
     "delete": {
       "title": "¿Eliminar usuario?",
-      "message": "¿Seguro que quieres eliminar a <b>{{name}}</b>?\nEsta acción no se puede deshacer.",
+      "message": "¿Seguro que quieres eliminar a <b>{{name}}</b>?\n\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -142,7 +142,7 @@
     },
     "delete": {
       "title": "¿Eliminar liga?",
-      "message": "¿Seguro que quieres eliminar la liga <b>{{name}}</b>?\nEsta acción no se puede deshacer.",
+      "message": "¿Seguro que quieres eliminar la liga <b>{{name}}</b>?\n\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -310,17 +310,17 @@
     },
     "start": {
       "title": "¿Iniciar torneo?",
-      "message": "¿Quieres iniciar el torneo <b>{{name}}</b>?\nUna vez iniciado, solo podrás modificar su nombre. Esta acción no se puede deshacer.",
+      "message": "¿Quieres iniciar el torneo <b>{{name}}</b>?\n\nUna vez iniciado, solo podrás modificar su nombre. Esta acción no se puede deshacer.",
       "confirm": "Iniciar"
     },
     "finish": {
       "title": "¿Finalizar torneo?",
-      "message": "¿Quieres finalizar el torneo <b>{{name}}</b>?\nUna vez finalizado, ya no podrás modificarlo. Esta acción no se puede deshacer.",
+      "message": "¿Quieres finalizar el torneo <b>{{name}}</b>?\n\nUna vez finalizado, ya no podrás modificarlo. Esta acción no se puede deshacer.",
       "confirm": "Finalizar"
     },
     "delete": {
       "title": "¿Eliminar torneo?",
-      "message": "¿Quieres eliminar el torneo <b>{{name}}</b>?\nSe eliminará el torneo y toda su información asociada. Esta acción no se puede deshacer.",
+      "message": "¿Quieres eliminar el torneo <b>{{name}}</b>?\n\nSe eliminará el torneo y toda su información asociada. Esta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -404,12 +404,12 @@
     },
     "deactivate": {
       "title": "¿Desactivar árbitro?",
-      "message": "El árbitro <b>{{name}}</b> dejará de estar disponible para nuevas asignaciones en esta liga. Podrás volver a activarlo en cualquier momento.",
+      "message": "El árbitro <b>{{name}}</b> dejará de estar disponible para nuevas asignaciones en esta liga.\n\nPodrás volver a activarlo en cualquier momento.",
       "confirm": "Desactivar"
     },
     "remove": {
       "title": "¿Quitar árbitro de la liga?",
-      "message": "Se quitará a <b>{{name}}</b> de esta liga.\nSu cuenta seguirá existiendo y podrás volver a agregarlo con su clave.",
+      "message": "Se quitará a <b>{{name}}</b> de esta liga.\n\nSu cuenta seguirá existiendo y podrás volver a agregarlo con su clave.",
       "confirm": "Quitar"
     },
     "form": {
@@ -470,12 +470,12 @@
     },
     "deactivate": {
       "title": "¿Desactivar cancha?",
-      "message": "¿Seguro que quieres desactivar la cancha <b>{{name}}</b>?\nNo podrá usarse hasta que la vuelvas a activar.",
+      "message": "¿Seguro que quieres desactivar la cancha <b>{{name}}</b>?\n\nNo podrá usarse hasta que la vuelvas a activar.",
       "confirm": "Desactivar"
     },
     "delete": {
       "title": "¿Eliminar cancha?",
-      "message": "¿Seguro que quieres eliminar la cancha <b>{{name}}</b>?\nEsta acción no se puede deshacer.",
+      "message": "¿Seguro que quieres eliminar la cancha <b>{{name}}</b>?\n\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {
@@ -579,7 +579,7 @@
     "allStatuses": "Todos los estados",
     "withdrawn": "Baja",
     "pickTeam": "Elige un torneo y un equipo para ver su plantilla.",
-    "noTournaments": "Esta liga aún no tiene torneos.",
+    "noTournaments": "No hay torneos activos.",
     "noTeams": "Este torneo aún no tiene equipos inscritos.",
     "empty": "Este equipo todavía no tiene jugadores. Las solicitudes las envía el delegado desde la app.",
     "error": "No pudimos cargar la plantilla.",
@@ -1012,7 +1012,7 @@
     "title": "Grupos",
     "tournament": "Torneo",
     "pickTournament": "Elige un torneo para ver sus grupos.",
-    "noTournaments": "Esta liga aún no tiene torneos.",
+    "noTournaments": "No hay torneos activos.",
     "readOnly": {
       "in_progress": "El torneo está en curso: los grupos ya no se pueden modificar.",
       "playoffs": "El torneo está en liguilla: los grupos y las liguillas ya no se pueden modificar.",
@@ -1130,11 +1130,11 @@
     "title": "Inscripciones",
     "tournament": "Torneo",
     "pickTournament": "Elige un torneo para ver sus equipos inscritos.",
-    "noTournaments": "Esta liga aún no tiene torneos.",
+    "noTournaments": "No hay torneos activos.",
     "search": "Buscar por equipo o delegado",
     "count": {
-      "one": "{{count}} equipo inscrito",
-      "other": "{{count}} equipos inscritos"
+      "one": "{{count}} equipo activo",
+      "other": "{{count}} equipos activos"
     },
     "banned": "Vetado",
     "bannedHint": "Los equipos vetados no cuentan para iniciar el torneo.",
@@ -1147,8 +1147,8 @@
     "removed": "Inscripción quitada",
     "error": "No pudimos cargar las inscripciones.",
     "emptyAction": "Aún no hay equipos inscritos en este torneo.",
-    "readOnlyInProgress": "Con el torneo en curso solo puedes dar de baja o reemplazar equipos.",
-    "readOnly": "Solo se pueden inscribir o quitar equipos con el torneo en planeación.",
+    "readOnlyInProgress": "El torneo está en curso. Ya no puedes inscribir equipos nuevos, pero puedes reemplazar o dar de baja a los inscritos.",
+    "readOnlyPlayoffs": "El torneo está en liguilla. Solo puedes dar de baja equipos.",
     "noManager": "Sin delegado",
     "noGroup": "Sin grupo",
     "fields": {
@@ -1165,6 +1165,10 @@
       "error": "No pudimos cargar el historial.",
       "by": "Por {{name}} · {{date}}"
     },
+    "withdrawnCount": {
+      "one": "{{count}} baja",
+      "other": "{{count}} bajas"
+    },
     "withdrawn": "Baja",
     "withdrawnHint": "Dado de baja: {{reason}}",
     "withdrawnDone": "Equipo dado de baja.",
@@ -1172,7 +1176,6 @@
     "replacedRoster": "El equipo nuevo debe registrar su plantilla.",
     "actions": {
       "remove": "Quitar inscripción",
-      "menu": "Acciones del equipo",
       "withdraw": "Dar de baja",
       "replace": "Reemplazar equipo",
       "history": "Ver historial de equipos"
@@ -1205,25 +1208,35 @@
       "title": "Reemplazar equipo",
       "message": "Elige el equipo que tomará el lugar de <b>{{name}}</b>.",
       "search": "Buscar equipo por nombre",
-      "empty": "No hay equipos disponibles para el reemplazo.",
+      "empty": "No hay equipos disponibles para reemplazar.",
       "reason": "Motivo",
-      "info": "El equipo nuevo toma la inscripción: hereda partidos, puntos y estadísticas del equipo anterior, pero no su plantel. Los jugadores actuales quedarán libres y el equipo nuevo debe registrar su plantilla.",
-      "pendingNote": "Los partidos pendientes pasarán al equipo nuevo con el mismo horario. Los resultados por default ya registrados se conservan.",
+      "infoTitle": "Consecuencias del reemplazo",
+      "info1": "El nuevo equipo heredará los partidos, puntos y estadísticas del equipo anterior, pero no su plantilla.",
+      "info2": "Los jugadores del equipo anterior quedarán libres y el nuevo equipo deberá registrar su propia plantilla.",
+      "info3": "Los partidos pendientes se asignarán al nuevo equipo sin cambiar sus horarios. Los resultados ya registrados se conservarán.",
       "confirm": "Reemplazar"
     },
     "remove": {
-      "title": "Quitar inscripción",
-      "message": "¿Seguro que quieres quitar a {{name}} de este torneo?",
+      "title": "¿Quitar inscripción?",
+      "message": "¿Quieres quitar a <b>{{team}}</b> (delegado: <b>{{manager}}</b>) de este torneo?\n\nEl equipo dejará de estar inscrito y podrás volver a inscribirlo mientras el torneo esté en planeación.",
+      "confirm": "Quitar"
+    },
+    "removeNoManager": {
+      "title": "¿Quitar inscripción?",
+      "message": "¿Quieres quitar a <b>{{team}}</b> (sin delegado) de este torneo?\n\nEl equipo dejará de estar inscrito y podrás volver a inscribirlo mientras el torneo esté en planeación.",
       "confirm": "Quitar"
     },
     "dialog": {
       "title": "Inscribir equipos",
       "search": "Buscar equipo o delegado",
       "banned": "Vetado",
-      "bannedHint": "Los equipos vetados no pueden inscribirse.",
+      "bannedHint": "Este equipo está vetado y no puede inscribirse en torneos de la liga.",
       "noManager": "(sin delegado)",
-      "selected": "{{count}} seleccionados",
       "empty": "No hay equipos disponibles para inscribir.",
+      "emptySearch": "No se encontraron equipos con esa búsqueda.",
+      "selectAll": "Seleccionar todos",
+      "availableOne": "{{count}} disponible",
+      "available": "{{count}} disponibles",
       "error": "No pudimos cargar los equipos.",
       "failed": "{{team}}: {{message}}",
       "confirm": "Inscribir"
@@ -1276,17 +1289,37 @@
     "withoutManager": "{{name}} (sin delegado)",
     "removeManager": {
       "title": "¿Quitar delegado?",
-      "message": "Se quitará a <b>{{name}}</b> como delegado de <b>{{team}}</b>.\nEl equipo se quedará sin delegado y la cuenta del usuario seguirá existiendo.",
+      "message": "Se quitará a <b>{{name}}</b> como delegado de <b>{{team}}</b>.\n\nEl equipo se quedará sin delegado y la cuenta del usuario seguirá existiendo.",
       "confirm": "Quitar"
     },
     "ban": {
       "title": "¿Vetar equipo?",
-      "message": "Se vetará al equipo <b>{{name}}</b> y no podrá participar en la liga hasta que se levante el veto.",
+      "message": "Estás por vetar a <b>{{name}}</b>.",
+      "enrolledOne": "Este equipo está inscrito en 1 torneo activo:",
+      "enrolled": "Este equipo está inscrito en {{count}} torneos activos:",
+      "actionRemoved": "Se quitará al equipo del torneo",
+      "actionWithdrawn": "Se dará de baja",
+      "pendingOne": "1 partido pendiente",
+      "pending": "{{count}} partidos pendientes",
+      "reason": "Motivo",
+      "info": "El equipo no podrá participar en ningún torneo de la liga. Sus jugadores quedarán libres en los torneos donde sea dado de baja. Si se levanta el veto, sus inscripciones no se restaurarán automáticamente.",
+      "infoNew": "El equipo no podrá inscribirse en torneos de esta liga mientras permanezca vetado.",
       "confirm": "Vetar"
+    },
+    "banResult": {
+      "removed": {
+        "one": "Se quitó de {{count}} torneo",
+        "other": "Se quitó de {{count}} torneos"
+      },
+      "withdrawn": {
+        "one": "se dio de baja en {{count}} torneo",
+        "other": "se dio de baja en {{count}} torneos"
+      },
+      "join": " y "
     },
     "delete": {
       "title": "¿Eliminar equipo?",
-      "message": "Se eliminará al equipo <b>{{name}}</b>.\nEsta acción no se puede deshacer.",
+      "message": "Se eliminará al equipo <b>{{name}}</b>.\n\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
     "form": {

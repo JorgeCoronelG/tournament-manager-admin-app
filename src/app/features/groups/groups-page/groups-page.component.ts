@@ -76,7 +76,8 @@ export class GroupsPageComponent {
   protected readonly leagueContext = inject(LeagueContextService);
   protected readonly parseDate = parseDate;
 
-  protected readonly tournamentsResource = inject(TournamentsApi).options();
+  protected readonly tournamentsResource =
+    inject(TournamentsApi).activeOptions();
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
       ? this.tournamentsResource.value().data

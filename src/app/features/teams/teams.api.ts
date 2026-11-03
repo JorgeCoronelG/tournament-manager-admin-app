@@ -14,7 +14,9 @@ import {
   ManagerLookup,
   NewManager,
   NewTeam,
+  BannedTeam,
   Team,
+  TeamBanPreview,
   TeamManagerOption,
   TeamStatus,
   TeamsQuery,
@@ -164,6 +166,20 @@ export class TeamsApi {
     return this.http.patch<Team>(
       this.url(`/${id}/status`),
       { status },
+      this.ownErrors,
+    );
+  }
+
+  /** What banning the team would do to the tournaments it is enrolled in */
+  banPreview(id: number) {
+    return httpResource<TeamBanPreview>(() => this.url(`/${id}/ban/preview`));
+  }
+
+  /** Bans the team, withdrawing it from its tournaments; the reason is required */
+  ban(id: number, reason: string) {
+    return this.http.patch<BannedTeam>(
+      this.url(`/${id}/status`),
+      { status: "banned", reason: reason.trim() },
       this.ownErrors,
     );
   }

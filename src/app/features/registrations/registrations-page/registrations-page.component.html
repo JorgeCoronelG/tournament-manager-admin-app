@@ -8,14 +8,16 @@
       <app-league-required />
     } @else {
       <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "registrations.tournament" | transloco }}</mat-label>
-          <mat-select [formField]="pickerForm.tournament">
-            @for (item of tournaments(); track item.id) {
-              <mat-option [value]="item.id">{{ item.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        @if (!tournamentsResource.hasValue() || tournaments().length > 0) {
+          <mat-form-field class="w-72">
+            <mat-label>{{ "registrations.tournament" | transloco }}</mat-label>
+            <mat-select [formField]="pickerForm.tournament">
+              @for (item of tournaments(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
 
         @if (tournament()) {
           <mat-form-field class="w-72">
@@ -74,14 +76,25 @@
                 : ""
             }}
           </span>
+          @if (withdrawnCount() > 0) {
+            <span
+              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+              >{{
+                (withdrawnCount() === 1
+                  ? "registrations.withdrawnCount.one"
+                  : "registrations.withdrawnCount.other"
+                ) | transloco: { count: withdrawnCount() }
+              }}</span
+            >
+          }
         </div>
 
         @if (!editable()) {
           <div
-            class="flex items-center gap-3 mb-4 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+            class="flex items-center gap-3 mb-4 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
             role="status"
           >
-            <mat-icon class="shrink-0" svgIcon="mat:warning" />
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
             <p class="m-0 text-sm">
               {{ readOnlyKey() | transloco }}
             </p>
@@ -102,7 +115,12 @@
                     "registrations.fields.logo" | transloco
                   }}</span>
                 </th>
-                <td *matCellDef="let row" mat-cell class="w-14">
+                <td
+                  *matCellDef="let row"
+                  [class.opacity-60]="isWithdrawn(row)"
+                  mat-cell
+                  class="w-14"
+                >
                   <app-logo-image
                     [alt]="row.team.name"
                     [src]="row.team.logo_url"
@@ -115,7 +133,11 @@
                 <th *matHeaderCellDef mat-header-cell>
                   {{ "registrations.fields.team" | transloco }}
                 </th>
-                <td *matCellDef="let row" mat-cell>
+                <td
+                  *matCellDef="let row"
+                  [class.opacity-60]="isWithdrawn(row)"
+                  mat-cell
+                >
                   <span class="flex flex-wrap items-center gap-2 py-1">
                     <span class="font-medium">{{ row.team.name }}</span>
                     @if (isWithdrawn(row)) {
@@ -143,7 +165,11 @@
                 <th *matHeaderCellDef mat-header-cell>
                   {{ "registrations.fields.group" | transloco }}
                 </th>
-                <td *matCellDef="let row" mat-cell>
+                <td
+                  *matCellDef="let row"
+                  [class.opacity-60]="isWithdrawn(row)"
+                  mat-cell
+                >
                   @if (groupName(row); as name) {
                     <span class="whitespace-nowrap">{{ name }}</span>
                   } @else {
@@ -159,7 +185,11 @@
                 <th *matHeaderCellDef mat-header-cell>
                   {{ "registrations.fields.manager" | transloco }}
                 </th>
-                <td *matCellDef="let row" mat-cell>
+                <td
+                  *matCellDef="let row"
+                  [class.opacity-60]="isWithdrawn(row)"
+                  mat-cell
+                >
                   @if (row.team.manager; as manager) {
                     <div class="flex flex-wrap items-center gap-2 py-1">
                       <span class="whitespace-nowrap">{{ manager.name }}</span>
@@ -181,7 +211,12 @@
                 <th *matHeaderCellDef mat-header-cell>
                   {{ "registrations.fields.registeredAt" | transloco }}
                 </th>
-                <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
+                <td
+                  *matCellDef="let row"
+                  [class.opacity-60]="isWithdrawn(row)"
+                  mat-cell
+                  class="whitespace-nowrap"
+                >
                   {{ row.created_at | appDateFormatRelative }}
                 </td>
               </ng-container>
@@ -194,18 +229,49 @@
                 </th>
                 <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
                   @if (canWithdraw()) {
+                    @if (canReplace()) {
+                      <button
+                        (click)="replace(row)"
+                        [attr.aria-label]="
+                          'registrations.actions.replace' | transloco
+                        "
+                        [matTooltip]="
+                          'registrations.actions.replace' | transloco
+                        "
+                        class="app-action-primary"
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:swap_horiz" />
+                      </button>
+                    }
+                    @if (!isWithdrawn(row)) {
+                      <button
+                        (click)="withdraw(row)"
+                        [attr.aria-label]="
+                          'registrations.actions.withdraw' | transloco
+                        "
+                        [matTooltip]="
+                          'registrations.actions.withdraw' | transloco
+                        "
+                        class="app-action-danger"
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:person_remove" />
+                      </button>
+                    }
                     <button
+                      (click)="history(row)"
                       [attr.aria-label]="
-                        'registrations.actions.menu' | transloco
+                        'registrations.actions.history' | transloco
                       "
-                      [matMenuTriggerFor]="rowMenu"
-                      [matMenuTriggerData]="{ row }"
-                      [matTooltip]="'registrations.actions.menu' | transloco"
+                      [matTooltip]="'registrations.actions.history' | transloco"
                       class="app-action-primary"
                       mat-icon-button
                       type="button"
                     >
-                      <mat-icon svgIcon="mat:more_vert" />
+                      <mat-icon svgIcon="mat:history" />
                     </button>
                   }
                   @if (editable()) {
@@ -229,11 +295,7 @@
                 *matHeaderRowDef="columns(); sticky: true"
                 mat-header-row
               ></tr>
-              <tr
-                *matRowDef="let row; columns: columns()"
-                [class.opacity-60]="isWithdrawn(row)"
-                mat-row
-              ></tr>
+              <tr *matRowDef="let row; columns: columns()" mat-row></tr>
             </table>
           </div>
 
@@ -274,21 +336,3 @@
     }
   </app-page-layout-content>
 </app-page-layout>
-
-<mat-menu #rowMenu="matMenu">
-  <ng-template let-row="row" matMenuContent>
-    @if (!isWithdrawn(row)) {
-      <button (click)="withdraw(row)" mat-menu-item type="button">
-        {{ "registrations.actions.withdraw" | transloco }}
-      </button>
-    }
-    @if (canReplace()) {
-      <button (click)="replace(row)" mat-menu-item type="button">
-        {{ "registrations.actions.replace" | transloco }}
-      </button>
-    }
-    <button (click)="history(row)" mat-menu-item type="button">
-      {{ "registrations.actions.history" | transloco }}
-    </button>
-  </ng-template>
-</mat-menu>

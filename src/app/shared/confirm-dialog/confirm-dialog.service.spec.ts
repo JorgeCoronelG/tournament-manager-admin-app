@@ -37,7 +37,7 @@ describe("ConfirmDialogService", () => {
       data: {
         title: "¿Eliminar usuario?",
         message:
-          "¿Seguro que quieres eliminar a <b>Ana Pérez</b>?\nEsta acción no se puede deshacer.",
+          "¿Seguro que quieres eliminar a <b>Ana Pérez</b>?\n\nEsta acción no se puede deshacer.",
         confirmLabel: "Eliminar",
       },
     });

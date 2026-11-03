@@ -11,7 +11,6 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
-import { MatMenuModule } from "@angular/material/menu";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
@@ -78,7 +77,6 @@ import { RegistrationsApi } from "../registrations.api";
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatMenuModule,
     MatPaginatorModule,
     MatProgressBarModule,
     MatSelectModule,
@@ -99,7 +97,8 @@ export class RegistrationsPageComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  protected readonly tournamentsResource = inject(TournamentsApi).options();
+  protected readonly tournamentsResource =
+    inject(TournamentsApi).activeOptions();
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
       ? this.tournamentsResource.value().data
@@ -133,11 +132,16 @@ export class RegistrationsPageComponent {
   );
 
   /** Which notice explains why teams are not enrolled or removed here */
-  readonly readOnlyKey = computed(() =>
-    this.tournament()?.status === "in_progress"
-      ? "registrations.readOnlyInProgress"
-      : "registrations.readOnly",
-  );
+  readonly readOnlyKey = computed(() => {
+    switch (this.tournament()?.status) {
+      case "in_progress":
+        return "registrations.readOnlyInProgress";
+      case "playoffs":
+        return "registrations.readOnlyPlayoffs";
+      default:
+        return "";
+    }
+  });
 
   // A tournament that is no longer in the league (another league was picked) is dropped
   private readonly dropGoneTournament = effect(() => {
@@ -206,7 +210,13 @@ export class RegistrationsPageComponent {
   /** Totals of the whole tournament, whatever the search or the page */
   private readonly summary = computed(() => this.resource.value()?.summary);
   readonly registeredCount = computed(
-    () => this.summary()?.["registered"] ?? this.total(),
+    () =>
+      this.resource.value()?.meta.active_count ??
+      this.summary()?.["registered"] ??
+      this.total(),
+  );
+  readonly withdrawnCount = computed(
+    () => this.resource.value()?.meta.withdrawn_count ?? 0,
   );
   readonly bannedCount = computed(() => this.summary()?.["banned"] ?? 0);
   protected readonly isBanned = isBanned;
@@ -344,15 +354,19 @@ export class RegistrationsPageComponent {
     }
 
     const { team } = registration;
-    const name = team.manager
-      ? this.transloco.translate("teams.withManager", {
-          name: team.name,
-          manager: team.manager.name,
-        })
-      : this.transloco.translate("teams.withoutManager", { name: team.name });
 
     this.confirmDialog
-      .confirm({ key: "registrations.remove", params: { name } })
+      .confirm(
+        team.manager
+          ? {
+              key: "registrations.remove",
+              params: { team: team.name, manager: team.manager.name },
+            }
+          : {
+              key: "registrations.removeNoManager",
+              params: { team: team.name },
+            },
+      )
       .subscribe((confirmed) => {
         if (!confirmed) {
           return;

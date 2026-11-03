@@ -21,6 +21,7 @@ import { debounce, form, FormField } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { failureMessage, fieldErrors } from "../../../core/http/api-errors";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { AvailableTeam, isBanned } from "../registration.model";
 import { RegistrationsApi } from "../registrations.api";
 
@@ -38,6 +39,7 @@ export interface RegistrationDialogData {
   templateUrl: "./registration-dialog.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    ScrollFadeComponent,
     FormField,
     LogoImageComponent,
     MatButtonModule,
@@ -63,6 +65,9 @@ export class RegistrationDialogComponent {
     debounce(filter.search, 300);
   });
 
+  /** The search has text (spaces do not count), so an empty list means "no match" */
+  readonly hasSearch = computed(() => this.filters().search.trim() !== "");
+
   private readonly candidates = this.api.available(
     this.data.tournamentId,
     computed(() => this.filters().search),
@@ -78,6 +83,32 @@ export class RegistrationDialogComponent {
   readonly serverError = signal<string | null>(null);
 
   protected readonly isBanned = isBanned;
+
+  /** Teams of the list that can be picked: the banned ones cannot */
+  readonly selectable = computed(() =>
+    this.teams().filter((team) => !isBanned(team)),
+  );
+  readonly allSelected = computed(
+    () =>
+      this.selectable().length > 0 &&
+      this.selectable().every((team) => this.isSelected(team)),
+  );
+  readonly someSelected = computed(
+    () =>
+      !this.allSelected() &&
+      this.selectable().some((team) => this.isSelected(team)),
+  );
+
+  /** Picks (or drops) every team of the list, keeping the ones picked in other searches */
+  toggleAll(checked: boolean): void {
+    this.serverError.set(null);
+    const listed = new Set(this.selectable().map((team) => team.id));
+
+    this.selected.update((items) => [
+      ...items.filter((item) => !listed.has(item.id)),
+      ...(checked ? this.selectable() : []),
+    ]);
+  }
 
   isSelected(team: AvailableTeam): boolean {
     return this.selected().some((item) => item.id === team.id);

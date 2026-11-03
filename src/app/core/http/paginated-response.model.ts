@@ -14,6 +14,9 @@ export interface PaginatedResponse<T> {
     perPage: number;
     to: number | null;
     total: number;
+    /** Registrations only: teams still in the tournament and teams withdrawn, whatever the page or search */
+    active_count?: number;
+    withdrawn_count?: number;
   };
   /** Totals some endpoints add over the whole list, not just the page or search */
   summary?: Record<string, number>;

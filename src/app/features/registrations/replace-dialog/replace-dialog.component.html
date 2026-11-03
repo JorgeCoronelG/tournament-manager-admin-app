@@ -46,47 +46,62 @@
       </div>
     } @else if (!resource.isLoading() && teams().length === 0) {
       <p class="py-4 text-center text-secondary">
-        {{ "registrations.replace.empty" | transloco }}
+        {{
+          (hasSearch()
+            ? "registrations.dialog.emptySearch"
+            : "registrations.replace.empty"
+          ) | transloco
+        }}
       </p>
     } @else {
-      <ul class="list-none m-0 mb-2 p-0 max-h-60 overflow-y-auto">
-        @for (candidate of teams(); track candidate.id) {
-          <li
-            [class.opacity-60]="isBanned(candidate)"
-            [matTooltip]="
-              isBanned(candidate)
-                ? ('registrations.dialog.bannedHint' | transloco)
-                : ''
-            "
-          >
-            <mat-radio-button
-              (change)="pick(candidate)"
-              [checked]="selected()?.id === candidate.id"
-              [disabled]="isBanned(candidate)"
-              class="w-full"
-              name="team"
+      <app-scroll-fade class="mb-2" maxHeight="max-h-38">
+        <ul class="list-none m-0 p-0">
+          @for (candidate of teams(); track candidate.id) {
+            <li
+              [class.opacity-60]="isBanned(candidate)"
+              [matTooltip]="
+                isBanned(candidate)
+                  ? ('registrations.dialog.bannedHint' | transloco)
+                  : ''
+              "
             >
-              <span class="flex items-center gap-3 py-1">
-                <app-logo-image
-                  [alt]="candidate.name"
-                  [src]="candidate.logo_url"
-                  class="w-8 h-8 rounded-full"
-                />
-                <span class="flex flex-col">
-                  <span class="font-medium">{{ candidate.name }}</span>
-                  <span class="text-sm text-secondary">
-                    @if (candidate.manager; as manager) {
-                      {{ manager.name }}
-                    } @else {
-                      {{ "registrations.dialog.noManager" | transloco }}
-                    }
+              <mat-radio-button
+                (change)="pick(candidate)"
+                [checked]="selected()?.id === candidate.id"
+                [disabled]="isBanned(candidate)"
+                class="w-full"
+                name="team"
+              >
+                <span class="flex items-center gap-3 py-1">
+                  <app-logo-image
+                    [alt]="candidate.name"
+                    [src]="candidate.logo_url"
+                    class="w-8 h-8 rounded-full"
+                  />
+                  <span class="flex flex-col">
+                    <span class="flex flex-wrap items-center gap-2">
+                      <span class="font-medium">{{ candidate.name }}</span>
+                      @if (isBanned(candidate)) {
+                        <span
+                          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-red-600/10 text-red-800 dark:text-red-400"
+                          >{{ "registrations.dialog.banned" | transloco }}</span
+                        >
+                      }
+                    </span>
+                    <span class="text-sm text-secondary">
+                      @if (candidate.manager; as manager) {
+                        {{ manager.name }}
+                      } @else {
+                        {{ "registrations.dialog.noManager" | transloco }}
+                      }
+                    </span>
                   </span>
                 </span>
-              </span>
-            </mat-radio-button>
-          </li>
-        }
-      </ul>
+              </mat-radio-button>
+            </li>
+          }
+        </ul>
+      </app-scroll-fade>
     }
 
     <mat-form-field>
@@ -98,14 +113,24 @@
     </mat-form-field>
 
     <div
-      class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+      class="flex items-start gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
       role="status"
     >
       <mat-icon class="shrink-0" svgIcon="mat:warning" />
-      <p class="m-0 text-sm">
-        {{ "registrations.replace.info" | transloco }}
-        {{ "registrations.replace.pendingNote" | transloco }}
-      </p>
+      <div class="flex flex-col gap-2">
+        <p class="m-0 font-bold">
+          {{ "registrations.replace.infoTitle" | transloco }}
+        </p>
+        <p class="m-0 text-sm">
+          {{ "registrations.replace.info1" | transloco }}
+        </p>
+        <p class="m-0 text-sm">
+          {{ "registrations.replace.info2" | transloco }}
+        </p>
+        <p class="m-0 text-sm">
+          {{ "registrations.replace.info3" | transloco }}
+        </p>
+      </div>
     </div>
   </mat-dialog-content>
 

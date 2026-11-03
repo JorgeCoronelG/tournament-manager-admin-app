@@ -172,4 +172,20 @@ describe("TournamentsApi", () => {
     expect(request.request.method).toBe("DELETE");
     request.flush(null, { status: 204, statusText: "No Content" });
   });
+
+  it("asks only for the tournaments that are not finished", () => {
+    TestBed.runInInjectionContext(() => api.activeOptions());
+    TestBed.tick();
+
+    const request = controller.expectOne(
+      (req) => req.url === "/api/leagues/3/tournaments",
+    );
+    expect(request.request.params.getAll("status[]")).toEqual([
+      "planning",
+      "in_progress",
+      "playoffs",
+    ]);
+    expect(request.request.params.get("per_page")).toBe("100");
+    expect(request.request.params.get("sort")).toBe("-start_date");
+  });
 });

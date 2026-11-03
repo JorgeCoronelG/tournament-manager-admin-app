@@ -31,6 +31,38 @@ export interface Team {
   created_at: string;
 }
 
+/** A tournament that banning the team touches (GET /teams/{id}/ban/preview) */
+export interface TeamBanTournament {
+  tournament_id: number;
+  name: string;
+  status: "planning" | "in_progress" | "playoffs";
+  /** Planning: the enrollment is removed; in progress or playoffs: the team is withdrawn */
+  action: "removed" | "withdrawn";
+  pending_matches: number;
+  players_released: number;
+}
+
+export interface TeamBanPreview {
+  tournaments: TeamBanTournament[];
+  totals: {
+    removed_tournaments: number;
+    withdrawn_tournaments: number;
+    pending_matches: number;
+    players_released: number;
+  };
+}
+
+/** What banning the team did, as the status endpoint answers it */
+export interface TeamBanEffects {
+  removed_tournaments: number;
+  withdrawn_tournaments: number;
+  pending_matches: number;
+  players_released: number;
+}
+
+/** The team after banning it, with what it did to its tournaments */
+export type BannedTeam = Team & { ban_effects?: TeamBanEffects };
+
 /** Data of a brand new delegate (they get an activation email) */
 export interface NewManager {
   first_name: string;

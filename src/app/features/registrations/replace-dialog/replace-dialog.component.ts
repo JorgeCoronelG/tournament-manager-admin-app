@@ -29,6 +29,7 @@ import {
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import {
   AvailableTeam,
   isBanned,
@@ -54,6 +55,7 @@ export interface ReplaceDialogData {
   templateUrl: "./replace-dialog.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    ScrollFadeComponent,
     FormField,
     LogoImageComponent,
     MatButtonModule,
@@ -81,6 +83,9 @@ export class ReplaceDialogComponent {
   readonly filtersForm = form(this.filters, (filter) => {
     debounce(filter.search, 300);
   });
+
+  /** The search has text (spaces do not count), so an empty list means "no match" */
+  readonly hasSearch = computed(() => this.filters().search.trim() !== "");
 
   private readonly candidates = this.api.available(
     this.data.tournamentId,

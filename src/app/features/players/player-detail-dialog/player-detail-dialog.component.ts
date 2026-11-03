@@ -11,6 +11,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { TranslocoPipe } from "@jsverse/transloco";
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { RosterStatusChipComponent } from "../../rosters/roster-status-chip/roster-status-chip.component";
 import { fullName, formatBirthDate } from "../player.model";
 import { PlayersApi } from "../players.api";
@@ -32,6 +33,7 @@ export interface PlayerDetailDialogData {
     MatIconModule,
     MatProgressBarModule,
     RosterStatusChipComponent,
+    ScrollFadeComponent,
     TranslocoPipe,
   ],
 })

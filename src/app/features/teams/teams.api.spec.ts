@@ -182,6 +182,12 @@ describe("TeamsApi", () => {
     api.setStatus(5, "banned").subscribe();
     expectCall("/api/leagues/3/teams/5/status", "PATCH", { status: "banned" });
 
+    api.ban(5, "  Mala conducta ").subscribe();
+    expectCall("/api/leagues/3/teams/5/status", "PATCH", {
+      status: "banned",
+      reason: "Mala conducta",
+    });
+
     api.remove(5).subscribe();
     expectCall("/api/leagues/3/teams/5", "DELETE");
 

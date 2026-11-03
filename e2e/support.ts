@@ -861,6 +861,29 @@ export async function mockTeamsApi(
     return route.fulfill({ json: found ?? {} });
   });
 
+  await page.route(/\/teams\/\d+\/ban\/preview$/, (route) =>
+    route.fulfill({
+      json: {
+        tournaments: [
+          {
+            tournament_id: 1,
+            name: "Torneo Apertura",
+            status: "in_progress",
+            action: "withdrawn",
+            pending_matches: 3,
+            players_released: 8,
+          },
+        ],
+        totals: {
+          removed_tournaments: 0,
+          withdrawn_tournaments: 1,
+          pending_matches: 3,
+          players_released: 8,
+        },
+      },
+    }),
+  );
+
   await page.route(/\/teams\/\d+\/status$/, (route) => {
     const id = idOf(route.request().url(), 2);
     const { status } = route.request().postDataJSON() as { status: string };
@@ -871,7 +894,19 @@ export async function mockTeamsApi(
       found.status = status as MockTeam["status"];
     }
 
-    return route.fulfill({ json: found ?? {} });
+    return route.fulfill({
+      json: {
+        ...found,
+        ...(status === "banned" && {
+          ban_effects: {
+            removed_tournaments: 1,
+            withdrawn_tournaments: 2,
+            pending_matches: 3,
+            players_released: 8,
+          },
+        }),
+      },
+    });
   });
 
   await page.route(/\/teams\/\d+$/, (route) => {

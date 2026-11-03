@@ -80,52 +80,54 @@
         {{ "players.detail.noRosters" | transloco }}
       </p>
     } @else {
-      <ul
-        class="list-none p-0 m-0 mb-6 rounded border border-solid border-[rgb(128_128_128/0.25)] divide-y divide-[rgb(128_128_128/0.25)]"
-      >
-        @for (roster of player.rosters; track roster.id) {
-          <li class="flex items-start gap-3 p-3">
-            <span
-              class="flex items-center justify-center w-10 h-10 rounded-full shrink-0 bg-[rgb(128_128_128/0.15)] text-secondary"
-            >
-              <mat-icon svgIcon="mat:shield" />
-            </span>
-            <div class="flex flex-col gap-1 flex-1 min-w-0">
-              <div class="flex flex-wrap items-baseline gap-x-3">
-                <span class="font-semibold">{{ roster.team }}</span>
-                <span class="text-secondary text-sm">{{
-                  roster.tournament
-                }}</span>
-              </div>
-              <div class="text-secondary text-sm">
-                {{
-                  "players.detail.jersey"
-                    | transloco: { number: roster.jersey_number }
-                }}
-              </div>
-              @if (roster.status === "removed") {
+      <app-scroll-fade class="mb-6" maxHeight="max-h-60">
+        <ul
+          class="list-none p-0 m-0 rounded border border-solid border-[rgb(128_128_128/0.25)] divide-y divide-[rgb(128_128_128/0.25)]"
+        >
+          @for (roster of player.rosters; track roster.id) {
+            <li class="flex items-start gap-3 p-3">
+              <span
+                class="flex items-center justify-center w-10 h-10 rounded-full shrink-0 bg-[rgb(128_128_128/0.15)] text-secondary"
+              >
+                <mat-icon svgIcon="mat:shield" />
+              </span>
+              <div class="flex flex-col gap-1 flex-1 min-w-0">
+                <div class="flex flex-wrap items-baseline gap-x-3">
+                  <span class="font-semibold">{{ roster.team }}</span>
+                  <span class="text-secondary text-sm">{{
+                    roster.tournament
+                  }}</span>
+                </div>
                 <div class="text-secondary text-sm">
                   {{
-                    "rosters.removedBy"
-                      | transloco
-                        : {
-                            name: roster.removed_by?.name ?? "—",
-                            date: (roster.removed_at | appDateFormatRelative),
-                          }
+                    "players.detail.jersey"
+                      | transloco: { number: roster.jersey_number }
                   }}
-                  @if (roster.removal_reason) {
-                    <br />{{
-                      "rosters.removalReason"
-                        | transloco: { reason: roster.removal_reason }
-                    }}
-                  }
                 </div>
-              }
-            </div>
-            <app-roster-status-chip [status]="roster.status" />
-          </li>
-        }
-      </ul>
+                @if (roster.status === "removed") {
+                  <div class="text-secondary text-sm">
+                    {{
+                      "rosters.removedBy"
+                        | transloco
+                          : {
+                              name: roster.removed_by?.name ?? "—",
+                              date: (roster.removed_at | appDateFormatRelative),
+                            }
+                    }}
+                    @if (roster.removal_reason) {
+                      <br />{{
+                        "rosters.removalReason"
+                          | transloco: { reason: roster.removal_reason }
+                      }}
+                    }
+                  </div>
+                }
+              </div>
+              <app-roster-status-chip [status]="roster.status" />
+            </li>
+          }
+        </ul>
+      </app-scroll-fade>
     }
 
     <h3 class="text-lg font-medium m-0 mb-2">

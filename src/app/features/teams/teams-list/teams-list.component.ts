@@ -37,10 +37,14 @@ import {
   TeamFormDialogComponent,
   TeamFormResult,
 } from "../team-form-dialog/team-form-dialog.component";
+import {
+  TeamBanDialogComponent,
+  TeamBanDialogData,
+} from "../team-ban-dialog/team-ban-dialog.component";
 import { TeamManagerDialogComponent } from "../team-manager-dialog/team-manager-dialog.component";
 import { TeamManagerEditDialogComponent } from "../team-manager-edit-dialog/team-manager-edit-dialog.component";
 import { TeamStatusChipComponent } from "../team-status-chip/team-status-chip.component";
-import { Team, TEAM_STATUSES, TeamsFilters } from "../team.model";
+import { BannedTeam, Team, TEAM_STATUSES, TeamsFilters } from "../team.model";
 import { TeamsApi } from "../teams.api";
 
 @Component({
@@ -238,13 +242,47 @@ export class TeamsListComponent {
       return;
     }
 
-    this.confirmDialog
-      .confirm({ key: "teams.ban", params: { name: this.teamLabel(team) } })
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.run(this.api.setStatus(team.id, "banned"), "teams.banned");
+    this.dialog
+      .open<TeamBanDialogComponent, TeamBanDialogData, BannedTeam>(
+        TeamBanDialogComponent,
+        {
+          data: { team, label: this.teamLabel(team) },
+          width: "560px",
+          maxWidth: "95vw",
+          autoFocus: "dialog",
+        },
+      )
+      .afterClosed()
+      .subscribe((banned) => {
+        if (banned) {
+          this.reloadAll();
+          this.snackbar.success(this.banMessage(banned));
         }
       });
+  }
+
+  /** "Equipo vetado. Se quitó de 1 torneo y se dio de baja en 2 torneos." */
+  private banMessage({ ban_effects: effects }: BannedTeam): string {
+    const done = this.transloco.translate("teams.banned");
+    const t = (key: string, count: number) =>
+      this.transloco.translate(
+        `teams.banResult.${key}.${count === 1 ? "one" : "other"}`,
+        { count },
+      );
+    const parts = effects
+      ? [
+          effects.removed_tournaments > 0
+            ? t("removed", effects.removed_tournaments)
+            : "",
+          effects.withdrawn_tournaments > 0
+            ? t("withdrawn", effects.withdrawn_tournaments)
+            : "",
+        ].filter(Boolean)
+      : [];
+
+    return parts.length
+      ? `${done}. ${parts.join(this.transloco.translate("teams.banResult.join"))}.`
+      : `${done}.`;
   }
 
   remove(team: Team): void {

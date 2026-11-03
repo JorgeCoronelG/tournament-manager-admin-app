@@ -98,7 +98,8 @@ export class RostersPageComponent {
   ];
   readonly statuses = ROSTER_STATUSES;
 
-  protected readonly tournamentsResource = inject(TournamentsApi).options();
+  protected readonly tournamentsResource =
+    inject(TournamentsApi).activeOptions();
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
       ? this.tournamentsResource.value().data

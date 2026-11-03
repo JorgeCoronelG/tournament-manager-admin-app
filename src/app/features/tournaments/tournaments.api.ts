@@ -11,6 +11,13 @@ import {
   TournamentsQuery,
 } from "./tournament.model";
 
+/** The statuses a tournament has before it finishes */
+const ACTIVE_STATUSES: readonly TournamentStatus[] = [
+  "planning",
+  "in_progress",
+  "playoffs",
+];
+
 /**
  * Tournaments of the active league (`/leagues/{id}/tournaments`; the backend
  * authorizes them). Writes skip the generic error notification: the form maps
@@ -53,6 +60,27 @@ export class TournamentsApi {
 
       return url
         ? { url, params: { per_page: 100, sort: "-start_date" } }
+        : undefined;
+    });
+  }
+
+  /**
+   * Same selector list without the finished tournaments: the backend filters
+   * them (`status[]`), so they are never requested
+   */
+  activeOptions() {
+    return httpResource<PaginatedResponse<Tournament>>(() => {
+      const url = this.league.leagueApi("/tournaments");
+
+      return url
+        ? {
+            url,
+            params: {
+              per_page: 100,
+              sort: "-start_date",
+              "status[]": ACTIVE_STATUSES,
+            },
+          }
         : undefined;
     });
   }

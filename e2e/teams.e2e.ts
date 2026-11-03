@@ -237,18 +237,33 @@ test.describe("teams", () => {
     await expect(dialog.getByRole("textbox", { name: "Clave" })).toBeVisible();
   });
 
-  test("asks before banning, but not before reactivating", async ({ page }) => {
+  test("bans with a reason and a summary, but reactivates without asking", async ({
+    page,
+  }) => {
     const api = await mockTeamsApi(page, { teams: makeTeams(1) });
     await gotoApp(page, "/dashboard/equipos");
     const row = page.locator("tr[mat-row]").first();
 
     await row.getByRole("button", { name: "Vetar" }).click();
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Vetar" })
-      .click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("inscrito en 1 torneo activo");
+    await expect(dialog).toContainText("Torneo Apertura");
+    await expect(dialog).toContainText(
+      "Se dará de baja · 3 partidos pendientes",
+    );
+
+    await dialog.getByRole("button", { name: "Vetar" }).click();
+    await expect(dialog.getByText("Este campo es obligatorio")).toBeVisible();
+
+    await dialog.getByLabel("Motivo").fill("Mala conducta");
+    await dialog.getByRole("button", { name: "Vetar" }).click();
     await expect(row).toContainText("Vetado");
     expect(api.statusChanges).toEqual([{ id: 1, status: "banned" }]);
+    await expect(
+      page.getByText(
+        "Equipo vetado. Se quitó de 1 torneo y se dio de baja en 2 torneos.",
+      ),
+    ).toBeVisible();
 
     await row.getByRole("button", { name: "Levantar veto" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
