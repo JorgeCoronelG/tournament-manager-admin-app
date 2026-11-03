@@ -8,6 +8,7 @@ import {
   AvailableTeam,
   Registration,
   RegistrationsQuery,
+  RegistrationsResponse,
   ReplaceResult,
   TeamChange,
   WithdrawPreview,
@@ -46,7 +47,11 @@ export class RegistrationsApi {
     tournamentId: Signal<number | undefined>,
     query: Signal<RegistrationsQuery>,
   ) {
-    return paginatedResource<Registration, RegistrationsQuery>(
+    return paginatedResource<
+      Registration,
+      RegistrationsQuery,
+      RegistrationsResponse
+    >(
       () => this.url(tournamentId()),
       query,
       ({ search }): Record<string, string> => (search ? { search } : {}),

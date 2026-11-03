@@ -11,8 +11,11 @@ export interface PageQuery {
   sort: string;
 }
 
-export interface PaginatedResource<T> {
-  resource: HttpResourceRef<PaginatedResponse<T> | undefined>;
+export interface PaginatedResource<
+  T,
+  R extends PaginatedResponse<T> = PaginatedResponse<T>,
+> {
+  resource: HttpResourceRef<R | undefined>;
   /** `undefined` until the first response */
   rows: Signal<T[] | undefined>;
   total: Signal<number>;
@@ -24,12 +27,16 @@ export interface PaginatedResource<T> {
  * API's params; return only the ones that have a value. `url` may return
  * `undefined` (e.g. no active league yet): the request waits until it has one.
  */
-export function paginatedResource<T, Q extends PageQuery>(
+export function paginatedResource<
+  T,
+  Q extends PageQuery,
+  R extends PaginatedResponse<T> = PaginatedResponse<T>,
+>(
   url: () => string | undefined,
   query: Signal<Q>,
   filterParams: (query: Q) => Record<string, string | number>,
-): PaginatedResource<T> {
-  const resource = httpResource<PaginatedResponse<T>>(() => {
+): PaginatedResource<T, R> {
+  const resource = httpResource<R>(() => {
     const current = query();
     const requestUrl = url();
 

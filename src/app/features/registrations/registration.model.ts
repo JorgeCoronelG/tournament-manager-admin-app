@@ -1,4 +1,8 @@
 import { PageQuery } from "../../core/http/paginated-resource";
+import {
+  PaginatedMeta,
+  PaginatedResponse,
+} from "../../core/http/paginated-response.model";
 import { TeamStatus } from "../teams/team.model";
 /** A team as the registrations endpoints show it; no delegate means null */
 export interface RegistrationTeam {
@@ -11,6 +15,20 @@ export interface RegistrationTeam {
 }
 
 /** A team enrolled in a tournament, as the list returns it */
+/** Teams still in the tournament and teams withdrawn, whatever the page or search */
+export interface RegistrationsMeta extends PaginatedMeta {
+  active_count: number;
+  withdrawn_count: number;
+}
+
+/** A page of registrations, with the totals of the whole tournament */
+export type RegistrationsResponse = PaginatedResponse<
+  Registration,
+  RegistrationsMeta
+> & {
+  summary: Record<string, number>;
+};
+
 export interface Registration {
   id: number;
   status: "active" | "withdrawn";

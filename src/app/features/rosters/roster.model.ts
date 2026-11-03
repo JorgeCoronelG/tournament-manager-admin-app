@@ -1,4 +1,5 @@
 import { PageQuery } from "../../core/http/paginated-resource";
+import { PaginatedResponse } from "../../core/http/paginated-response.model";
 
 export type RosterStatus =
   | "pending"
@@ -33,6 +34,11 @@ export interface RosterPlayer {
 }
 
 /** A row of a team's roster in a tournament */
+/** A page of the roster, with the totals of the whole roster */
+export type RosterResponse = PaginatedResponse<RosterEntry> & {
+  summary: Record<string, number>;
+};
+
 export interface RosterEntry {
   id: number;
   player: RosterPlayer;

@@ -10,6 +10,7 @@ import {
   PageQuery,
   PaginatedResource,
 } from "../../core/http/paginated-resource";
+import { PaginatedResponse } from "../../core/http/paginated-response.model";
 
 /** MatSort state to the API's `sort` value (`-` prefix for descending) */
 export function toSortParam(sort: Sort): string {
@@ -27,7 +28,11 @@ function isActive(value: unknown): boolean {
     : value !== "" && value !== null && value !== undefined;
 }
 
-export interface ListStateOptions<F extends object, T> {
+export interface ListStateOptions<
+  F extends object,
+  T,
+  R extends PaginatedResponse<T> = PaginatedResponse<T>,
+> {
   /** The filters model; its empty values are `""` (or `null`/`[]`) */
   filters: Signal<F>;
   defaultSort: Sort;
@@ -40,7 +45,7 @@ export interface ListStateOptions<F extends object, T> {
   /** Initial page size (default 5) */
   pageSize?: number;
   /** Builds the request from the reactive query, e.g. `(query) => this.api.list(query)` */
-  load: (query: Signal<F & PageQuery>) => PaginatedResource<T>;
+  load: (query: Signal<F & PageQuery>) => PaginatedResource<T, R>;
 }
 
 /**
@@ -50,13 +55,17 @@ export interface ListStateOptions<F extends object, T> {
  * the user back to the first page, keeping the page size; an emptied page
  * (e.g. after deleting its only row) goes back to the last one with rows.
  */
-export function listState<F extends object, T>({
+export function listState<
+  F extends object,
+  T,
+  R extends PaginatedResponse<T> = PaginatedResponse<T>,
+>({
   filters,
   defaultSort,
   resetOn,
   pageSize = 5,
   load,
-}: ListStateOptions<F, T>) {
+}: ListStateOptions<F, T, R>) {
   // Another context (e.g. league) starts again from the default order
   const sortState = linkedSignal<unknown, Sort>({
     source: () => resetOn?.(),

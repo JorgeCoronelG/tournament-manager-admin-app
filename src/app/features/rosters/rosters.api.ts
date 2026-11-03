@@ -3,7 +3,7 @@ import { inject, Service, Signal } from "@angular/core";
 import { SKIP_ERROR_NOTIFICATION } from "../../core/http/error.interceptor";
 import { paginatedResource } from "../../core/http/paginated-resource";
 import { LeagueContextService } from "../../core/league-context/league-context.service";
-import { RosterEntry, RostersQuery } from "./roster.model";
+import { RosterEntry, RostersQuery, RosterResponse } from "./roster.model";
 
 /**
  * Roster of a team enrolled in a tournament of the active league
@@ -39,7 +39,7 @@ export class RostersApi {
     registrationId: Signal<number | undefined>,
     query: Signal<RostersQuery>,
   ) {
-    return paginatedResource<RosterEntry, RostersQuery>(
+    return paginatedResource<RosterEntry, RostersQuery, RosterResponse>(
       () => this.url(tournamentId(), registrationId()),
       query,
       ({ search, status }): Record<string, string> => ({
