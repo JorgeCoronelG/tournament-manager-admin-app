@@ -1,3 +1,4 @@
+import { DatePipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,7 +10,6 @@ import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { TranslocoPipe } from "@jsverse/transloco";
-import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
 import { Registration } from "../registration.model";
 import { RegistrationsApi } from "../registrations.api";
 
@@ -24,7 +24,7 @@ export interface TeamChangesDialogData {
   templateUrl: "./team-changes-dialog.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AppDateFormatRelativePipe,
+    DatePipe,
     MatButtonModule,
     MatDialogModule,
     MatIconModule,

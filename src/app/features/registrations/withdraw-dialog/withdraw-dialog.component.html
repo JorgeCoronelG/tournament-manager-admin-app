@@ -19,9 +19,16 @@
       "
     ></p>
 
-    <p class="m-0 mb-2 text-sm">
-      {{ "registrations.withdraw.info" | transloco }}
-    </p>
+    @if (summary(); as info) {
+      <p class="m-0 mb-2 text-sm">
+        {{
+          (info.pending_matches > 0
+            ? "registrations.withdraw.info"
+            : "registrations.withdraw.infoNoMatches"
+          ) | transloco
+        }}
+      </p>
+    }
 
     <mat-progress-bar
       [class.invisible]="!preview.isLoading()"
@@ -38,7 +45,7 @@
         </button>
       </div>
     } @else if (summary(); as info) {
-      <ul class="list-none m-0 mb-2 p-0 flex flex-col gap-1 text-sm">
+      <ul class="list-none m-0 mb-2 p-0 flex flex-col gap-1 text-sm font-bold">
         <li>
           {{
             (info.pending_matches === 1

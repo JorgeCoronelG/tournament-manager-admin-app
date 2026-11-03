@@ -1161,7 +1161,7 @@
     },
     "history": {
       "title": "Historial de equipos",
-      "empty": "Esta inscripción no ha cambiado de equipo.",
+      "empty": "Esta inscripción aún no tiene reemplazos registrados.",
       "error": "No pudimos cargar el historial.",
       "by": "Por {{name}} · {{date}}"
     },
@@ -1194,12 +1194,13 @@
     "withdraw": {
       "title": "Dar de baja equipo",
       "message": "¿Seguro que quieres dar de baja a <b>{{name}}</b>?",
-      "info": "El equipo quedará en baja y sus partidos pendientes se conservarán. Podrás darles victoria por default partido por partido o reemplazar al equipo.",
+      "infoNoMatches": "El equipo quedará dado de baja del torneo.",
+      "info": "El equipo quedará dado de baja y sus partidos pendientes se conservarán. Podrás asignarles una victoria por default, partido por partido, o reemplazar al equipo.",
       "previewError": "No pudimos calcular lo que pasará con sus partidos.",
-      "pendingOne": "Tiene 1 partido pendiente.",
-      "pending": "Tiene {{count}} partidos pendientes.",
-      "releasedOne": "1 jugador quedará libre para otros equipos.",
-      "released": "{{count}} jugadores quedarán libres para otros equipos.",
+      "pendingOne": "Partido pendiente: 1",
+      "pending": "Partidos pendientes: {{count}}",
+      "releasedOne": "Jugador que quedó libre: 1",
+      "released": "Jugadores que quedarán libres: {{count}}",
       "reason": "Motivo",
       "warning": "Esta acción no se puede deshacer.",
       "confirm": "Dar de baja"
