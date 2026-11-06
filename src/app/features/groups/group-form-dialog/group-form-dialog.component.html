@@ -9,12 +9,7 @@
   <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
     <mat-form-field>
       <mat-label>{{ "groups.form.name" | transloco }}</mat-label>
-      <input
-        [formField]="groupForm.name"
-        autocomplete="off"
-        cdkFocusInitial
-        matInput
-      />
+      <input [formField]="groupForm.name" autocomplete="off" matInput />
       @if (groupForm.name().errors().length) {
         <mat-error>{{ errorText(groupForm.name().errors()) }}</mat-error>
       }
@@ -26,7 +21,7 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
-      [disabled]="groupForm().submitting()"
+      [disabled]="groupForm().submitting() || unchanged()"
       color="primary"
       mat-flat-button
       type="submit"

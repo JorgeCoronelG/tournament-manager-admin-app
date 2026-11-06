@@ -25,12 +25,16 @@ import {
       #scroller
       (scroll)="update()"
       [attr.tabindex]="overflows() ? 0 : null"
-      [class]="maxHeight()"
+      [class]="
+        maxHeight() +
+        (thin() ? ' app-scroll-thin' : '') +
+        (mask() && overflows() && !atEnd() ? maskClass : '')
+      "
       class="overflow-y-auto"
     >
       <div #content><ng-content /></div>
     </div>
-    @if (overflows() && !atEnd()) {
+    @if (!mask() && overflows() && !atEnd()) {
       <div
         [class]="fadeHeight()"
         aria-hidden="true"
@@ -44,6 +48,18 @@ export class ScrollFadeComponent {
   readonly maxHeight = input("max-h-60");
   /** Tailwind height class of the fade, written in full (`h-8`) so Tailwind finds it */
   readonly fadeHeight = input("h-10");
+  /**
+   * Fades the content itself to transparent instead of painting the card color
+   * over it: for a list on a background that is not the card's (a colored box)
+   */
+  readonly mask = input(false);
+
+  /** A scrollbar half as wide (`app-scroll-thin`) so it does not take over the form */
+  readonly thin = input(false);
+
+  /** Written whole here so Tailwind finds it */
+  protected readonly maskClass =
+    " [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]";
 
   private readonly scroller =
     viewChild.required<ElementRef<HTMLElement>>("scroller");

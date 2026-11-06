@@ -12,8 +12,8 @@ import {
 } from "./playoff-form-dialog.component";
 
 const groups: Group[] = [
-  { id: 1, name: "Grupo A", type: "regular_stage", teams_count: 4 },
-  { id: 2, name: "Grupo B", type: "regular_stage", teams_count: 4 },
+  { id: 1, name: "Grupo A", type: "regular_stage", teams_count: 8 },
+  { id: 2, name: "Grupo B", type: "regular_stage", teams_count: 8 },
 ];
 
 describe("PlayoffFormDialogComponent", () => {

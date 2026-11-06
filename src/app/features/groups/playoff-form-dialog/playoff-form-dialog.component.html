@@ -14,7 +14,7 @@
         role="alert"
       >
         <mat-icon class="shrink-0" svgIcon="mat:error" />
-        <p class="m-0 text-sm">{{ message }}</p>
+        <p class="m-0 text-sm" [innerHTML]="message"></p>
       </div>
     }
 
@@ -41,6 +41,7 @@
           aria-readonly="true"
           [formField]="playoffForm.start_date"
           [matDatepicker]="picker"
+          [min]="today"
           autocomplete="off"
           class="cursor-pointer"
           matInput
@@ -55,6 +56,19 @@
         >
           <mat-icon svgIcon="mat:info" />
         </button>
+        @if (hasStart()) {
+          <button
+            (click)="setRoundDate(0, null)"
+            [attr.aria-label]="'groups.playoff.clearStartDate' | transloco"
+            [matTooltip]="'groups.playoff.clearStartDate' | transloco"
+            class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+            matIconButton
+            matSuffix
+            type="button"
+          >
+            <mat-icon svgIcon="mat:close" />
+          </button>
+        }
         <mat-datepicker-toggle
           [for]="picker"
           class="[&_.mat-mdc-button-touch-target]:hidden"
@@ -66,12 +80,23 @@
       <mat-form-field class="flex-1">
         <mat-label>{{ "groups.playoff.interval" | transloco }}</mat-label>
         <input
+          (keydown)="blockNonInteger($event)"
           [formField]="playoffForm.round_interval_days"
           autocomplete="off"
           inputmode="numeric"
           matInput
           type="number"
         />
+        <button
+          [attr.aria-label]="'groups.playoff.intervalHint' | transloco"
+          [matTooltip]="'groups.playoff.intervalHint' | transloco"
+          class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+          matIconButton
+          matSuffix
+          type="button"
+        >
+          <mat-icon svgIcon="mat:info" />
+        </button>
         @if (playoffForm.round_interval_days().errors().length) {
           <mat-error>{{
             errorText(playoffForm.round_interval_days().errors())
@@ -80,25 +105,48 @@
       </mat-form-field>
     </div>
 
+    @if (rounds().length && !hasStart()) {
+      <div
+        class="flex items-center gap-3 mb-4 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400/50 dark:bg-blue-400/10 dark:text-blue-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:info" />
+        <p class="m-0 text-sm">
+          {{ "groups.playoff.datesLater" | transloco }}
+        </p>
+      </div>
+    }
+
     <fieldset class="m-0 mb-2 p-0 border-0 min-w-0">
       <legend class="p-0 mb-2 text-sm font-medium">
         {{ "groups.playoff.sources" | transloco }}
       </legend>
 
       @for (source of playoffForm.sources; track $index; let i = $index) {
-        <div class="flex items-start gap-2">
+        <div class="flex items-start gap-2 mb-4">
           @if (source.kind().value() === "best_of_position") {
-            <mat-form-field class="flex-1">
+            <mat-form-field class="flex-1" subscriptSizing="dynamic">
               <mat-label>{{
                 "groups.playoff.bestPosition" | transloco
               }}</mat-label>
               <input
+                (keydown)="blockNonInteger($event)"
                 [formField]="source.position_start"
                 autocomplete="off"
                 inputmode="numeric"
                 matInput
                 type="number"
               />
+              <button
+                [attr.aria-label]="'groups.playoff.bestHint' | transloco"
+                [matTooltip]="'groups.playoff.bestHint' | transloco"
+                class="text-secondary [&_.mat-mdc-button-touch-target]:hidden"
+                matIconButton
+                matSuffix
+                type="button"
+              >
+                <mat-icon svgIcon="mat:info" />
+              </button>
               @if (source.position_start().errors().length) {
                 <mat-error>{{
                   errorText(source.position_start().errors())
@@ -106,11 +154,12 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="flex-1">
+            <mat-form-field class="flex-1" subscriptSizing="dynamic">
               <mat-label>{{
                 "groups.playoff.bestCount" | transloco
               }}</mat-label>
               <input
+                (keydown)="blockNonInteger($event)"
                 [formField]="source.best_count"
                 autocomplete="off"
                 inputmode="numeric"
@@ -124,7 +173,7 @@
               }
             </mat-form-field>
           } @else {
-            <mat-form-field class="flex-[2]">
+            <mat-form-field class="flex-[2]" subscriptSizing="dynamic">
               <mat-label>{{ "groups.playoff.group" | transloco }}</mat-label>
               <mat-select [formField]="source.source_group_id">
                 @for (group of data.groups; track group.id) {
@@ -138,9 +187,10 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="flex-1">
+            <mat-form-field class="flex-1" subscriptSizing="dynamic">
               <mat-label>{{ "groups.playoff.from" | transloco }}</mat-label>
               <input
+                (keydown)="blockNonInteger($event)"
                 [formField]="source.position_start"
                 autocomplete="off"
                 inputmode="numeric"
@@ -154,9 +204,10 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="flex-1">
+            <mat-form-field class="flex-1" subscriptSizing="dynamic">
               <mat-label>{{ "groups.playoff.to" | transloco }}</mat-label>
               <input
+                (keydown)="blockNonInteger($event)"
                 [formField]="source.position_end"
                 autocomplete="off"
                 inputmode="numeric"
@@ -184,12 +235,6 @@
         </div>
       }
 
-      @if (hasBestSource()) {
-        <p class="m-0 mb-2 text-xs text-secondary">
-          {{ "groups.playoff.bestHint" | transloco }}
-        </p>
-      }
-
       <button
         [matMenuTriggerFor]="sourceKinds"
         mat-stroked-button
@@ -211,19 +256,34 @@
         </button>
       </mat-menu>
 
+      @let invalidTotal = total() > 0 && !totalValid();
       <p
         [class]="
-          'm-0 mt-3 text-sm font-medium ' +
-          (totalValid() ? '' : 'text-red-600 dark:text-red-400')
+          'm-0 mt-3 flex items-start gap-1 text-sm font-medium ' +
+          (invalidTotal ? 'text-red-600 dark:text-red-400' : '')
         "
-        [attr.role]="totalValid() ? null : 'alert'"
+        [attr.role]="invalidTotal ? 'alert' : null"
       >
-        {{ "groups.playoff.total" | transloco: { count: total() } }}
-        @if (!totalValid()) {
-          <span class="font-normal">
-            {{ "groups.playoff.totalError" | transloco }}
-          </span>
+        @if (totalValid() || invalidTotal) {
+          <mat-icon
+            [class]="
+              'size-5! text-xl! shrink-0 ' +
+              (totalValid() ? 'text-green-700 dark:text-green-400' : '')
+            "
+            [svgIcon]="totalValid() ? 'mat:check_circle' : 'mat:cancel'"
+          />
         }
+        <span>
+          {{
+            (total() === 1 ? "groups.playoff.totalOne" : "groups.playoff.total")
+              | transloco: { count: total() }
+          }}
+          @if (invalidTotal) {
+            <span class="font-normal">
+              {{ "groups.playoff.totalError" | transloco }}
+            </span>
+          }
+        </span>
       </p>
       @if (playoffForm.sources().errors().length && totalValid()) {
         <p class="m-0 mt-1 text-xs text-red-600" role="alert">
@@ -252,20 +312,8 @@
       }
     </fieldset>
 
-    @if (rounds().length && !hasStart()) {
-      <div
-        class="flex items-center gap-3 -mt-4 mb-2 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400/50 dark:bg-blue-400/10 dark:text-blue-200"
-        role="status"
-      >
-        <mat-icon class="shrink-0" svgIcon="mat:info" />
-        <p class="m-0 text-sm">
-          {{ "groups.playoff.datesLater" | transloco }}
-        </p>
-      </div>
-    }
-
     @if (rounds().length && hasStart()) {
-      <fieldset class="m-0 mb-2 p-0 border-0 min-w-0">
+      <fieldset class="m-0 p-0 border-0 min-w-0">
         <legend class="p-0 mb-1 text-sm font-medium">
           {{ "groups.playoff.roundDates" | transloco }}
         </legend>
@@ -273,34 +321,59 @@
           {{ "groups.playoff.roundDatesHint" | transloco }}
         </p>
         @if (roundsChanged()) {
-          <p class="m-0 mb-3 text-sm text-secondary" role="status">
-            {{ "groups.playoff.roundsChanged" | transloco }}
-          </p>
+          <div
+            animate.enter="app-notice-enter"
+            animate.leave="app-notice-leave"
+            class="app-notice flex items-center gap-3 mb-3 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400/50 dark:bg-blue-400/10 dark:text-blue-200"
+            role="status"
+          >
+            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <p class="m-0 text-sm">
+              {{ "groups.playoff.roundsChanged" | transloco }}
+            </p>
+          </div>
         }
 
-        @for (row of playoffForm.round_dates; track $index; let i = $index) {
-          <mat-form-field class="w-full">
-            <mat-label>{{ matchLabels()[i] }}</mat-label>
-            <input
-              (beforeinput)="$event.preventDefault()"
-              (click)="roundPicker.open()"
-              (dateChange)="onRoundDateChange(i, $event)"
-              (keydown.enter)="roundPicker.open()"
-              aria-readonly="true"
-              [formField]="row.date"
-              [matDatepicker]="roundPicker"
-              autocomplete="off"
-              class="cursor-pointer"
-              matInput
-            />
-            <mat-datepicker-toggle
-              [for]="roundPicker"
-              class="[&_.mat-mdc-button-touch-target]:hidden"
-              matIconSuffix
-            />
-            <mat-datepicker #roundPicker />
-          </mat-form-field>
-        }
+        <app-scroll-fade
+          [thin]="true"
+          fadeHeight="h-8"
+          [maxHeight]="
+            playoffForm.round_dates().value().length > 4
+              ? 'max-h-80'
+              : 'max-h-none'
+          "
+        >
+          <div class="pt-2 pr-3">
+            @for (
+              row of playoffForm.round_dates;
+              track $index;
+              let i = $index
+            ) {
+              <mat-form-field class="w-full">
+                <mat-label>{{ matchLabels()[i] }}</mat-label>
+                <input
+                  (beforeinput)="$event.preventDefault()"
+                  (click)="roundPicker.open()"
+                  (dateChange)="onRoundDateChange(i, $event)"
+                  (keydown.enter)="roundPicker.open()"
+                  aria-readonly="true"
+                  [formField]="row.date"
+                  [matDatepicker]="roundPicker"
+                  [min]="minRoundDate(i)"
+                  autocomplete="off"
+                  class="cursor-pointer"
+                  matInput
+                />
+                <mat-datepicker-toggle
+                  [for]="roundPicker"
+                  class="[&_.mat-mdc-button-touch-target]:hidden"
+                  matIconSuffix
+                />
+                <mat-datepicker #roundPicker />
+              </mat-form-field>
+            }
+          </div>
+        </app-scroll-fade>
 
         @if (playoffForm.round_dates().errors().length) {
           <p class="m-0 text-xs text-red-600" role="alert">

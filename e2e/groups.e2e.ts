@@ -21,6 +21,21 @@ const TEAMS: MockGroupTeam[] = [
   { id: 4, name: "Delfines", manager: null, groupId: 2 },
 ];
 
+/** Eight teams in each group: enough positions for a playoff of 8 or 16 */
+const MANY_TEAMS: MockGroupTeam[] = [1, 2].flatMap((groupId) =>
+  Array.from({ length: 8 }, (_, i) => ({
+    id: groupId * 10 + i,
+    name: `Equipo ${groupId}-${i + 1}`,
+    manager: null,
+    groupId,
+  })),
+);
+
+/** The calendar disables the days before today: the frozen clock goes back so early September days can be picked */
+async function earlyInSeptember(page: Page) {
+  await page.clock.setFixedTime(new Date("2026-09-01T12:00:00Z"));
+}
+
 async function open(
   page: Page,
   options: Parameters<typeof mockGroupsApi>[1] = {},
@@ -59,7 +74,7 @@ test.describe("groups", () => {
     await open(page, { teams: TEAMS.map((t) => ({ ...t, groupId: 1 })) });
 
     await expect(
-      page.getByText("Si el torneo no se divide en grupos"),
+      page.getByText("Si no divides el torneo en grupos"),
     ).toBeVisible();
     await expect(card(page, "Fase regular")).toContainText("4 equipos");
     await expect(page.getByRole("button", { name: /Mover/ })).toHaveCount(0);
@@ -72,9 +87,10 @@ test.describe("groups", () => {
     await open(page, { groups: TWO_GROUPS, teams: TEAMS });
 
     await expect(card(page, "Grupo A")).toContainText("2 equipos");
-    await expect(card(page, "Grupo A")).toContainText("Águilas (Ana Pérez)");
+    await expect(card(page, "Grupo A")).toContainText("Ana Pérez");
     await expect(card(page, "Grupo A")).toContainText("Búhos");
-    await expect(card(page, "Grupo B")).toContainText("Cóndores (Carla López)");
+    await expect(card(page, "Grupo A")).toContainText("Sin delegado");
+    await expect(card(page, "Grupo B")).toContainText("Carla López");
   });
 
   test("creates, renames and deletes groups, with the delete rules", async ({
@@ -137,10 +153,10 @@ test.describe("groups", () => {
       teams: [...TEAMS.slice(0, 3), { ...TEAMS[3], groupId: null }],
     });
 
-    const panel = page.getByText("Estos equipos no tienen grupo.");
+    const panel = page.getByText(/Asigna (este|estos) equipos? a un grupo/);
     await expect(panel).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Sin grupo" }),
+      page.getByRole("heading", { name: /equipos? sin grupo/ }),
     ).toBeVisible();
 
     await page
@@ -162,7 +178,7 @@ test.describe("groups", () => {
 
     await page.getByRole("button", { name: "Reparto aleatorio" }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("Se reemplazará la asignación actual");
+    await expect(dialog).toContainText("Se reemplazará la distribución actual");
     await dialog.getByRole("button", { name: "Cancelar" }).click();
     expect(api.writes).toEqual([]);
 
@@ -179,11 +195,11 @@ test.describe("groups", () => {
   test("creates, edits and deletes a playoff with one and with two sources", async ({
     page,
   }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    const api = await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByLabel("Nombre", { exact: true }).fill("Oro");
+    await dialog.getByLabel("Nombre de la liguilla").fill("Oro");
     await dialog.getByRole("button", { name: "Abrir calendario" }).click();
     await page
       .locator(".mat-calendar-body-cell")
@@ -236,7 +252,9 @@ test.describe("groups", () => {
     await dialog.getByLabel("Desde la posición").nth(1).fill("2");
     await dialog.getByLabel("Hasta la posición").nth(1).fill("3");
     await dialog.getByRole("button", { name: "Guardar" }).click();
-    await expect(dialog.getByText("Las posiciones se traslapan")).toBeVisible();
+    await expect(
+      dialog.getByText("Estas posiciones ya están seleccionadas.").first(),
+    ).toBeVisible();
 
     await dialog.getByRole("combobox", { name: "Grupo" }).nth(1).click();
     await page.getByRole("option", { name: "Grupo B" }).click();
@@ -283,7 +301,7 @@ test.describe("groups", () => {
 
   async function fillEightTeams(page: Page) {
     const dialog = page.getByRole("dialog");
-    await dialog.getByLabel("Nombre", { exact: true }).fill("Oro");
+    await dialog.getByLabel("Nombre de la liguilla").fill("Oro");
     await dialog.getByRole("combobox", { name: "Grupo" }).click();
     await page.getByRole("option", { name: "Grupo A" }).click();
     await dialog.getByLabel("Desde la posición").fill("1");
@@ -293,7 +311,8 @@ test.describe("groups", () => {
   test("playoff rounds are filled from the start date and keep manual dates", async ({
     page,
   }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    const api = await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
+    await earlyInSeptember(page);
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
@@ -317,7 +336,7 @@ test.describe("groups", () => {
 
     // A hand-picked date survives a new interval; the rest are recalculated
     await pickDay(page, "Semifinal", "9");
-    await dialog.getByLabel("Días entre rondas").fill("2");
+    await dialog.getByLabel("Días entre rondas", { exact: true }).fill("2");
     await expect(quarters).toHaveValue(/7\/0?9\/2026/);
     await expect(semis).toHaveValue(/9\/0?9\/2026/);
     await expect(final).toHaveValue(/11\/0?9\/2026/);
@@ -338,7 +357,8 @@ test.describe("groups", () => {
   test("sends no round dates when none was edited by hand", async ({
     page,
   }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    const api = await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
+    await earlyInSeptember(page);
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
@@ -351,25 +371,32 @@ test.describe("groups", () => {
     expect(api.writes[0][2]).not.toHaveProperty("round_dates");
   });
 
-  test("rounds out of order cannot be saved", async ({ page }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+  test("the calendar blocks a round date before the previous match", async ({
+    page,
+  }) => {
+    await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
+    await earlyInSeptember(page);
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
     await fillEightTeams(page);
     await pickStart(page, "14");
-    await pickDay(page, "Final", "10");
-    await expect(
-      dialog.getByText("Las fechas de las rondas deben ir en orden."),
-    ).toBeVisible();
-    await dialog.getByRole("button", { name: "Guardar" }).click();
-    expect(api.writes).toEqual([]);
+    // Semifinal is on the 21st: the final cannot go before it, but the same day is fine
+    await dialog
+      .getByRole("textbox", { name: "Final", exact: true })
+      .locator("xpath=ancestor::mat-form-field")
+      .getByRole("button", { name: "Abrir calendario" })
+      .click();
+    const cells = page.locator(".mat-calendar-body-cell");
+    await expect(cells.filter({ hasText: /^\s*10\s*$/ })).toBeDisabled();
+    await expect(cells.filter({ hasText: /^\s*21\s*$/ })).toBeEnabled();
   });
 
   test("a new number of rounds recalculates the dates and says so", async ({
     page,
   }) => {
-    await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
+    await earlyInSeptember(page);
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
@@ -383,7 +410,7 @@ test.describe("groups", () => {
     await dialog.getByLabel("Hasta la posición").fill("4");
     await expect(
       dialog.getByText(
-        "Cambió el número de partidos; se recalcularon las fechas.",
+        "Se recalcularon las fechas debido a los cambios en los partidos.",
       ),
     ).toBeVisible();
     await expect(
@@ -423,7 +450,7 @@ test.describe("groups", () => {
     const dialog = page.getByRole("dialog");
 
     await page.getByRole("button", { name: "Editar Oro" }).click();
-    await dialog.getByLabel("Días entre rondas").fill("3");
+    await dialog.getByLabel("Días entre rondas", { exact: true }).fill("3");
     await expect(
       dialog.getByRole("textbox", { name: "Semifinal" }),
     ).toHaveValue(/7\/10\/2026/);
@@ -433,7 +460,7 @@ test.describe("groups", () => {
     await dialog.getByRole("button", { name: "Cancelar" }).click();
 
     await page.getByRole("button", { name: "Editar Plata" }).click();
-    await dialog.getByLabel("Días entre rondas").fill("3");
+    await dialog.getByLabel("Días entre rondas", { exact: true }).fill("3");
     await expect(
       dialog.getByRole("textbox", { name: "Final", exact: true }),
     ).toHaveValue(/8\/10\/2026/);
@@ -442,7 +469,8 @@ test.describe("groups", () => {
   test("a round can be played over home and away, with a date for each match", async ({
     page,
   }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    const api = await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
+    await earlyInSeptember(page);
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
@@ -452,7 +480,7 @@ test.describe("groups", () => {
     await dialog.getByRole("combobox", { name: "Semifinal" }).click();
     await page.getByRole("option", { name: "Ida y vuelta" }).click();
     await expect(
-      dialog.getByText("Las fechas se definirán al cerrar la fase regular."),
+      dialog.getByText("Las fechas de los partidos quedan pendientes."),
     ).toBeVisible();
 
     await pickStart(page, "7");
@@ -471,7 +499,7 @@ test.describe("groups", () => {
     await page.getByRole("option", { name: "Ida y vuelta" }).click();
     await expect(
       dialog.getByText(
-        "Cambió el número de partidos; se recalcularon las fechas.",
+        "Se recalcularon las fechas debido a los cambios en los partidos.",
       ),
     ).toBeVisible();
     await expect(
@@ -523,11 +551,11 @@ test.describe("groups", () => {
   test("a playoff can take the best teams of a position among all the groups", async ({
     page,
   }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    const api = await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByLabel("Nombre", { exact: true }).fill("Oro");
+    await dialog.getByLabel("Nombre de la liguilla").fill("Oro");
     await dialog.getByRole("combobox", { name: "Grupo" }).click();
     await page.getByRole("option", { name: "Grupo A" }).click();
     await dialog.getByLabel("Desde la posición").fill("1");
@@ -540,7 +568,9 @@ test.describe("groups", () => {
       })
       .click();
     await expect(
-      dialog.getByText("Compara a los equipos que quedaron en esa posición"),
+      dialog.getByRole("button", {
+        name: /Se comparan los equipos que ocupen esta posición/,
+      }),
     ).toBeVisible();
     // No group to pick in this source
     await expect(dialog.getByRole("combobox", { name: "Grupo" })).toHaveCount(
@@ -668,7 +698,7 @@ test.describe("groups", () => {
 
     await expect(
       page.getByText(
-        "El torneo está en curso: los grupos ya no se pueden modificar.",
+        "El torneo está en curso. La distribución de los equipos y los grupos ya no se puede modificar.",
       ),
     ).toBeVisible();
     await expect(card(page, "Grupo A")).toContainText("Águilas");
@@ -733,13 +763,13 @@ test.describe("groups", () => {
   });
 
   test("a playoff can be saved without dates", async ({ page }) => {
-    const api = await open(page, { groups: TWO_GROUPS, teams: TEAMS });
+    const api = await open(page, { groups: TWO_GROUPS, teams: MANY_TEAMS });
 
     await page.getByRole("button", { name: "Nueva liguilla" }).click();
     const dialog = page.getByRole("dialog");
     await fillEightTeams(page);
     await expect(
-      dialog.getByText("Las fechas se definirán al cerrar la fase regular."),
+      dialog.getByText("Las fechas de los partidos quedan pendientes."),
     ).toBeVisible();
     await expect(
       dialog.getByRole("textbox", { name: "Semifinal" }),

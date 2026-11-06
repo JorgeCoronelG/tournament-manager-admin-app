@@ -38,7 +38,11 @@ import {
   PlayoffFormDialogComponent,
   PlayoffFormDialogData,
 } from "../playoff-form-dialog/playoff-form-dialog.component";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { GroupsApi } from "../groups.api";
+
+/** How many characters of a group name show on its card */
+const GROUP_NAME_SHOWN = 25;
 
 /** Groups of a tournament: who plays where in the regular phase, and the playoffs fed by them */
 @Component({
@@ -62,6 +66,7 @@ import { GroupsApi } from "../groups.api";
     MatSelectModule,
     MatTooltipModule,
     NgTemplateOutlet,
+    ScrollFadeComponent,
     TournamentStatusChipComponent,
     TranslocoPipe,
   ],
@@ -192,9 +197,35 @@ export class GroupsPageComponent {
     return (
       this.regular().length > 1 &&
       group.teams_count === 0 &&
-      !this.playoffs().some((playoff) =>
-        playoff.sources?.some((source) => source.source_group_id === group.id),
-      )
+      !this.inPlayoff(group)
+    );
+  }
+
+  /** A long group name is cut to its first characters, with "..." at the end */
+  shortName(name: string): string {
+    return name.length > GROUP_NAME_SHOWN
+      ? `${name.slice(0, GROUP_NAME_SHOWN)}...`
+      : name;
+  }
+
+  /** Why a group can or cannot be deleted, as the key of its tooltip; the first reason that applies */
+  deleteTooltipKey(group: RegularGroup): string {
+    if (this.inPlayoff(group)) {
+      return "groups.deleteTooltip.playoff";
+    }
+
+    if (this.regular().length <= 1) {
+      return "groups.deleteTooltip.single";
+    }
+
+    return group.teams_count > 0
+      ? "groups.deleteTooltip.hasTeams"
+      : "groups.deleteTooltip.delete";
+  }
+
+  private inPlayoff(group: RegularGroup): boolean {
+    return this.playoffs().some((playoff) =>
+      playoff.sources?.some((source) => source.source_group_id === group.id),
     );
   }
 
@@ -222,6 +253,8 @@ export class GroupsPageComponent {
       .open<GroupFormDialogComponent, GroupFormDialogData, Group>(
         GroupFormDialogComponent,
         {
+          // Renaming opens with nothing focused; a new group goes to the name
+          autoFocus: group ? "dialog" : "first-tabbable",
           data: { tournamentId: tournament.id, group },
           width: "420px",
           maxWidth: "95vw",

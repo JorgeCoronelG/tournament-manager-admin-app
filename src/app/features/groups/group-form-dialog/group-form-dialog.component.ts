@@ -21,6 +21,7 @@ import {
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { formUnchanged } from "../../../shared/form-unchanged/form-unchanged";
 import { Group } from "../group.model";
 import { GroupsApi } from "../groups.api";
 
@@ -56,6 +57,11 @@ export class GroupFormDialogComponent {
   readonly data = inject<GroupFormDialogData>(MAT_DIALOG_DATA);
 
   private readonly model = signal({ name: this.data.group?.name ?? "" });
+
+  /** Renaming with the same name: Save stays disabled */
+  readonly unchanged = this.data.group
+    ? formUnchanged(this.model)
+    : signal(false);
 
   readonly groupForm = form(this.model, (group) => {
     required(group.name);

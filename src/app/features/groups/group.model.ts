@@ -209,8 +209,14 @@ export function autoRoundDates(
   });
 }
 
-/** True when every date that is set is later than the one before it */
-export function datesInOrder(dates: ReadonlyArray<Date | null>): boolean {
+/**
+ * True when every date that is set is later than the one before it (or the
+ * same day, with `allowSameDay`)
+ */
+export function datesInOrder(
+  dates: ReadonlyArray<Date | null>,
+  allowSameDay = false,
+): boolean {
   let previous: number | null = null;
 
   for (const date of dates) {
@@ -220,7 +226,10 @@ export function datesInOrder(dates: ReadonlyArray<Date | null>): boolean {
 
     const time = date.getTime();
 
-    if (previous !== null && time <= previous) {
+    if (
+      previous !== null &&
+      (allowSameDay ? time < previous : time <= previous)
+    ) {
       return false;
     }
 

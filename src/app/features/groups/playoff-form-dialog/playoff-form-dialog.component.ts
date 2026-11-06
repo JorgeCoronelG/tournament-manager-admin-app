@@ -27,6 +27,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {
   applyEach,
+  disabled,
   form,
   FormField,
   maxLength,
@@ -35,6 +36,7 @@ import {
   ValidationError,
 } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { formatDate, parseDate } from "../../tournaments/tournament.model";
 import {
@@ -96,6 +98,9 @@ const emptySource = (kind: PlayoffSourceKind = "range"): SourceRow => ({
  * slices of the regular groups that qualify. The total of teams must be a
  * power of 2 and it is shown live with the rounds it gives. Closes with the saved playoff.
  */
+/** How long the "dates were recalculated" notice stays on screen */
+const ROUNDS_NOTICE_MS = 5000;
+
 @Component({
   selector: "app-playoff-form-dialog",
   templateUrl: "./playoff-form-dialog.component.html",
@@ -111,6 +116,7 @@ const emptySource = (kind: PlayoffSourceKind = "range"): SourceRow => ({
     MatMenuModule,
     MatSelectModule,
     MatTooltipModule,
+    ScrollFadeComponent,
     TranslocoPipe,
   ],
 })
@@ -122,6 +128,9 @@ export class PlayoffFormDialogComponent {
   private readonly transloco = inject(TranslocoService);
 
   readonly data = inject<PlayoffFormDialogData>(MAT_DIALOG_DATA);
+
+  /** Dates before today cannot be picked */
+  readonly today = new Date();
 
   private readonly model = signal<PlayoffFormModel>({
     name: this.data.playoff?.name ?? "",
@@ -153,6 +162,12 @@ export class PlayoffFormDialogComponent {
   /** Failures that belong to no field (e.g. overlapping ranges), as the backend words them */
   readonly formError = signal<string | null>(null);
 
+  /** The backend's verdict is about the data that was sent: any edit makes it stale */
+  private readonly clearErrorOnEdit = effect(() => {
+    this.model();
+    untracked(() => this.formError.set(null));
+  });
+
   private readonly errorBanner =
     viewChild<ElementRef<HTMLElement>>("errorBanner");
 
@@ -175,40 +190,61 @@ export class PlayoffFormDialogComponent {
         : { kind: "days" };
     });
     applyEach(playoff.sources, (source) => {
-      validate(source.source_group_id, ({ value, valueOf }) =>
-        valueOf(source.kind) === "best_of_position" || value() !== ""
-          ? undefined
-          : { kind: "required" },
+      // The positions are about a group's teams: nothing to type until it is picked
+      disabled(
+        source.position_start,
+        ({ valueOf }) =>
+          valueOf(source.kind) !== "best_of_position" &&
+          valueOf(source.source_group_id) === "",
       );
-      validate(source.best_count, ({ value, valueOf }) => {
-        const count = value();
-
-        return valueOf(source.kind) !== "best_of_position" ||
-          (count !== null && Number.isInteger(count) && count >= 1)
-          ? undefined
-          : { kind: "bestCount" };
+      disabled(
+        source.position_end,
+        ({ valueOf }) =>
+          valueOf(source.kind) !== "best_of_position" &&
+          valueOf(source.source_group_id) === "",
+      );
+      required(source.source_group_id, {
+        when: ({ valueOf }) => valueOf(source.kind) !== "best_of_position",
       });
-      validate(source.position_start, ({ value }) => {
-        const start = value();
-
-        return start !== null && Number.isInteger(start) && start >= 1
-          ? undefined
-          : { kind: "position" };
+      required(source.position_start);
+      required(source.position_end, {
+        when: ({ valueOf }) => valueOf(source.kind) !== "best_of_position",
       });
+      required(source.best_count, {
+        when: ({ valueOf }) => valueOf(source.kind) === "best_of_position",
+      });
+      validate(source.best_count, ({ value, valueOf }) =>
+        valueOf(source.kind) === "best_of_position"
+          ? this.bestCountError(value(), valueOf(source))
+          : undefined,
+      );
+      validate(source.position_start, ({ value, valueOf }) =>
+        this.positionError(value(), valueOf(source), valueOf(playoff.sources)),
+      );
       validate(source.position_end, ({ value, valueOf }) => {
-        const end = value();
-        const start = valueOf(source.position_start);
+        const self = valueOf(source);
 
-        return valueOf(source.kind) === "best_of_position" ||
-          (end !== null &&
-            Number.isInteger(end) &&
-            (start === null || end >= start))
-          ? undefined
-          : { kind: "positionEnd" };
+        return (
+          this.positionError(value(), self, valueOf(playoff.sources)) ??
+          (self.kind !== "best_of_position" &&
+          value() !== null &&
+          self.position_start !== null &&
+          (value() as number) < self.position_start
+            ? {
+                kind: "endBeforeStart",
+                message: this.transloco.translate(
+                  "groups.playoff.positionEndError",
+                ),
+              }
+            : undefined)
+        );
       });
     });
     validate(playoff.round_dates, ({ value }) =>
-      datesInOrder(value().map((row) => row.date))
+      datesInOrder(
+        value().map((row) => row.date),
+        true,
+      )
         ? undefined
         : { kind: "roundsOrder" },
     );
@@ -301,6 +337,18 @@ export class PlayoffFormDialogComponent {
   });
 
   constructor() {
+    /** The notice about recalculated dates only stays a few seconds */
+    effect((onCleanup) => {
+      if (this.roundsChanged()) {
+        const timer = setTimeout(
+          () => this.roundsChanged.set(false),
+          ROUNDS_NOTICE_MS,
+        );
+
+        onCleanup(() => clearTimeout(timer));
+      }
+    });
+
     effect(() => {
       const start = this.playoffForm.start_date().value();
       const interval = this.playoffForm.round_interval_days().value();
@@ -401,6 +449,20 @@ export class PlayoffFormDialogComponent {
     }
   }
 
+  /**
+   * Earliest date a match can take: the start date for the first one, the date
+   * of the closest earlier dated match for the rest (same day is fine)
+   */
+  minRoundDate(index: number): Date {
+    const { round_dates, start_date } = this.model();
+    const previous = round_dates
+      .slice(0, index)
+      .reverse()
+      .find((row) => row.date !== null)?.date;
+
+    return (index > 0 && previous) || (start_date ?? this.today);
+  }
+
   onRoundDateChange(index: number, event: MatDatepickerInputEvent<Date>): void {
     this.setRoundDate(index, event.value);
   }
@@ -424,6 +486,108 @@ export class PlayoffFormDialogComponent {
   }
 
   /** Server messages win over the generic text of the failed rule */
+  /**
+   * What is wrong with a position (null when empty: `required` says so): not a
+   * whole number, below 1, past the group's teams, or already taken by another
+   * source of the same group
+   */
+  private positionError(
+    position: number | null,
+    self: SourceRow,
+    sources: readonly SourceRow[],
+  ): { kind: string; message: string } | undefined {
+    if (position === null) {
+      return undefined;
+    }
+
+    const error = (key: string, params?: Record<string, unknown>) => ({
+      kind: "position",
+      message: this.transloco.translate(`groups.playoff.${key}`, params),
+    });
+
+    if (!Number.isInteger(position)) {
+      return error("positionInteger");
+    }
+
+    if (position < 1) {
+      return error("positionMin");
+    }
+
+    if (self.kind === "best_of_position") {
+      const most = Math.max(0, ...this.data.groups.map((g) => g.teams_count));
+
+      return position > most
+        ? error("positionMax", { count: most })
+        : undefined;
+    }
+
+    if (self.source_group_id === "") {
+      return undefined;
+    }
+
+    const group = this.data.groups.find(
+      (item) => item.id === self.source_group_id,
+    );
+
+    if (group && position > group.teams_count) {
+      return error("positionMax", { count: group.teams_count });
+    }
+
+    const start = self.position_start ?? position;
+    const end = self.position_end ?? start;
+    const taken = sources.some(
+      (other) =>
+        other !== self &&
+        other.kind !== "best_of_position" &&
+        other.source_group_id === self.source_group_id &&
+        other.position_start !== null &&
+        other.position_start <= Math.max(start, end) &&
+        (other.position_end ?? other.position_start) >= Math.min(start, end),
+    );
+
+    return taken ? error("positionTaken") : undefined;
+  }
+
+  /**
+   * How many teams qualify from a best-of-position source: a whole number
+   * from 1 up to the groups that have a team in that position (one each)
+   */
+  private bestCountError(
+    count: number | null,
+    self: SourceRow,
+  ): { kind: string; message: string } | undefined {
+    if (count === null) {
+      return undefined;
+    }
+
+    const error = (key: string, params?: Record<string, unknown>) => ({
+      kind: "bestCount",
+      message: this.transloco.translate(`groups.playoff.${key}`, params),
+    });
+
+    if (!Number.isInteger(count)) {
+      return error("positionInteger");
+    }
+
+    if (count < 1) {
+      return error("positionMin");
+    }
+
+    const position = self.position_start;
+    const groups = this.data.groups.filter(
+      (group) => position === null || group.teams_count >= position,
+    ).length;
+
+    return count > groups ? error("positionMax", { count: groups }) : undefined;
+  }
+
+  /** The number inputs take whole numbers only: no decimal point, exponent or plus sign */
+  blockNonInteger(event: KeyboardEvent): void {
+    if ([".", ",", "e", "E", "+"].includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
   errorText(errors: readonly ValidationError[]): string {
     const message = errors.find((error) => error.message)?.message;
 
@@ -438,11 +602,6 @@ export class PlayoffFormDialogComponent {
         });
       case "days":
         return this.transloco.translate("groups.playoff.daysError");
-      case "bestCount":
-        return this.transloco.translate("groups.playoff.bestCountError");
-      case "position":
-      case "positionEnd":
-        return this.transloco.translate("groups.playoff.positionError");
       case "roundsOrder":
         return this.transloco.translate("groups.playoff.roundsOrder");
       case "total":
