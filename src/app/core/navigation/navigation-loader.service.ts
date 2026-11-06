@@ -66,6 +66,12 @@ const NAVIGATION: NavigationItem[] = [
           },
           {
             type: "link",
+            label: "nav.rosters",
+            route: "/dashboard/torneos/plantillas",
+            capability: "rosters.manage",
+          },
+          {
+            type: "link",
             label: "nav.groups",
             route: "/dashboard/torneos/grupos",
             capability: "groups.manage",
@@ -75,12 +81,6 @@ const NAVIGATION: NavigationItem[] = [
             label: "nav.schedule",
             route: "/dashboard/torneos/calendario",
             capability: "groups.manage",
-          },
-          {
-            type: "link",
-            label: "nav.rosters",
-            route: "/dashboard/torneos/plantillas",
-            capability: "rosters.manage",
           },
         ],
       },
