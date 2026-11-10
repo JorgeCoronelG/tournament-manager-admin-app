@@ -43,6 +43,9 @@ async function open(page: Page, options: AgendaApiOptions = {}) {
   await mockRefereesApi(page, { referees: [] });
   const api = await mockAgendaApi(page, options);
   await gotoApp(page, "/dashboard/torneos/calendario");
+  // The tabs (the agenda among them) only show once a tournament is picked
+  await page.getByRole("combobox", { name: "Torneo" }).click();
+  await page.getByRole("option", { name: "Torneo 01" }).click();
 
   return api;
 }

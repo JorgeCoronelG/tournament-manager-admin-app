@@ -16,6 +16,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
@@ -29,7 +30,14 @@ import {
 import { RouterLink } from "@angular/router";
 import { MatTableModule } from "@angular/material/table";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { form, FormField } from "@angular/forms/signals";
+import {
+  applyEach,
+  disabled,
+  form,
+  FormField,
+  required,
+  validate,
+} from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { catchError, throwError } from "rxjs";
 import { backendMessage, fieldErrors } from "../../../core/http/api-errors";
@@ -47,11 +55,15 @@ import {
   MatchdayCapacity,
   clockToDate,
   dateToClock,
+  dayClocks,
   defaultWindows,
+  fitsMatch,
   isClock,
   PlayDay,
   ScheduleConfigModel,
+  TimeWindow,
   toBody,
+  toRange,
   toModel,
   uniqueMessages,
   overlappingWindows,
@@ -70,9 +82,10 @@ export interface ScheduleConfigDialogData {
 type TimeChoices = Array<{ label: string; value: Date }> | null;
 
 /** A new day has no hours: the start is chosen first and the end follows from the match length */
-const DEFAULT_DAY = { start: "", end: "" };
+/** Windows a folded field names in its header; the rest are counted */
+const MAX_RANGES_SHOWN = 2;
 
-type Edge = "start" | "end";
+const DEFAULT_DAY: Pick<PlayDay, "start" | "end"> = { start: null, end: null };
 
 /**
  * Configures when a tournament plays: first date of the calendar, play days
@@ -93,6 +106,7 @@ type CapacityRow =
     MatButtonModule,
     MatDatepickerModule,
     MatDialogModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -110,6 +124,9 @@ type CapacityRow =
   ],
 })
 export class ScheduleConfigDialogComponent {
+  /** Days before today cannot be picked as the calendar's start */
+  readonly today = new Date();
+
   private readonly api = inject(ScheduleConfigApi);
   private readonly dialogRef =
     inject<MatDialogRef<ScheduleConfigDialogComponent, boolean>>(MatDialogRef);
@@ -120,6 +137,8 @@ export class ScheduleConfigDialogComponent {
 
   protected readonly weekdays = WEEKDAYS;
   protected readonly validWindow = validWindow;
+  protected readonly fitsMatch = fitsMatch;
+  protected readonly dayClocks = dayClocks;
   protected readonly overlappingWindows = overlappingWindows;
   protected readonly isClock = isClock;
 
@@ -167,7 +186,82 @@ export class ScheduleConfigDialogComponent {
     days: [],
     blocks: [],
   });
-  readonly scheduleForm = form(this.model);
+  readonly scheduleForm = form(this.model, (schedule) => {
+    applyEach(schedule.blocks, (block) => {
+      required(block.date);
+      // Without hours the whole day is blocked; with a start, the end is needed
+      required(block.end, {
+        when: ({ valueOf }) => valueOf(block.start) !== null,
+      });
+      disabled(block.end, ({ valueOf }) => valueOf(block.start) === null);
+      validate(block.end, ({ value, valueOf }) => {
+        const clocks = dayClocks({ start: valueOf(block.start), end: value() });
+
+        return clocks.start && clocks.end && !validWindow(clocks)
+          ? {
+              kind: "windowError",
+              message: this.transloco.translate("matches.config.windowError"),
+            }
+          : undefined;
+      });
+    });
+
+    applyEach(schedule.days, (day) => {
+      required(day.start);
+      required(day.end);
+      // The end waits for the start
+      disabled(day.end, ({ valueOf }) => valueOf(day.start) === null);
+      // ...and leaves room for at least one whole match
+      validate(day.end, ({ value, valueOf }) =>
+        fitsMatch(
+          dayClocks({ start: valueOf(day.start), end: value() }),
+          this.duration(),
+        )
+          ? undefined
+          : {
+              kind: "duration",
+              message: this.transloco.translate(
+                "matches.config.durationError",
+                { minutes: this.duration() },
+              ),
+            },
+      );
+      // An empty list does not count as empty for `required`: it is checked here
+      required(day.field_ids);
+      validate(day.field_ids, ({ value }) =>
+        value().length ? undefined : { kind: "required" },
+      );
+
+      applyEach(day.fields, (field) => {
+        applyEach(field.windows, (window) => {
+          required(window.start);
+          required(window.end);
+          disabled(window.end, ({ valueOf }) => valueOf(window.start) === null);
+          validate(window.end, ({ value, valueOf }) => {
+            const clocks = dayClocks({
+              start: valueOf(window.start),
+              end: value(),
+            });
+            const key = !validWindow(clocks)
+              ? "windowError"
+              : fitsMatch(clocks, this.duration())
+                ? null
+                : "durationError";
+
+            // Incomplete windows are the `required` rule's business
+            return key && clocks.start && clocks.end
+              ? {
+                  kind: key,
+                  message: this.transloco.translate(`matches.config.${key}`, {
+                    minutes: this.duration(),
+                  }),
+                }
+              : undefined;
+          });
+        });
+      });
+    });
+  });
 
   // The form is filled once, when the saved configuration arrives
   private filled = false;
@@ -187,6 +281,7 @@ export class ScheduleConfigDialogComponent {
         start_date:
           model.start_date ?? parseDate(this.data.tournamentStartDate),
       });
+      this.snapshotDays();
     });
   });
 
@@ -205,18 +300,25 @@ export class ScheduleConfigDialogComponent {
       (start_date !== null || days.length === 0) &&
       days.every(
         (day) =>
-          validWindow(day) &&
-          day.fields.every(
-            (field) =>
-              field.windows.every(validWindow) &&
-              !overlappingWindows(field.windows).some(Boolean),
-          ),
+          validWindow(dayClocks(day)) &&
+          fitsMatch(dayClocks(day), this.duration()) &&
+          day.fields.length > 0 &&
+          day.fields.every((field) => {
+            const windows = field.windows.map(dayClocks);
+
+            return (
+              windows.every(
+                (window) =>
+                  validWindow(window) && fitsMatch(window, this.duration()),
+              ) && !overlappingWindows(windows).some(Boolean)
+            );
+          }),
       ) &&
       blocks.every(
         (block) =>
           block.date !== null &&
-          ((block.start === "" && block.end === "") ||
-            validWindow({ start: block.start, end: block.end })),
+          ((block.start === null && block.end === null) ||
+            validWindow(dayClocks(block))),
       )
     );
   });
@@ -325,6 +427,71 @@ export class ScheduleConfigDialogComponent {
     );
   }
 
+  /** "7:00 a.m. – 1:00 p.m. · 3:00 p.m. – 5:00 p.m. · +1 más": the first two windows, then how many are left */
+  rangeLabel(field: PlayDay["fields"][number]): string {
+    const at = (date: Date) =>
+      date.toLocaleTimeString("es-MX", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    const ranges = field.windows
+      .filter(
+        (window): window is { start: Date; end: Date } =>
+          window.start !== null && window.end !== null,
+      )
+      .map((window) => `${at(window.start)} – ${at(window.end)}`);
+    const shown = ranges.slice(0, MAX_RANGES_SHOWN);
+
+    if (ranges.length > MAX_RANGES_SHOWN) {
+      shown.push(
+        this.transloco.translate("matches.config.moreWindows", {
+          count: ranges.length - MAX_RANGES_SHOWN,
+        }),
+      );
+    }
+
+    return shown.join(" · ");
+  }
+
+  /** "1 franja configurada", "2 franjas configuradas" */
+  windowsCountLabel(count: number): string {
+    return this.transloco.translate(
+      count === 1
+        ? "matches.config.windowsCountOne"
+        : "matches.config.windowsCountMany",
+      { count },
+    );
+  }
+
+  /** Some window of the field is incomplete, too short or overlaps another: shown on its header while folded */
+  fieldHasIssues(field: PlayDay["fields"][number]): boolean {
+    const windows = field.windows.map(dayClocks);
+
+    return (
+      windows.some(
+        (window) => !validWindow(window) || !fitsMatch(window, this.duration()),
+      ) || overlappingWindows(windows).some(Boolean)
+    );
+  }
+
+  /** First message of a field's errors (the duration one says its own), else "required" */
+  errorText(errors: ReadonlyArray<{ message?: string }>): string {
+    return (
+      errors.find((error) => error.message)?.message ??
+      this.transloco.translate("validation.required")
+    );
+  }
+
+  /** "Eliminar día lunes" */
+  removeDayLabel(weekday: number): string {
+    return this.transloco.translate("matches.config.removeDay", {
+      day: this.transloco
+        .translate(`matches.config.weekdays.${weekday}`)
+        .toLowerCase(),
+    });
+  }
+
   /** "Lunes" for a Y-m-d date */
   weekdayName(date: string): string {
     const iso = ((parseDate(date).getDay() + 6) % 7) + 1;
@@ -381,21 +548,6 @@ export class ScheduleConfigDialogComponent {
       fromConfig?.name ??
       `#${id}`
     );
-  }
-
-  private readonly dates = new Map<string, Date | null>();
-
-  /**
-   * The timepicker's value for a clock. The same text always gives the same
-   * `Date`: a new one on every change detection pass makes the input see a new
-   * value each time (NG0103).
-   */
-  toDate(clock: string): Date | null {
-    if (!this.dates.has(clock)) {
-      this.dates.set(clock, clockToDate(clock));
-    }
-
-    return this.dates.get(clock) ?? null;
   }
 
   private readonly choices = new Map<string, TimeChoices>();
@@ -481,68 +633,210 @@ export class ScheduleConfigDialogComponent {
     }));
   }
 
-  addDay(weekday: number): void {
-    this.model.update((model) => ({
-      ...model,
-      days: [
-        ...model.days,
-        { weekday, ...DEFAULT_DAY, fields: [] as PlayDay["fields"] },
-      ].sort((a, b) => a.weekday - b.weekday),
+  /** Hours each day had when it was last handled: the form already holds the new ones by then */
+  private readonly daySeen = new Map<number, TimeWindow>();
+
+  private snapshotDays(): void {
+    this.daySeen.clear();
+
+    for (const day of this.model().days) {
+      this.daySeen.set(day.weekday, dayClocks(day));
+    }
+
+    this.snapshotWindows();
+  }
+
+  /** Windows each field had when they were last handled, by day and field */
+  private readonly windowsSeen = new Map<string, TimeWindow[]>();
+
+  private snapshotWindows(): void {
+    this.windowsSeen.clear();
+
+    for (const day of this.model().days) {
+      for (const field of day.fields) {
+        this.windowsSeen.set(
+          `${day.weekday}:${field.field_id}`,
+          field.windows.map(dayClocks),
+        );
+      }
+    }
+  }
+
+  /**
+   * A field's windows changed in the form: a start that no longer lines up
+   * moves its end, and the field counts as edited by hand.
+   */
+  private readonly syncWindows = effect(() => {
+    const days = this.model().days;
+
+    untracked(() =>
+      days.forEach((day, d) =>
+        day.fields.forEach((_, f) => this.onWindows(d, f)),
+      ),
+    );
+  });
+
+  private onWindows(dayIndex: number, fieldIndex: number): void {
+    const day = this.model().days[dayIndex];
+    const field = day?.fields[fieldIndex];
+
+    if (!field) {
+      return;
+    }
+
+    const key = `${day.weekday}:${field.field_id}`;
+    const now = field.windows.map(dayClocks);
+    const before = this.windowsSeen.get(key);
+
+    // Also called when the form itself rewrites a value, or windows come and go: nothing was edited then
+    if (
+      !before ||
+      before.length !== now.length ||
+      now.every(
+        (window, i) =>
+          window.start === before[i].start && window.end === before[i].end,
+      )
+    ) {
+      this.windowsSeen.set(key, now);
+
+      return;
+    }
+
+    const windows = field.windows.map((window, i) => {
+      if (now[i].start === before[i].start) {
+        return window;
+      }
+
+      const end = alignEnd(
+        now[i].start,
+        now[i].end,
+        this.duration() ?? 0,
+        before[i].start,
+      );
+
+      return end === now[i].end ? window : { ...window, end: clockToDate(end) };
+    });
+
+    this.windowsSeen.set(key, windows.map(dayClocks));
+    this.updateDay(dayIndex, (current) => ({
+      ...current,
+      fields: current.fields.map((item, i) =>
+        i === fieldIndex ? { ...item, windows, edited: true } : item,
+      ),
     }));
   }
 
+  addDay(weekday: number): void {
+    const day: PlayDay = {
+      weekday,
+      ...DEFAULT_DAY,
+      field_ids: [],
+      fields: [] as PlayDay["fields"],
+    };
+
+    // With a single field there is nothing to choose: it comes selected
+    const [only, ...others] = this.fields();
+
+    if (only && !others.length) {
+      day.field_ids = [only.id];
+      day.fields = [
+        {
+          field_id: only.id,
+          windows: defaultWindows(dayClocks(day)),
+          edited: false,
+        },
+      ];
+    }
+
+    this.model.update((model) => ({
+      ...model,
+      days: [...model.days, day].sort((a, b) => a.weekday - b.weekday),
+    }));
+    this.daySeen.set(weekday, dayClocks(day));
+    this.snapshotWindows();
+  }
+
   removeDay(index: number): void {
+    this.daySeen.delete(this.model().days[index]?.weekday);
     this.model.update((model) => ({
       ...model,
       days: model.days.filter((_, i) => i !== index),
     }));
   }
 
-  /** New default hours of a day: copied to the fields not edited by hand */
-  setDayTime(index: number, edge: Edge, value: string): void {
-    this.updateDay(index, (day) => {
-      const next = { ...day, [edge]: value };
+  /**
+   * The days' hours changed in the form (picked, typed or written by code):
+   * a start that no longer lines up moves the end, and the fields not edited
+   * by hand take the new default hours.
+   */
+  private readonly syncDayTimes = effect(() => {
+    const days = this.model().days;
 
-      // A start that no longer lines up with the end moves the end to a valid one
-      if (edge === "start") {
-        next.end = alignEnd(value, day.end, this.duration() ?? 0, day.start);
-      }
+    untracked(() => days.forEach((_, index) => this.onDayTimes(index)));
+  });
 
-      return {
-        ...next,
-        fields: next.fields.map((field) => {
-          if (!field.edited) {
-            return { ...field, windows: defaultWindows(next) };
-          }
+  private onDayTimes(index: number): void {
+    const day = this.model().days[index];
 
-          // A window edited by hand stays, but inside the day's new range
-          const windows = clampWindows(field.windows, next);
+    if (!day) {
+      return;
+    }
 
-          return windows.length
-            ? { ...field, windows }
-            : { ...field, windows: defaultWindows(next), edited: false };
-        }),
-      };
-    });
+    const now = dayClocks(day);
+    const before = this.daySeen.get(day.weekday);
+
+    // Also called when the form itself rewrites a value: nothing changed then
+    if (!before) {
+      this.daySeen.set(day.weekday, now);
+
+      return;
+    }
+
+    if (before.start === now.start && before.end === now.end) {
+      return;
+    }
+
+    const end =
+      before.start === now.start
+        ? now.end
+        : alignEnd(now.start, now.end, this.duration() ?? 0, before.start);
+    const next = { start: now.start, end };
+
+    this.daySeen.set(day.weekday, next);
+    this.updateDay(index, (current) => ({
+      ...current,
+      end: end === now.end ? current.end : clockToDate(end),
+      fields: current.fields.map((field) => {
+        if (!field.edited) {
+          return { ...field, windows: defaultWindows(next) };
+        }
+
+        // A window edited by hand stays, but inside the day's new range
+        const windows = clampWindows(field.windows.map(dayClocks), next);
+
+        return windows.length
+          ? { ...field, windows: windows.map(toRange) }
+          : { ...field, windows: defaultWindows(next), edited: false };
+      }),
+    }));
+    this.snapshotWindows();
   }
 
   /** Fields used on a day: new ones start with a copy of the day's hours */
   setDayFields(index: number, ids: number[]): void {
     this.updateDay(index, (day) => ({
       ...day,
+      field_ids: ids,
       fields: ids.map(
         (id) =>
           day.fields.find((field) => field.field_id === id) ?? {
             field_id: id,
-            windows: defaultWindows(day),
+            windows: defaultWindows(dayClocks(day)),
             edited: false,
           },
       ),
     }));
-  }
-
-  fieldIds(day: PlayDay): number[] {
-    return day.fields.map((field) => field.field_id);
+    this.snapshotWindows();
   }
 
   private updateField(
@@ -560,34 +854,7 @@ export class ScheduleConfigDialogComponent {
           : field,
       ),
     }));
-  }
-
-  setWindow(
-    dayIndex: number,
-    fieldIndex: number,
-    windowIndex: number,
-    edge: Edge,
-    value: string,
-  ): void {
-    this.updateField(dayIndex, fieldIndex, (windows) =>
-      windows.map((window, i) => {
-        if (i !== windowIndex) {
-          return window;
-        }
-
-        return edge === "start"
-          ? {
-              start: value,
-              end: alignEnd(
-                value,
-                window.end,
-                this.duration() ?? 0,
-                window.start,
-              ),
-            }
-          : { ...window, end: value };
-      }),
-    );
+    this.snapshotWindows();
   }
 
   removeWindow(
@@ -604,7 +871,7 @@ export class ScheduleConfigDialogComponent {
   addWindow(dayIndex: number, fieldIndex: number): void {
     this.updateField(dayIndex, fieldIndex, (windows) => [
       ...windows,
-      { start: "", end: "" },
+      { start: null, end: null },
     ]);
   }
 
@@ -613,21 +880,30 @@ export class ScheduleConfigDialogComponent {
       ...day,
       fields: day.fields.map((field, i) =>
         i === fieldIndex
-          ? { ...field, windows: defaultWindows(day), edited: false }
+          ? {
+              ...field,
+              windows: defaultWindows(dayClocks(day)),
+              edited: false,
+            }
           : field,
       ),
     }));
+    this.snapshotWindows();
   }
+
+  /** The block panel left open: the one just added, to fill it in */
+  readonly openBlock = signal<number | null>(null);
 
   addBlock(): void {
     const block: BlockedDate = {
       date: null,
       field_id: "",
-      start: "",
-      end: "",
+      start: null,
+      end: null,
       reason: "",
     };
 
+    this.openBlock.set(this.model().blocks.length);
     this.model.update((model) => ({
       ...model,
       blocks: [...model.blocks, block],
@@ -635,19 +911,61 @@ export class ScheduleConfigDialogComponent {
   }
 
   removeBlock(index: number): void {
+    this.openBlock.set(null);
     this.model.update((model) => ({
       ...model,
       blocks: model.blocks.filter((_, i) => i !== index),
     }));
   }
 
-  setBlockTime(index: number, edge: Edge, value: string): void {
-    this.model.update((model) => ({
-      ...model,
-      blocks: model.blocks.map((block, i) =>
-        i === index ? { ...block, [edge]: value } : block,
-      ),
-    }));
+  /** "Domingo, 10 de enero de 2027" */
+  blockTitle(block: BlockedDate): string {
+    if (!block.date) {
+      return this.transloco.translate("matches.config.blockNoDate");
+    }
+
+    const text = block.date.toLocaleDateString("es-MX", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  /** "Cancha 1 · 9:00 a.m. – 10:00 a.m." or "Todas las canchas · Todo el día" */
+  blockSubtitle(block: BlockedDate): string {
+    const at = (date: Date) =>
+      date.toLocaleTimeString("es-MX", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    const field =
+      block.field_id === ""
+        ? this.transloco.translate("matches.config.blockAllFields")
+        : this.fieldName(block.field_id);
+    const hours =
+      block.start && block.end
+        ? `${at(block.start)} – ${at(block.end)}`
+        : block.start
+          ? at(block.start)
+          : this.transloco.translate("matches.config.blockAllDay");
+
+    return `${field} · ${hours}`;
+  }
+
+  /** The block has no date or its hours are incomplete or backwards */
+  blockHasIssues(block: BlockedDate): boolean {
+    const clocks = dayClocks(block);
+
+    return (
+      block.date === null ||
+      (block.start !== null || block.end !== null
+        ? !validWindow(clocks)
+        : false)
+    );
   }
 
   /** Closes without saving (the link to the tournament's management leaves the page) */

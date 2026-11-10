@@ -1,7 +1,10 @@
 import {
   alignEnd,
   clampWindows,
+  dayClocks,
+  fitsMatch,
   overlappingWindows,
+  toModel,
 } from "./schedule-config.model";
 
 describe("alignEnd", () => {
@@ -81,5 +84,70 @@ describe("overlappingWindows", () => {
         { start: "10:00", end: "11:00" },
       ]),
     ).toEqual([false, false]);
+  });
+});
+
+describe("dayClocks", () => {
+  it("gives the hours of a day as HH:mm, empty while they are not set", () => {
+    const at = (hours: number, minutes: number) => {
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      return date;
+    };
+
+    expect(dayClocks({ start: at(8, 5), end: at(13, 0) })).toEqual({
+      start: "08:05",
+      end: "13:00",
+    });
+    expect(dayClocks({ start: null, end: null })).toEqual({
+      start: "",
+      end: "",
+    });
+  });
+});
+
+describe("toModel", () => {
+  it("holds a day's hours as dates and its fields as ids", () => {
+    const model = toModel(
+      {
+        schedule_start_date: null,
+        match_duration_minutes: 60,
+        blocks: [],
+        windows: [
+          {
+            weekday: 6,
+            field: { id: 2, name: "Cancha 2" },
+            start_time: "09:00",
+            end_time: "12:00",
+          },
+          {
+            weekday: 6,
+            field: { id: 1, name: "Cancha 1" },
+            start_time: "08:00",
+            end_time: "11:00",
+          },
+        ],
+      },
+      (value) => new Date(value),
+    );
+
+    expect(model.days).toHaveLength(1);
+    expect(dayClocks(model.days[0])).toEqual({ start: "08:00", end: "12:00" });
+    expect(model.days[0].field_ids).toEqual([1, 2]);
+    expect(model.days[0].fields).toHaveLength(2);
+  });
+});
+
+describe("fitsMatch", () => {
+  it("asks for room for one whole match", () => {
+    expect(fitsMatch({ start: "07:00", end: "07:30" }, 60)).toBe(false);
+    expect(fitsMatch({ start: "07:00", end: "08:00" }, 60)).toBe(true);
+    expect(fitsMatch({ start: "07:00", end: "09:30" }, 60)).toBe(true);
+  });
+
+  it("does not judge an incomplete window or an unknown duration", () => {
+    expect(fitsMatch({ start: "07:00", end: "" }, 60)).toBe(true);
+    expect(fitsMatch({ start: "07:00", end: "07:30" }, null)).toBe(true);
   });
 });

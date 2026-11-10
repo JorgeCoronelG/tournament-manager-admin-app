@@ -13,10 +13,25 @@
 }
 
 @mixin app-action($color) {
+  // A text button starts neutral (Material paints it with the primary color)
+  &.mat-mdc-button {
+    --mat-button-text-label-text-color: var(--mat-sys-on-surface-variant);
+  }
+
   &:hover,
   &:focus-visible {
     --mat-icon-button-state-layer-color: #{$color};
     --mat-icon-button-icon-color: #{$color};
+    // The same for a text button (label and icon): it is neutral until hovered
+    --mat-button-text-state-layer-color: #{$color};
+    --mat-button-text-label-text-color: #{$color};
+  }
+
+  // A text button paints its label (and icon) with `color`, not only with the
+  // token: set it too so the label follows the hover
+  &.mat-mdc-button:not(:disabled):hover,
+  &.mat-mdc-button:not(:disabled):focus-visible {
+    color: #{$color};
   }
 }
 
@@ -30,4 +45,18 @@
 
 .app-action-success {
   @include app-action(rgb(var(--app-status-success)));
+}
+
+// A smaller button (height, padding, text and icon) for secondary actions
+// inside a panel: `app-button-compact`, with `app-action-*` if it should only
+// take color on hover.
+.app-button-compact {
+  height: 2rem !important;
+  padding-inline: 0.75rem !important;
+  font-size: 0.75rem !important;
+
+  .mat-icon {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
 }

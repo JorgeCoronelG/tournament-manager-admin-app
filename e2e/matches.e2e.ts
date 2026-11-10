@@ -66,7 +66,9 @@ test.describe("matches", () => {
   }) => {
     const api = await open(page, "Torneo 02", { groups: [FOUR] });
 
-    await expect(page.getByText("Aún no hay calendario")).toBeVisible();
+    await expect(
+      page.getByText("Este torneo aún no tiene calendario."),
+    ).toBeVisible();
     await page.getByRole("button", { name: "Generar calendario" }).click();
 
     const dialog = page.getByRole("dialog");
@@ -167,7 +169,9 @@ test.describe("matches", () => {
       .getByRole("button", { name: "Borrar", exact: true })
       .click();
 
-    await expect(page.getByText("Aún no hay calendario")).toBeVisible();
+    await expect(
+      page.getByText("Este torneo aún no tiene calendario."),
+    ).toBeVisible();
     expect(api.writes.map(([method, path]) => `${method} ${path}`)).toEqual([
       "POST /generate",
       "DELETE ",

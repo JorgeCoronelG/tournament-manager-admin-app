@@ -27,7 +27,6 @@ import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
-import { TournamentStatusChipComponent } from "../../tournaments/tournament-status-chip/tournament-status-chip.component";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
 import {
   GenerateMatchesDialogComponent,
@@ -108,7 +107,6 @@ const OPEN_ALL_UP_TO = 4;
     MatTooltipModule,
     NgTemplateOutlet,
     StandingsViewComponent,
-    TournamentStatusChipComponent,
     TranslocoPipe,
   ],
 })
@@ -127,7 +125,9 @@ export class MatchesPageComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  protected readonly tournamentsResource = inject(TournamentsApi).options();
+  protected readonly tournamentsResource = inject(TournamentsApi).options([
+    "in_progress",
+  ]);
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
       ? this.tournamentsResource.value().data

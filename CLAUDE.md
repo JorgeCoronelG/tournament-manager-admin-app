@@ -50,7 +50,7 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 - Los plugins de Tailwind usan `plugin` de `@ui/tailwind/utils/plugin` (no `tailwindcss/plugin` directo) y no pueden usar `e()`.
 - Los estilos globales y de Material viven en `@ui/styles`; los de un componente, junto al componente.
 - Los tooltips salen arriba del elemento: es el valor por defecto (`MAT_TOOLTIP_DEFAULT_OPTIONS` en `@ui/app.provider.ts`), no pongas `matTooltipPosition="above"`.
-- Botones de acción de tabla: ícono neutro que toma color (y su círculo de hover) solo al pasar el cursor, con `app-action-primary`, `app-action-danger` o `app-action-success` (`@ui/styles/partials/_table-actions.scss`); no uses `color` en el `mat-icon`.
+- Botones de acción de tabla: ícono neutro que toma color (y su círculo de hover) solo al pasar el cursor, con `app-action-primary`, `app-action-danger` o `app-action-success` (`@ui/styles/partials/_table-actions.scss`); no uses `color` en el `mat-icon`. Las mismas clases sirven en un botón con texto (`mat-button`): neutro hasta el hover, cuando texto e ícono toman el color. Para un botón más pequeño (alto, texto e ícono) usa `app-button-compact`.
 
 ## Páginas de listado con tabla
 

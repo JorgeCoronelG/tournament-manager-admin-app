@@ -121,6 +121,18 @@ export function validWindow(window: TimeWindow): boolean {
   );
 }
 
+/**
+ * The window has room for at least one whole match. True while the window or
+ * the duration is not set (other rules say so then).
+ */
+export function fitsMatch(window: TimeWindow, minutes: number | null): boolean {
+  if (!minutes || !validWindow(window)) {
+    return true;
+  }
+
+  return clockMinutes(window.end) - clockMinutes(window.start) >= minutes;
+}
+
 /** Flags (by index) the valid windows that overlap another valid window */
 export function overlappingWindows(windows: TimeWindow[]): boolean[] {
   return windows.map(
@@ -144,16 +156,38 @@ export interface TimeWindow {
 /** One field's windows within a play day */
 export interface FieldWindows {
   field_id: number;
-  windows: TimeWindow[];
+  windows: TimeRange[];
   /** Touched by hand: changing the day's default no longer overwrites it */
   edited: boolean;
 }
 
 export interface PlayDay {
   weekday: number;
-  start: Clock;
-  end: Clock;
+  /** What the timepicker holds (today at that time); null while empty */
+  start: Date | null;
+  end: Date | null;
+  /** The fields picked for the day: what the select edits; `fields` follows it */
+  field_ids: number[];
   fields: FieldWindows[];
+}
+
+/** A start and an end as the timepickers hold them (null while empty) */
+export interface TimeRange {
+  start: Date | null;
+  end: Date | null;
+}
+
+/** A window of `HH:mm` texts as the timepickers' dates */
+export function toRange(window: TimeWindow): TimeRange {
+  return { start: clockToDate(window.start), end: clockToDate(window.end) };
+}
+
+/** The hours of a range (a day, a window) as `HH:mm` ("" while empty) */
+export function dayClocks(day: TimeRange): TimeWindow {
+  return {
+    start: day.start ? dateToClock(day.start) : "",
+    end: day.end ? dateToClock(day.end) : "",
+  };
 }
 
 export interface BlockedDate {
@@ -161,8 +195,9 @@ export interface BlockedDate {
   date: Date | null;
   /** "" means every field */
   field_id: number | "";
-  start: Clock | "";
-  end: Clock | "";
+  /** Both empty: the whole day */
+  start: Date | null;
+  end: Date | null;
   reason: string;
 }
 
@@ -281,10 +316,8 @@ export interface Capacity {
 }
 
 /** The default windows of a field in a day: a copy of the day's schedule */
-export function defaultWindows(
-  day: Pick<PlayDay, "start" | "end">,
-): TimeWindow[] {
-  return [{ start: day.start, end: day.end }];
+export function defaultWindows(day: TimeWindow): TimeRange[] {
+  return [toRange(day)];
 }
 
 /** Model from the saved configuration */
@@ -292,7 +325,16 @@ export function toModel(
   config: ScheduleConfig,
   parseDate: (value: string) => Date,
 ): ScheduleConfigModel {
-  const days: PlayDay[] = [];
+  const days: Array<{
+    weekday: number;
+    start: Clock;
+    end: Clock;
+    fields: Array<{
+      field_id: number;
+      windows: TimeWindow[];
+      edited: boolean;
+    }>;
+  }> = [];
 
   for (const window of [...config.windows].sort(
     (a, b) => a.weekday - b.weekday || a.start_time.localeCompare(b.start_time),
@@ -344,12 +386,21 @@ export function toModel(
     start_date: config.schedule_start_date
       ? parseDate(config.schedule_start_date)
       : null,
-    days,
+    days: days.map((day) => ({
+      weekday: day.weekday,
+      start: clockToDate(day.start),
+      end: clockToDate(day.end),
+      field_ids: day.fields.map((field) => field.field_id),
+      fields: day.fields.map((field) => ({
+        ...field,
+        windows: field.windows.map(toRange),
+      })),
+    })),
     blocks: config.blocks.map((block) => ({
       date: parseDate(block.date),
       field_id: block.field?.id ?? "",
-      start: block.start_time ?? "",
-      end: block.end_time ?? "",
+      start: block.start_time ? clockToDate(block.start_time) : null,
+      end: block.end_time ? clockToDate(block.end_time) : null,
       reason: block.reason ?? "",
     })),
   };
@@ -367,16 +418,16 @@ export function toBody(
         field.windows.map((window) => ({
           weekday: day.weekday,
           field_id: field.field_id,
-          start_time: window.start,
-          end_time: window.end,
+          start_time: dayClocks(window).start,
+          end_time: dayClocks(window).end,
         })),
       ),
     ),
     blocks: model.blocks.map((block) => ({
       date: formatDate(block.date as Date),
       field_id: block.field_id === "" ? null : block.field_id,
-      start_time: block.start || null,
-      end_time: block.end || null,
+      start_time: block.start ? dateToClock(block.start) : null,
+      end_time: block.end ? dateToClock(block.end) : null,
       reason: block.reason.trim() || null,
     })),
   };

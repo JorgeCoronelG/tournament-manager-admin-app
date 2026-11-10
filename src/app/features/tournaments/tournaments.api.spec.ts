@@ -188,4 +188,14 @@ describe("TournamentsApi", () => {
     expect(request.request.params.get("per_page")).toBe("100");
     expect(request.request.params.get("sort")).toBe("-start_date");
   });
+
+  it("asks only for the statuses it is given", () => {
+    TestBed.runInInjectionContext(() => api.options(["in_progress"]));
+    TestBed.tick();
+
+    const request = controller.expectOne(
+      (req) => req.url === "/api/leagues/3/tournaments",
+    );
+    expect(request.request.params.getAll("status[]")).toEqual(["in_progress"]);
+  });
 });

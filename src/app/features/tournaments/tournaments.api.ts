@@ -53,13 +53,23 @@ export class TournamentsApi {
     );
   }
 
-  /** The league's tournaments, newest first, for a selector; waits while there is no league */
-  options() {
+  /**
+   * The league's tournaments, newest first, for a selector; waits while there
+   * is no league. With `statuses` the backend only returns those (`status[]`).
+   */
+  options(statuses?: readonly TournamentStatus[]) {
     return httpResource<PaginatedResponse<Tournament>>(() => {
       const url = this.league.leagueApi("/tournaments");
 
       return url
-        ? { url, params: { per_page: 100, sort: "-start_date" } }
+        ? {
+            url,
+            params: {
+              per_page: 100,
+              sort: "-start_date",
+              ...(statuses ? { "status[]": statuses } : {}),
+            },
+          }
         : undefined;
     });
   }
