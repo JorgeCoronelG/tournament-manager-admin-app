@@ -232,7 +232,7 @@ test.describe("matches", () => {
     ]);
     await expect(page.getByText("2 - 1")).toBeVisible();
     await expect(page.getByText("Jugado", { exact: true })).toBeVisible();
-    await expect(page.getByText("Sin fecha")).toBeVisible();
+    await expect(page.getByText("Sin horario", { exact: true })).toBeVisible();
     await expect(
       page.getByText("6 partidos en 3 jornadas · 1 jugados"),
     ).toBeVisible();
@@ -401,7 +401,7 @@ test.describe("matches", () => {
 
     await dialog.getByRole("button", { name: "Vista previa" }).click();
     await expect(
-      dialog.getByText("Faltan 1 espacios en la jornada 1."),
+      dialog.getByText("Falta 1 espacio en la jornada 1."),
     ).toBeVisible();
     await dialog.getByRole("button", { name: /Jornada 1/ }).click();
     await expect(dialog.getByText(/Sáb, 07 nov · 8:00/)).toBeVisible();
@@ -419,6 +419,13 @@ test.describe("matches", () => {
     ]);
 
     await page.getByRole("button", { name: "Quitar horarios" }).click();
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByText(
+          /Se quitarán la fecha, hora, cancha y árbitro de \d+ partidos\./,
+        ),
+    ).toBeVisible();
     await page.getByRole("button", { name: "Quitar", exact: true }).click();
     await expect(page.getByText("Horarios quitados: 3 partidos")).toBeVisible();
   });

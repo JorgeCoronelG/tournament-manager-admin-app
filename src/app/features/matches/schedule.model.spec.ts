@@ -1,4 +1,9 @@
-import { datesRange, slotLabel, slotParts } from "./schedule.model";
+import {
+  deficitLines,
+  datesRange,
+  slotLabel,
+  slotParts,
+} from "./schedule.model";
 
 describe("schedule.model", () => {
   const names = (weekday: number) =>
@@ -34,5 +39,42 @@ describe("schedule.model", () => {
       ]),
     ).toBe("02/11 - 08/11");
     expect(datesRange([{ match_datetime: null }])).toBeNull();
+  });
+});
+
+describe("deficitLines", () => {
+  const texts: Record<string, string> = {
+    "matches.config.capacity.and": "y",
+    "matches.config.capacity.matchdayOne": "la jornada {{list}}",
+    "matches.config.capacity.matchdayMany": "las jornadas {{list}}",
+    "matches.config.capacity.missingOne": "Falta 1 espacio en {{where}}.",
+    "matches.config.capacity.missingMany":
+      "Faltan {{count}} espacios en {{where}}.",
+  };
+  const translate = (key: string, params: Record<string, unknown> = {}) =>
+    texts[key].replace(/\{\{(\w+)\}\}/g, (_, name: string) =>
+      String(params[name]),
+    );
+
+  it("groups the matchdays by missing slots, the largest first", () => {
+    expect(
+      deficitLines(
+        [
+          { matchday: 1, deficit: 2 },
+          { matchday: 2, deficit: 1 },
+          { matchday: 3, deficit: 0 },
+          { matchday: 4, deficit: 1 },
+          { matchday: 5, deficit: 1 },
+        ],
+        translate,
+      ),
+    ).toEqual([
+      "Faltan 2 espacios en la jornada 1.",
+      "Falta 1 espacio en las jornadas 2, 4 y 5.",
+    ]);
+  });
+
+  it("says nothing without a deficit", () => {
+    expect(deficitLines([{ matchday: 1, deficit: 0 }], translate)).toEqual([]);
   });
 });

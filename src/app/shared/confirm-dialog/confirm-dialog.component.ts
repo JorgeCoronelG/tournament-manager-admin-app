@@ -22,7 +22,7 @@ export interface ConfirmDialogData {
     <h2 mat-dialog-title>{{ data.title }}</h2>
     <mat-dialog-content
       [innerHTML]="data.message"
-      class="whitespace-pre-line"
+      class="whitespace-pre-line [&_small]:mt-2 [&_small]:block [&_small]:text-sm [&_small]:text-secondary"
     />
     <mat-dialog-actions align="end">
       @if (data.cancelOutlined) {

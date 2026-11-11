@@ -19,10 +19,12 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatRadioModule } from "@angular/material/radio";
 import { Observable } from "rxjs";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { parseDate } from "../../tournaments/tournament.model";
 import { ScheduleApi } from "../schedule.api";
 import {
+  deficitLines,
   SchedulePhase,
   ScheduleMode,
   SchedulePreview,
@@ -79,6 +81,7 @@ export interface AssignScheduleDialogData {
     MatIconModule,
     MatProgressBarModule,
     MatRadioModule,
+    ScrollFadeComponent,
     TranslocoPipe,
   ],
 })
@@ -104,6 +107,16 @@ export class AssignScheduleDialogComponent {
   readonly error = signal<string | null>(null);
 
   readonly parseDate = parseDate;
+
+  /** The tournament has several groups: each match says which one it belongs to */
+  readonly hasSeveralGroups = computed(
+    () =>
+      new Set(
+        (this.preview()?.matches ?? [])
+          .map((match) => match.group)
+          .filter((name): name is string => !!name),
+      ).size > 1,
+  );
 
   /** The proposed matches by matchday (regular phase) or by round (playoffs) */
   readonly groups = computed<ProposalGroup[]>(() => {
@@ -156,6 +169,41 @@ export class AssignScheduleDialogComponent {
         matches,
       };
     });
+  });
+
+  /**
+   * The preview's notices, one box each. The regular phase's missing slots are
+   * grouped like the capacity of the configuration ("Falta 1 espacio en las
+   * jornadas 1, 2 y 3.") in a single box; the others keep the backend's text.
+   * The first box also tells how many matches get a time and how many do not.
+   */
+  readonly warningBlocks = computed<
+    Array<{ lines: string[]; outcome: boolean }>
+  >(() => {
+    const result = this.preview();
+    const warnings = result?.warnings ?? [];
+    const missing = warnings.filter(
+      (warning) => warning.matchday !== undefined && warning.unscheduled > 0,
+    );
+    const lines = deficitLines(
+      missing.map((warning) => ({
+        matchday: warning.matchday as number,
+        deficit: warning.unscheduled,
+      })),
+      (key, params) => this.transloco.translate(key, params),
+    );
+    const blocks = [
+      ...(lines.length ? [{ lines, outcome: false }] : []),
+      ...warnings
+        .filter((warning) => !missing.includes(warning))
+        .map((warning) => ({ lines: [warning.message], outcome: false })),
+    ];
+
+    if (blocks.length && (result?.unscheduled ?? 0) > 0) {
+      blocks[0].outcome = true;
+    }
+
+    return blocks;
   });
 
   /** "Sáb, 07 nov · 9:00 a. m." */

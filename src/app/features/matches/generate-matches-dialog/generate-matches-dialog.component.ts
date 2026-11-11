@@ -66,8 +66,14 @@ export class GenerateMatchesDialogComponent {
     (this.groupsResource.value()?.regular ?? []).map((group) => ({
       name: group.name,
       teams: group.teams_count,
+      /** With an odd number of teams one rests each matchday */
+      resting: group.teams_count % 2,
       ...estimateGroup(group.teams_count, this.data.rounds),
     })),
+  );
+  /** Some group has an odd number of teams: they take turns to rest */
+  readonly hasResting = computed(() =>
+    this.summary().some((group) => group.resting > 0),
   );
   readonly loading = this.groupsResource.isLoading;
 

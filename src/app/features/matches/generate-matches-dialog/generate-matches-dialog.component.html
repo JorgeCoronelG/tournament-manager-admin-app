@@ -31,16 +31,19 @@
 
     <section class="rounded border px-3 py-2">
       <h3 class="m-0 mb-1 text-xs font-normal text-secondary">
-        {{ "matches.generate.summary" | transloco }}
+        {{
+          (summary().length > 1
+            ? "matches.generate.summary"
+            : "matches.generate.summaryOne"
+          ) | transloco
+        }}
       </h3>
       <mat-progress-bar [class.invisible]="!loading()" mode="indeterminate" />
       <ul class="m-0 p-0 list-none">
         @for (group of summary(); track group.name) {
-          <li
-            class="flex flex-wrap items-center justify-between gap-x-3 border-t py-3 text-sm first:border-t-0"
-          >
-            <span class="font-medium">{{ group.name }}</span>
-            <span class="text-secondary">
+          <li class="flex flex-col gap-1 border-t py-3 first:border-t-0">
+            <span class="text-sm font-medium">{{ group.name }}</span>
+            <span class="text-sm text-secondary">
               {{
                 "matches.generate.groupSummary"
                   | transloco
@@ -51,12 +54,33 @@
                       }
               }}
             </span>
+            @if (group.resting > 0) {
+              <span class="flex items-center gap-1.5 text-xs text-secondary">
+                <mat-icon
+                  class="size-3.5! shrink-0 text-sm!"
+                  svgIcon="mat:info"
+                />
+                {{
+                  (group.resting === 1
+                    ? "matches.generate.restingOne"
+                    : "matches.generate.restingMany"
+                  ) | transloco: { count: group.resting }
+                }}
+              </span>
+            }
           </li>
         }
+        <li class="flex flex-col gap-2 border-t py-3">
+          @if (hasResting()) {
+            <p class="m-0 text-xs text-secondary">
+              {{ "matches.generate.restingNote" | transloco }}
+            </p>
+          }
+          <p class="m-0 text-xs text-secondary">
+            {{ "matches.generate.estimated" | transloco }}
+          </p>
+        </li>
       </ul>
-      <p class="m-0 mt-1 text-xs text-secondary">
-        {{ "matches.generate.estimated" | transloco }}
-      </p>
     </section>
 
     <p class="m-0 flex items-start gap-2 text-xs text-secondary">

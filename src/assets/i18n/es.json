@@ -672,7 +672,7 @@
     "vs": "vs",
     "toSchedule": "Por programar",
     "played": "Jugado",
-    "noDate": "Sin fecha",
+    "noDate": "Sin horario",
     "playedCount": "{{played}} jugados",
     "referee": "Árbitro: {{name}}",
     "noReferee": "Sin árbitro",
@@ -709,9 +709,14 @@
     "clearPlayoffSchedule": {
       "action": "Quitar horarios de liguilla",
       "title": "Quitar horarios de liguilla",
-      "message": "Se quitarán fecha, hora, cancha y árbitro de los partidos de liguilla no jugados ni fijados.",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>{{count}} partidos</b> de liguilla.\n<small>Los partidos jugados y fijados no se modificarán.</small>",
       "confirm": "Quitar",
       "cleared": "Horarios quitados: {{count}} partidos"
+    },
+    "clearPlayoffScheduleOne": {
+      "title": "Quitar horarios de liguilla",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>1 partido</b> de liguilla.\n<small>Los partidos jugados y fijados no se modificarán.</small>",
+      "confirm": "Quitar"
     },
     "agenda": {
       "leagueWide": "La agenda muestra todos los torneos de la liga.",
@@ -738,10 +743,16 @@
     },
     "clearSchedule": {
       "action": "Quitar horarios",
-      "title": "Quitar horarios",
-      "message": "Se quitarán fecha, hora, cancha y árbitro de los partidos no jugados ni fijados.",
+      "title": "¿Quitar horarios?",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>{{count}} partidos</b>.\n\nLos partidos jugados y fijados no se modificarán.",
       "confirm": "Quitar",
-      "cleared": "Horarios quitados: {{count}} partidos"
+      "cleared": "Horarios quitados: {{count}} partidos",
+      "nothing": "No hay horarios que se puedan quitar."
+    },
+    "clearScheduleOne": {
+      "title": "¿Quitar horarios?",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>1 partido</b>.\n\nLos partidos jugados y fijados no se modificarán.",
+      "confirm": "Quitar"
     },
     "assign": {
       "action": "Asignar horarios",
@@ -769,6 +780,8 @@
         "title": "Resumen de asignación",
         "subtitle": "Estado de la programación de partidos",
         "ready": "Listo para asignar",
+        "partial": "Asignación parcial",
+        "outcome": "Se programarán {{scheduled}} partidos y {{unscheduled}} quedarán sin horario para asignarlos después.",
         "scheduled": "Programados",
         "unscheduled": "Sin horario",
         "locked": "Bloqueados",
@@ -784,6 +797,9 @@
       "matchdaysCount": "{{count}} jornadas",
       "roundsCount": "{{count}} rondas",
       "matchesCount": "{{count}} partidos",
+      "programmedOne": "1 programado",
+      "programmedMany": "{{count}} programados",
+      "pendingCount": "{{count}} sin horario",
       "group": "Grupo",
       "match": "Partido",
       "slot": "Día, hora y cancha"
@@ -1014,7 +1030,11 @@
       "action": "Generar calendario",
       "title": "Generar calendario",
       "summary": "Resumen por grupo",
+      "summaryOne": "Resumen del calendario",
       "groupSummary": "{{teams}} equipos · {{matchdays}} jornadas · {{matches}} partidos",
+      "restingOne": "1 equipo descansa por jornada",
+      "restingMany": "{{count}} equipos descansan por jornada",
+      "restingNote": "En grupos con un número impar de equipos, un equipo descansa por jornada. Cada equipo descansa una vez por vuelta.",
       "estimated": "Cifras estimadas: los equipos inactivos o vetados no juegan.",
       "shuffle": "Sortear el orden de los equipos",
       "shuffleHint": "Mezcla el orden de los equipos antes de generar los enfrentamientos",

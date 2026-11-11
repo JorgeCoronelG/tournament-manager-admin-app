@@ -133,3 +133,52 @@ export function datesRange(
 
   return `${short(dates[0])} - ${short(dates[dates.length - 1])}`;
 }
+
+/**
+ * One line per amount of missing slots, the largest first, with the matchdays
+ * (in order) that miss that amount: "Faltan 2 espacios en la jornada 1.",
+ * "Falta 1 espacio en las jornadas 2, 3 y 4."
+ */
+export function deficitLines(
+  days: ReadonlyArray<{ matchday: number; deficit: number }>,
+  translate: (key: string, params?: Record<string, unknown>) => string,
+): string[] {
+  const byDeficit = new Map<number, number[]>();
+
+  for (const day of days) {
+    if (day.deficit > 0) {
+      byDeficit.set(day.deficit, [
+        ...(byDeficit.get(day.deficit) ?? []),
+        day.matchday,
+      ]);
+    }
+  }
+
+  const where = (matchdays: number[]): string => {
+    const list =
+      matchdays.length === 1
+        ? `${matchdays[0]}`
+        : `${matchdays.slice(0, -1).join(", ")} ${translate("matches.config.capacity.and")} ${matchdays.at(-1)}`;
+
+    return translate(
+      matchdays.length === 1
+        ? "matches.config.capacity.matchdayOne"
+        : "matches.config.capacity.matchdayMany",
+      { list },
+    );
+  };
+
+  return [...byDeficit.entries()]
+    .sort(([a], [b]) => b - a)
+    .map(([deficit, matchdays]) =>
+      translate(
+        deficit === 1
+          ? "matches.config.capacity.missingOne"
+          : "matches.config.capacity.missingMany",
+        {
+          count: deficit,
+          where: where([...matchdays].sort((a, b) => a - b)),
+        },
+      ),
+    );
+}

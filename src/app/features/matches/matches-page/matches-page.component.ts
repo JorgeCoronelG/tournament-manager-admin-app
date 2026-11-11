@@ -493,6 +493,42 @@ export class MatchesPageComponent {
       });
   }
 
+  /**
+   * What "Quitar horarios" would do with the matches already loaded: the ones
+   * with a time that are still to be played and not fixed lose it; the fixed
+   * and the played ones stay.
+   */
+  readonly clearable = computed(() => {
+    const slots =
+      this.scheduling() === "playoffs"
+        ? this.bracket().flatMap((playoff) =>
+            playoff.rounds.flatMap((round) =>
+              round.ties.flatMap((tie) =>
+                tie.matches.map((match) => ({
+                  hasTime: !!match.match_datetime,
+                  status: match.status,
+                  locked: match.schedule_locked === true,
+                })),
+              ),
+            ),
+          )
+        : this.groups().flatMap((group) =>
+            group.matchdays.flatMap((day) =>
+              day.matches.map((match) => ({
+                hasTime: !!match.match_datetime,
+                status: match.status,
+                locked: match.schedule_locked === true,
+              })),
+            ),
+          );
+
+    return {
+      cleared: slots.filter(
+        (slot) => slot.hasTime && slot.status === "scheduled" && !slot.locked,
+      ).length,
+    };
+  });
+
   clearSchedule(): void {
     const tournament = this.tournament();
 
@@ -500,12 +536,25 @@ export class MatchesPageComponent {
       return;
     }
 
+    const { cleared } = this.clearable();
+
+    if (cleared === 0) {
+      this.snackbar.info(
+        this.transloco.translate("matches.clearSchedule.nothing"),
+      );
+
+      return;
+    }
+
+    const base =
+      this.scheduling() === "playoffs"
+        ? "matches.clearPlayoffSchedule"
+        : "matches.clearSchedule";
+
     this.confirmDialog
       .confirm({
-        key:
-          this.scheduling() === "playoffs"
-            ? "matches.clearPlayoffSchedule"
-            : "matches.clearSchedule",
+        key: cleared === 1 ? `${base}One` : base,
+        params: { count: cleared },
       })
       .subscribe((confirmed) => {
         if (!confirmed) {

@@ -46,6 +46,7 @@ import { FieldsApi } from "../../fields/fields.api";
 import { FieldsQuery } from "../../fields/field.model";
 import { formatDate, parseDate } from "../../tournaments/tournament.model";
 import { ScheduleConfigApi } from "../schedule-config.api";
+import { deficitLines } from "../schedule.model";
 import {
   alignEnd,
   clampWindows,
@@ -388,47 +389,11 @@ export class ScheduleConfigDialogComponent {
   ];
 
   /** One line per amount of missing slots, the largest first: "Faltan 2 espacios en las jornadas 3 y 5." */
-  readonly deficitLines = computed(() => {
-    const byDeficit = new Map<number, number[]>();
-
-    for (const day of this.capacity()?.matchdays ?? []) {
-      if (day.deficit > 0) {
-        byDeficit.set(day.deficit, [
-          ...(byDeficit.get(day.deficit) ?? []),
-          day.matchday,
-        ]);
-      }
-    }
-
-    return [...byDeficit.entries()]
-      .sort(([a], [b]) => b - a)
-      .map(([deficit, matchdays]) =>
-        this.transloco.translate(
-          deficit === 1
-            ? "matches.config.capacity.missingOne"
-            : "matches.config.capacity.missingMany",
-          {
-            count: deficit,
-            where: this.matchdaysText([...matchdays].sort((a, b) => a - b)),
-          },
-        ),
-      );
-  });
-
-  /** "la jornada 1", "las jornadas 1 y 2", "las jornadas 1, 2 y 3" */
-  private matchdaysText(matchdays: number[]): string {
-    const list =
-      matchdays.length === 1
-        ? `${matchdays[0]}`
-        : `${matchdays.slice(0, -1).join(", ")} ${this.transloco.translate("matches.config.capacity.and")} ${matchdays.at(-1)}`;
-
-    return this.transloco.translate(
-      matchdays.length === 1
-        ? "matches.config.capacity.matchdayOne"
-        : "matches.config.capacity.matchdayMany",
-      { list },
-    );
-  }
+  readonly deficitLines = computed(() =>
+    deficitLines(this.capacity()?.matchdays ?? [], (key, params) =>
+      this.transloco.translate(key, params),
+    ),
+  );
 
   /** "7:00 a.m. – 1:00 p.m. · 3:00 p.m. – 5:00 p.m. · +1 más": the first two windows, then how many are left */
   rangeLabel(field: PlayDay["fields"][number]): string {

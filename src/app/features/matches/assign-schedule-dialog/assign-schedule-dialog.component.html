@@ -92,9 +92,18 @@
           </p>
         </div>
         <span
-          class="shrink-0 rounded-full border border-green-600/40 bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:border-green-400/40 dark:bg-green-400/10 dark:text-green-400"
+          [class]="
+            result.unscheduled > 0
+              ? 'shrink-0 rounded-full border border-amber-600/40 bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-400'
+              : 'shrink-0 rounded-full border border-green-600/40 bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:border-green-400/40 dark:bg-green-400/10 dark:text-green-400'
+          "
         >
-          {{ "matches.assign.summary.ready" | transloco }}
+          {{
+            (result.unscheduled > 0
+              ? "matches.assign.summary.partial"
+              : "matches.assign.summary.ready"
+            ) | transloco
+          }}
         </span>
       </header>
 
@@ -119,15 +128,29 @@
 
       <hr class="m-0 border-t" />
 
-      @for (warning of result.warnings; track warning.message) {
+      @for (block of warningBlocks(); track block.lines[0]) {
         <div
-          class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+          class="flex items-start gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
           role="status"
         >
           <mat-icon class="shrink-0" svgIcon="mat:warning" />
-          <p class="m-0 text-sm">
-            {{ warning.message }}
-          </p>
+          <div class="flex flex-col gap-1">
+            @for (line of block.lines; track line) {
+              <p class="m-0 text-sm">{{ line }}</p>
+            }
+            @if (block.outcome) {
+              <p class="m-0 text-xs opacity-80">
+                {{
+                  "matches.assign.summary.outcome"
+                    | transloco
+                      : {
+                          scheduled: result.scheduled,
+                          unscheduled: result.unscheduled,
+                        }
+                }}
+              </p>
+            }
+          </div>
         </div>
       }
 
@@ -207,73 +230,108 @@
         </span>
       </div>
 
-      <mat-accordion class="block mb-2 rounded border overflow-hidden" multi>
-        @for (group of groups(); track group.key) {
-          <mat-expansion-panel
-            class="!rounded-none !shadow-none border-b last:border-b-0"
+      <app-scroll-fade
+        [maxHeight]="groups().length > 4 ? 'max-h-78' : 'max-h-none'"
+        [thin]="true"
+      >
+        <div [class]="groups().length > 4 ? 'pr-3' : ''">
+          <mat-accordion
+            class="block mb-2 rounded border overflow-hidden"
+            multi
           >
-            <mat-expansion-panel-header class="!h-auto !py-3">
-              <div class="flex w-full flex-col pr-2">
-                <div class="flex items-center gap-3">
-                  <span
-                    class="flex size-10 shrink-0 items-center justify-center rounded bg-gray-200 text-base font-medium dark:bg-black"
-                  >
-                    {{ group.number }}
-                  </span>
-                  <div class="min-w-0 flex-1">
-                    <p class="m-0 font-medium">{{ group.title }}</p>
-                    <p class="m-0 text-xs text-secondary">
-                      {{ group.range ?? ("matches.noDate" | transloco) }}
-                    </p>
+            @for (group of groups(); track group.key) {
+              <mat-expansion-panel
+                class="!rounded-none !shadow-none border-b last:border-b-0"
+              >
+                <mat-expansion-panel-header class="!h-auto !py-3">
+                  <div class="flex w-full flex-col pr-2">
+                    <div class="flex items-center gap-3">
+                      <span
+                        class="flex size-10 shrink-0 items-center justify-center rounded bg-gray-200 text-base font-medium dark:bg-black"
+                      >
+                        {{ group.number }}
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <p class="m-0 font-medium">{{ group.title }}</p>
+                        <p class="m-0 text-xs text-secondary">
+                          {{ group.range ?? ("matches.noDate" | transloco) }}
+                        </p>
+                      </div>
+                      @let pending = group.total - group.scheduled;
+                      <div class="shrink-0 text-right text-xs">
+                        <p class="m-0 text-secondary">
+                          {{
+                            "matches.assign.matchesCount"
+                              | transloco: { count: group.total }
+                          }}
+                        </p>
+                        @if (pending > 0) {
+                          <p class="m-0 mt-1 text-xs">
+                            {{
+                              (group.scheduled === 1
+                                ? "matches.assign.programmedOne"
+                                : "matches.assign.programmedMany"
+                              ) | transloco: { count: group.scheduled }
+                            }}
+                            ·
+                            <span class="text-amber-800 dark:text-amber-400">{{
+                              "matches.assign.pendingCount"
+                                | transloco: { count: pending }
+                            }}</span>
+                          </p>
+                        }
+                      </div>
+                    </div>
                   </div>
-                  <span
-                    class="shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-xs dark:bg-gray-700"
-                  >
-                    {{
-                      "matches.assign.matchesCount"
-                        | transloco: { count: group.total }
-                    }}
-                  </span>
-                </div>
-              </div>
-            </mat-expansion-panel-header>
+                </mat-expansion-panel-header>
 
-            <ul class="m-0 list-none p-0">
-              @for (match of group.matches; track match.id) {
-                <li
-                  class="flex items-center gap-3 border-t py-3 first:border-t-0"
-                >
-                  <span
-                    class="flex size-10 shrink-0 items-center justify-center rounded border"
-                  >
-                    <mat-icon svgIcon="mat:calendar_month" />
-                  </span>
-                  <div class="min-w-0 flex-1">
-                    <p class="m-0 font-medium">
-                      {{ match.home_team ?? "—" }} vs
-                      {{ match.away_team ?? "—" }}
-                    </p>
-                    <p class="m-0 text-xs text-secondary">
-                      @if (match.match_datetime) {
-                        {{ when(match.match_datetime) }}
-                      } @else {
-                        <span class="text-amber-800 dark:text-amber-400">{{
-                          "matches.noDate" | transloco
+                <ul class="m-0 list-none p-0">
+                  @for (match of group.matches; track match.id) {
+                    <li
+                      class="flex items-center gap-3 border-t py-3 first:border-t-0"
+                    >
+                      <span
+                        class="flex size-10 shrink-0 items-center justify-center rounded border"
+                      >
+                        <mat-icon svgIcon="mat:calendar_month" />
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <p class="m-0 font-medium">
+                            {{ match.home_team ?? "—" }} vs
+                            {{ match.away_team ?? "—" }}
+                          </p>
+                          @if (hasSeveralGroups() && match.group) {
+                            <span
+                              class="shrink-0 rounded-full border px-2 text-xs text-secondary"
+                            >
+                              {{ match.group }}
+                            </span>
+                          }
+                        </div>
+                        <p class="m-0 text-xs text-secondary">
+                          @if (match.match_datetime) {
+                            {{ when(match.match_datetime) }}
+                          } @else {
+                            <span class="text-amber-800 dark:text-amber-400">{{
+                              "matches.noDate" | transloco
+                            }}</span>
+                          }
+                        </p>
+                      </div>
+                      @if (match.field?.name) {
+                        <span class="shrink-0 text-sm text-secondary">{{
+                          match.field?.name
                         }}</span>
                       }
-                    </p>
-                  </div>
-                  @if (match.field?.name) {
-                    <span class="shrink-0 text-sm text-secondary">{{
-                      match.field?.name
-                    }}</span>
+                    </li>
                   }
-                </li>
-              }
-            </ul>
-          </mat-expansion-panel>
-        }
-      </mat-accordion>
+                </ul>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+        </div>
+      </app-scroll-fade>
     </section>
   }
 </mat-dialog-content>

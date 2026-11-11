@@ -1769,6 +1769,16 @@ export async function mockMatchesApi(
       ]);
     }
 
+    // Assigning gives every pending match a time; clearing takes them away
+    if (request.method() === "POST" && request.url().endsWith("/generate")) {
+      matches = matches.map((m) => ({
+        ...m,
+        match_datetime: m.match_datetime ?? "2026-11-07T08:00:00",
+      }));
+    } else if (request.method() === "DELETE") {
+      matches = matches.map((m) => ({ ...m, match_datetime: null }));
+    }
+
     return route.fulfill({
       json: request.method() === "DELETE" ? { cleared: 3 } : proposal,
     });
