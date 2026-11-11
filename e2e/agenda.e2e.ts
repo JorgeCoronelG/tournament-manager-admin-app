@@ -42,21 +42,16 @@ async function open(page: Page, options: AgendaApiOptions = {}) {
   await mockFieldsApi(page, { fields: makeFields(2) });
   await mockRefereesApi(page, { referees: [] });
   const api = await mockAgendaApi(page, options);
-  await gotoApp(page, "/dashboard/torneos/calendario");
-  // The tabs (the agenda among them) only show once a tournament is picked
-  await page.getByRole("combobox", { name: "Torneo" }).click();
-  await page.getByRole("option", { name: "Torneo 01" }).click();
+  await gotoApp(page, "/dashboard/torneos/agenda");
 
   return api;
 }
 
 test.describe("agenda", () => {
-  test("shows the matches by field and hides the tournament picker", async ({
+  test("shows the matches by field and links to the calendar", async ({
     page,
   }) => {
     await open(page, { matches: MATCHES });
-
-    await page.getByRole("tab", { name: "Agenda" }).click();
 
     await expect(
       page.getByText("La agenda muestra todos los torneos de la liga."),
@@ -71,19 +66,15 @@ test.describe("agenda", () => {
       page.getByText("3 partidos sin horario").first(),
     ).toBeVisible();
 
-    await page.getByRole("tab", { name: "Calendario" }).click();
-    await expect(
-      page.getByText("La agenda muestra todos los torneos de la liga."),
-    ).toHaveCount(0);
-    await expect(page.getByRole("combobox", { name: "Torneo" })).toBeVisible();
+    // The notice's link opens that tournament's calendar
+    await page.getByRole("button", { name: "Ver calendario" }).first().click();
+    await expect(page).toHaveURL(/\/torneos\/calendario\?torneo=\d+$/);
   });
 
   test("filters by field and by matches without a referee", async ({
     page,
   }) => {
     const api = await open(page, { matches: MATCHES });
-    await page.getByRole("tab", { name: "Agenda" }).click();
-
     await page.getByText("Solo sin árbitro").click();
     await expect(
       page.getByRole("button", { name: /Programar Águilas vs Búhos/ }),
@@ -95,8 +86,6 @@ test.describe("agenda", () => {
     page,
   }) => {
     const api = await open(page, { matches: MATCHES });
-    await page.getByRole("tab", { name: "Agenda" }).click();
-
     await expect(page.getByRole("combobox", { name: "Torneo" })).toContainText(
       "Todos los torneos",
     );
@@ -111,8 +100,6 @@ test.describe("agenda", () => {
 
   test("says when the period has no matches", async ({ page }) => {
     await open(page);
-    await page.getByRole("tab", { name: "Agenda" }).click();
-
     await expect(
       page.getByText("No hay partidos programados para este periodo."),
     ).toBeVisible();

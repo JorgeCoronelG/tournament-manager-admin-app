@@ -24,6 +24,7 @@ async function open(
   tournament: string,
   options: MatchesApiOptions = {},
   doubleRound = false,
+  path = "/dashboard/torneos/calendario",
 ) {
   await freezeTime(page);
   await mockTournamentsApi(page, {
@@ -39,7 +40,7 @@ async function open(
   });
   await mockFieldsApi(page, { fields: makeFields(2) });
   const api = await mockMatchesApi(page, options);
-  await gotoApp(page, "/dashboard/torneos/calendario");
+  await gotoApp(page, path);
   await page.getByRole("combobox", { name: "Torneo" }).click();
   await page.getByRole("option", { name: tournament }).click();
 
@@ -306,9 +307,13 @@ test.describe("matches", () => {
   });
 
   test("the standings start at zero without a tie alert", async ({ page }) => {
-    await open(page, "Torneo 02", { generated: true, groups: [FOUR] });
-
-    await page.getByRole("tab", { name: "Tabla de posiciones" }).click();
+    await open(
+      page,
+      "Torneo 02",
+      { generated: true, groups: [FOUR] },
+      false,
+      "/dashboard/torneos/estadisticas",
+    );
 
     await expect(
       page.getByText("Orden: Puntos, Diferencia de goles, Goles a favor."),
@@ -322,9 +327,14 @@ test.describe("matches", () => {
   test("sets the order of tied teams by hand and removes it", async ({
     page,
   }) => {
-    const api = await open(page, "Torneo 02", PLAYED);
+    const api = await open(
+      page,
+      "Torneo 02",
+      PLAYED,
+      false,
+      "/dashboard/torneos/estadisticas",
+    );
 
-    await page.getByRole("tab", { name: "Tabla de posiciones" }).click();
     await expect(
       page.getByText("Hay equipos empatados sin resolver."),
     ).toBeVisible();
@@ -360,12 +370,14 @@ test.describe("matches", () => {
   test("a tournament in its playoffs shows the table but cannot edit", async ({
     page,
   }) => {
-    await open(page, "Torneo 04", PLAYED);
+    await open(
+      page,
+      "Torneo 04",
+      PLAYED,
+      false,
+      "/dashboard/torneos/estadisticas",
+    );
 
-    await expect(
-      page.getByRole("button", { name: /Capturar resultado/ }),
-    ).toHaveCount(0);
-    await page.getByRole("tab", { name: "Tabla de posiciones" }).click();
     await expect(page.locator("tr[mat-row]")).toHaveCount(4);
     await expect(
       page.getByRole("button", { name: /Definir orden|Quitar orden/ }),

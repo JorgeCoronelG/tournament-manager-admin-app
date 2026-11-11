@@ -495,9 +495,12 @@ test.describe("playoffs", () => {
       })
       .click();
     await expect(dialog).toBeHidden();
-    await expect(
-      page.getByRole("tab", { name: "Tabla de posiciones" }),
-    ).toHaveAttribute("aria-selected", "true");
+    // The table lives in Estadísticas now, with the tournament already picked
+    await expect(page).toHaveURL(/\/torneos\/estadisticas\?torneo=2$/);
+    await expect(page.getByRole("tab", { name: "Posiciones" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   test("closes the phase with adjusted pairings and dates after confirming", async ({

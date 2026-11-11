@@ -38,6 +38,24 @@ export const tournamentsRoutes: Routes = [
       ),
   },
   {
+    path: "agenda",
+    title: "agenda.title",
+    canActivate: [capabilityGuard("groups.manage")],
+    loadComponent: () =>
+      import("../matches/agenda-page/agenda-page.component").then(
+        (m) => m.AgendaPageComponent,
+      ),
+  },
+  {
+    path: "estadisticas",
+    title: "statistics.title",
+    canActivate: [capabilityGuard("groups.manage")],
+    loadComponent: () =>
+      import("../matches/statistics-page/statistics-page.component").then(
+        (m) => m.StatisticsPageComponent,
+      ),
+  },
+  {
     path: "plantillas",
     title: "rosters.title",
     canActivate: [capabilityGuard("rosters.manage")],

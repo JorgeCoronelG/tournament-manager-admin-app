@@ -6,7 +6,9 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
@@ -17,7 +19,9 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { form, FormField } from "@angular/forms/signals";
+import { ActivatedRoute, Router } from "@angular/router";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { map } from "rxjs";
 import { AppBreadcrumbsComponent } from "@ui/components/app-breadcrumbs/app-breadcrumbs.component";
 import { AppPageLayoutContentDirective } from "@ui/components/app-page-layout/app-page-layout-content.directive";
 import { AppPageLayoutComponent } from "@ui/components/app-page-layout/app-page-layout.component";
@@ -62,7 +66,6 @@ import {
   playedCount,
 } from "../match.model";
 import { MatchesApi } from "../matches.api";
-import { AgendaViewComponent } from "../agenda-view/agenda-view.component";
 import { BracketViewComponent } from "../bracket-view/bracket-view.component";
 import {
   ClosePhaseDialogComponent,
@@ -76,8 +79,6 @@ import {
   WalkoverDialogData,
 } from "../walkover-dialog/walkover-dialog.component";
 import { GroupsApi } from "../../groups/groups.api";
-import { StandingsViewComponent } from "../standings-view/standings-view.component";
-import { StandingsApi } from "../standings.api";
 
 /** Up to this many matchdays every section starts open; with more, only the first */
 const OPEN_ALL_UP_TO = 4;
@@ -88,7 +89,6 @@ const OPEN_ALL_UP_TO = 4;
   templateUrl: "./matches-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AgendaViewComponent,
     AppBreadcrumbsComponent,
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
@@ -106,13 +106,11 @@ const OPEN_ALL_UP_TO = 4;
     MatTabsModule,
     MatTooltipModule,
     NgTemplateOutlet,
-    StandingsViewComponent,
     TranslocoPipe,
   ],
 })
 export class MatchesPageComponent {
   private readonly api = inject(MatchesApi);
-  private readonly standingsApi = inject(StandingsApi);
   private readonly playoffsApi = inject(PlayoffsApi);
   private readonly groupsApi = inject(GroupsApi);
   private readonly registrationsApi = inject(RegistrationsApi);
@@ -120,6 +118,8 @@ export class MatchesPageComponent {
   private readonly configApi = inject(ScheduleConfigApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
@@ -142,6 +142,25 @@ export class MatchesPageComponent {
     const id = this.picker().tournament;
 
     return this.tournaments().find((item) => item.id === id);
+  });
+
+  /** `?torneo=ID`: the tournament a link (the agenda's "Ver calendario") asks for */
+  private readonly requested = toSignal(
+    this.route.queryParamMap.pipe(
+      map((params) => Number(params.get("torneo")) || null),
+    ),
+    { initialValue: null },
+  );
+  private readonly preselect = effect(() => {
+    const id = this.requested();
+
+    if (
+      id !== null &&
+      this.tournaments().some((item) => item.id === id) &&
+      untracked(this.picker).tournament === ""
+    ) {
+      untracked(() => this.picker.set({ tournament: id }));
+    }
   });
 
   // A tournament that is no longer in the league (another league was picked) is dropped
@@ -210,7 +229,7 @@ export class MatchesPageComponent {
   private readonly showBracketNext = signal(false);
   private readonly openBracket = effect(() => {
     if (this.showBracketNext() && this.inPlayoffs()) {
-      this.selectedSection.set(2);
+      this.selectedSection.set(1);
       this.showBracketNext.set(false);
     }
   });
@@ -358,19 +377,9 @@ export class MatchesPageComponent {
   readonly resource = this.api.schedule(
     computed(() => (this.started() ? this.tournament()?.id : undefined)),
   );
-  readonly standingsResource = this.standingsApi.standings(
-    computed(() => (this.started() ? this.tournament()?.id : undefined)),
-  );
-  readonly standings = computed(() =>
-    this.standingsResource.hasValue()
-      ? this.standingsResource.value().groups
-      : [],
-  );
-
-  /** The calendar and the tables change together: a result moves both */
+  /** The calendar is asked again (a result, a new hour...) */
   private reloadAll(): void {
     this.resource.reload();
-    this.standingsResource.reload();
   }
 
   readonly schedule = computed(() =>
@@ -392,28 +401,14 @@ export class MatchesPageComponent {
     this.transloco.translate("nav.schedule"),
   ]);
 
-  /** The section tab: the calendar, the standings table, the bracket (in the playoffs) or the agenda */
+  /** The section tab: the calendar, or the bracket (only once the playoffs started) */
   readonly selectedSection = signal(0);
-
-  /** The agenda is the last tab: after the bracket's when there is one */
-  readonly agendaIndex = computed(() => (this.inPlayoffs() ? 3 : 2));
-
-  /** The agenda covers the whole league: the tournament picker does not apply to it */
-  readonly onAgenda = computed(
-    () => this.selectedSection() === this.agendaIndex(),
-  );
 
   readonly clearLabel = computed(() =>
     this.scheduling() === "playoffs"
       ? "matches.clearPlayoffSchedule.action"
       : "matches.clearSchedule.action",
   );
-
-  /** A tournament's link in the agenda: its calendar opens */
-  openCalendar(tournamentId: number): void {
-    this.picker.set({ tournament: tournamentId });
-    this.selectedSection.set(0);
-  }
 
   /** The group tab (by position) the user has open; the first one by default */
   readonly selectedTab = signal(0);
@@ -656,7 +651,10 @@ export class MatchesPageComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result === "standings") {
-          this.selectedSection.set(1);
+          // The standings table lives in Estadísticas now
+          void this.router.navigate(["/dashboard/torneos/estadisticas"], {
+            queryParams: { torneo: tournament.id },
+          });
         } else if (result === "closed") {
           this.showBracketNext.set(true);
           this.tournamentsResource.reload();

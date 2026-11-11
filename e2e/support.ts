@@ -1992,10 +1992,10 @@ export async function mockAgendaApi(
 ): Promise<AgendaApi> {
   const api: AgendaApi = { queries: [] };
 
-  await page.route(/\/agenda\/unscheduled(\?.*)?$/, (route) =>
+  await page.route(/\/leagues\/\d+\/agenda\/unscheduled(\?.*)?$/, (route) =>
     route.fulfill({ json: { unscheduled: 3 } }),
   );
-  await page.route(/\/agenda(\?.*)?$/, (route) => {
+  await page.route(/\/leagues\/\d+\/agenda(\?.*)?$/, (route) => {
     const params = new URL(route.request().url()).searchParams;
     api.queries.push(params);
 

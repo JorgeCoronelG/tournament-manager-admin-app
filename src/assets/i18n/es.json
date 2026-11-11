@@ -41,6 +41,8 @@
     "registrations": "Inscripciones",
     "groups": "Grupos",
     "schedule": "Calendario",
+    "agenda": "Agenda",
+    "statistics": "Estadísticas",
     "rosters": "Plantillas",
     "players": "Jugadores",
     "list": "Listado"
@@ -639,6 +641,16 @@
       "title": "¿Autorizar reingreso?",
       "message": "Se permitirá que <b>{{player}}</b> sea solicitada por otro equipo de este torneo.\n\nLa autorización no inscribe automáticamente al jugador en otro equipo.",
       "confirm": "Autorizar"
+    }
+  },
+  "agenda": {
+    "title": "Agenda"
+  },
+  "statistics": {
+    "title": "Estadísticas",
+    "pickTournament": "Selecciona un torneo para consultar sus estadísticas.",
+    "tabs": {
+      "standings": "Posiciones"
     }
   },
   "matches": {
