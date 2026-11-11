@@ -387,7 +387,7 @@ export class ScheduleConfigDialogComponent {
     "deficit",
   ];
 
-  /** One line per amount of missing slots: "Faltan 2 espacios en las jornadas 3 y 5." */
+  /** One line per amount of missing slots, the largest first: "Faltan 2 espacios en las jornadas 3 y 5." */
   readonly deficitLines = computed(() => {
     const byDeficit = new Map<number, number[]>();
 
@@ -401,13 +401,16 @@ export class ScheduleConfigDialogComponent {
     }
 
     return [...byDeficit.entries()]
-      .sort(([a], [b]) => a - b)
+      .sort(([a], [b]) => b - a)
       .map(([deficit, matchdays]) =>
         this.transloco.translate(
           deficit === 1
             ? "matches.config.capacity.missingOne"
             : "matches.config.capacity.missingMany",
-          { count: deficit, where: this.matchdaysText(matchdays) },
+          {
+            count: deficit,
+            where: this.matchdaysText([...matchdays].sort((a, b) => a - b)),
+          },
         ),
       );
   });

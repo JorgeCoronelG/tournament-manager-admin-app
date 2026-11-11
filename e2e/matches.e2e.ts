@@ -73,7 +73,7 @@ test.describe("matches", () => {
 
     const dialog = page.getByRole("dialog");
     await expect(
-      dialog.getByText("4 equipos, 3 jornadas, 6 partidos"),
+      dialog.getByText("4 equipos · 3 jornadas · 6 partidos"),
     ).toBeVisible();
     await expect(
       dialog.getByRole("checkbox", { name: "Sortear el orden de los equipos" }),

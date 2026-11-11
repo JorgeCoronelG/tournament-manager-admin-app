@@ -1002,9 +1002,11 @@
       "action": "Generar calendario",
       "title": "Generar calendario",
       "summary": "Resumen por grupo",
-      "groupSummary": "{{teams}} equipos, {{matchdays}} jornadas, {{matches}} partidos",
+      "groupSummary": "{{teams}} equipos · {{matchdays}} jornadas · {{matches}} partidos",
       "estimated": "Cifras estimadas: los equipos inactivos o vetados no juegan.",
       "shuffle": "Sortear el orden de los equipos",
+      "shuffleHint": "Mezcla el orden de los equipos antes de generar los enfrentamientos",
+      "createdHint": "Se crearán las jornadas y los enfrentamientos. Las fechas, horarios, canchas y árbitros se asignan después.",
       "confirm": "Generar"
     },
     "regenerate": {
