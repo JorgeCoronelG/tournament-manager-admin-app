@@ -622,11 +622,46 @@ export class MatchesPageComponent {
       .flatMap((day) => day.matches);
 
     return {
+      total: matches.length,
       scheduled: matches.filter((match) => match.match_datetime).length,
       locked: matches.filter((match) => match.schedule_locked).length,
       referees: matches.filter((match) => match.referee).length,
     };
   });
+
+  /** "Se perderán 15 partidos (2 fijados), 12 horarios asignados y 3 asignaciones de árbitro."; zero counts are left out */
+  private lossText(): string {
+    const { total, scheduled, locked, referees } = this.assignments();
+    const t = (base: string, count: number) =>
+      this.transloco.translate(
+        `matches.delete.${base}${count === 1 ? "One" : "Many"}`,
+        {
+          count,
+        },
+      );
+    const parts: string[] = [];
+
+    if (total > 0) {
+      parts.push(
+        t("matches", total) + (locked > 0 ? ` ${t("locked", locked)}` : ""),
+      );
+    }
+
+    if (scheduled > 0) {
+      parts.push(t("schedules", scheduled));
+    }
+
+    if (referees > 0) {
+      parts.push(t("referees", referees));
+    }
+
+    const what =
+      parts.length === 1
+        ? parts[0]
+        : `${parts.slice(0, -1).join(", ")} ${this.transloco.translate("matches.regenerate.and")} ${parts.at(-1)}`;
+
+    return this.transloco.translate("matches.delete.lost", { what });
+  }
 
   private openDialog(regenerate: boolean): void {
     const tournament = this.tournament();
@@ -672,7 +707,10 @@ export class MatchesPageComponent {
     }
 
     this.confirmDialog
-      .confirm({ key: "matches.delete", params: { name: tournament.name } })
+      .confirm({
+        key: "matches.delete",
+        params: { name: tournament.name, loss: this.lossText() },
+      })
       .subscribe((confirmed) => {
         if (!confirmed) {
           return;

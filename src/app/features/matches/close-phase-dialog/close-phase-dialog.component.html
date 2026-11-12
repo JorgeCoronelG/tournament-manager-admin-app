@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>{{ "matches.close.title" | transloco }}</h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-4 !pt-2 min-w-[320px]">
+  <mat-dialog-content class="flex flex-col gap-4 !pt-0 min-w-[320px]">
     <mat-progress-bar
       [class.invisible]="!preview.isLoading()"
       mode="indeterminate"
@@ -58,88 +58,187 @@
     }
 
     @if (blockers().length) {
-      <section>
-        <p class="m-0 mb-2 text-sm font-medium">
-          {{ "matches.close.blocked" | transloco }}
-        </p>
-        <ul class="m-0 pl-5 flex flex-col gap-3 text-sm">
-          @for (blocker of blockers(); track $index) {
-            <li>
-              @switch (blocker.type) {
-                @case ("pending_matches") {
-                  @let pending = asPending(blocker)!;
+      <section class="flex flex-col gap-4 text-sm">
+        <div class="flex items-start gap-3">
+          <mat-icon
+            class="shrink-0 text-red-600 dark:text-red-400"
+            svgIcon="mat:error"
+          />
+          <div class="flex flex-col gap-1">
+            <p class="m-0 font-medium">
+              {{ "matches.close.blockedTitle" | transloco }}
+            </p>
+            <p class="m-0 text-secondary">
+              @if (pendingCount(); as count) {
+                {{
+                  (count === 1
+                    ? "matches.close.blockedPendingOne"
+                    : "matches.close.blockedPending"
+                  ) | transloco: { count: count }
+                }}
+              } @else {
+                {{ "matches.close.blockedGeneric" | transloco }}
+              }
+            </p>
+          </div>
+        </div>
+
+        @for (blocker of blockers(); track $index) {
+          <hr class="m-0 border-t" />
+
+          @switch (blocker.type) {
+            @case ("pending_matches") {
+              @let pending = asPending(blocker)!;
+              @let view = pendingView(pending);
+              <div class="flex flex-col gap-3">
+                <p class="flex items-center gap-2 m-0 font-medium">
+                  <mat-icon svgIcon="mat:calendar_month" />
                   {{
-                    "matches.close.blockers.pending"
-                      | transloco: { count: pending.count }
+                    (pending.count === 1
+                      ? "matches.close.blockers.pendingOne"
+                      : "matches.close.blockers.pending"
+                    ) | transloco: { count: pending.count }
                   }}
+                </p>
+
+                @if (view.groups.length) {
+                  <app-scroll-fade
+                    [maxHeight]="
+                      view.groups.length > 3 ? 'max-h-56' : 'max-h-none'
+                    "
+                    [thin]="true"
+                  >
+                    <div [class]="view.groups.length > 3 ? 'pr-3' : ''">
+                      <mat-accordion
+                        class="block rounded border overflow-hidden"
+                        multi
+                      >
+                        @for (group of view.groups; track group.key) {
+                          <mat-expansion-panel
+                            class="!rounded-none !shadow-none border-b last:border-b-0"
+                          >
+                            <mat-expansion-panel-header class="!h-auto !py-3">
+                              <div class="flex w-full items-center gap-3 pr-2">
+                                <span
+                                  class="flex size-9 shrink-0 items-center justify-center rounded bg-gray-200 text-sm font-medium dark:bg-black"
+                                >
+                                  {{ group.matchday }}
+                                </span>
+                                <span
+                                  class="flex min-w-0 flex-1 items-center gap-2"
+                                >
+                                  <span class="font-medium">{{
+                                    group.title
+                                  }}</span>
+                                  @if (group.group) {
+                                    <span
+                                      class="rounded-full bg-gray-200 px-2 py-0.5 text-xs dark:bg-black"
+                                    >
+                                      {{ group.group }}
+                                    </span>
+                                  }
+                                </span>
+                                <span class="text-xs text-secondary">
+                                  {{
+                                    (group.matches.length === 1
+                                      ? "matches.close.blockers.pendingShortOne"
+                                      : "matches.close.blockers.pendingShort"
+                                    )
+                                      | transloco
+                                        : { count: group.matches.length }
+                                  }}
+                                </span>
+                              </div>
+                            </mat-expansion-panel-header>
+
+                            <ul class="m-0 list-none p-0 text-secondary">
+                              @for (
+                                match of group.matches;
+                                track match.match_id
+                              ) {
+                                <li class="py-1">
+                                  {{
+                                    "matches.close.blockers.match"
+                                      | transloco
+                                        : {
+                                            home: match.home,
+                                            away: match.away,
+                                          }
+                                  }}
+                                </li>
+                              }
+                            </ul>
+                          </mat-expansion-panel>
+                        }
+                      </mat-accordion>
+                    </div>
+                  </app-scroll-fade>
+                }
+
+                <p class="flex items-start gap-2 m-0 text-secondary">
+                  <mat-icon
+                    class="shrink-0 size-5! text-xl! text-blue-600 dark:text-blue-400"
+                    svgIcon="mat:info"
+                  />
+                  {{ "matches.close.blockers.pendingHint" | transloco }}
+                </p>
+              </div>
+            }
+            @case ("no_calendar") {
+              <p class="m-0">
+                {{ "matches.close.blockers.noCalendar" | transloco }}
+              </p>
+            }
+            @case ("unresolved_ties") {
+              <p class="m-0">
+                @if (bestBlocker(blocker); as best) {
+                  {{
+                    "matches.close.blockers.bestTies"
+                      | transloco: { position: best.position }
+                  }}
+                  <button
+                    (click)="defineBestOrder(best.source_id)"
+                    class="ml-1"
+                    mat-stroked-button
+                    type="button"
+                  >
+                    {{ "matches.standings.defineOrder" | transloco }}
+                  </button>
+                } @else {
+                  @let tie = asTies(blocker)!;
+                  {{
+                    "matches.close.blockers.ties"
+                      | transloco
+                        : {
+                            group: tie.group,
+                            positions: blockerRange(tie.positions),
+                          }
+                  }}
+                  <button
+                    (click)="goToStandings()"
+                    class="ml-1 underline text-primary-600 cursor-pointer bg-transparent border-0 p-0"
+                    type="button"
+                  >
+                    {{ "matches.close.blockers.goToStandings" | transloco }}
+                  </button>
+                }
+              </p>
+            }
+            @default {
+              <div>
+                <p class="m-0">{{ blocker.message ?? blocker.type }}</p>
+                @let withdrawn = withdrawnTeams(blocker);
+                @if (withdrawn.length) {
                   <ul class="m-0 mt-1 pl-4 text-secondary">
-                    @for (example of pending.examples; track example.match_id) {
-                      <li>
-                        {{
-                          "matches.close.blockers.example"
-                            | transloco
-                              : {
-                                  group: example.group,
-                                  matchday: example.matchday,
-                                  home: example.home,
-                                  away: example.away,
-                                }
-                        }}
-                      </li>
+                    @for (name of withdrawn; track $index) {
+                      <li>{{ name }}</li>
                     }
                   </ul>
                 }
-                @case ("no_calendar") {
-                  {{ "matches.close.blockers.noCalendar" | transloco }}
-                }
-                @case ("unresolved_ties") {
-                  @if (bestBlocker(blocker); as best) {
-                    {{
-                      "matches.close.blockers.bestTies"
-                        | transloco: { position: best.position }
-                    }}
-                    <button
-                      (click)="defineBestOrder(best.source_id)"
-                      class="ml-1"
-                      mat-stroked-button
-                      type="button"
-                    >
-                      {{ "matches.standings.defineOrder" | transloco }}
-                    </button>
-                  } @else {
-                    @let tie = asTies(blocker)!;
-                    {{
-                      "matches.close.blockers.ties"
-                        | transloco
-                          : {
-                              group: tie.group,
-                              positions: blockerRange(tie.positions),
-                            }
-                    }}
-                    <button
-                      (click)="goToStandings()"
-                      class="ml-1 underline text-primary-600 cursor-pointer bg-transparent border-0 p-0"
-                      type="button"
-                    >
-                      {{ "matches.close.blockers.goToStandings" | transloco }}
-                    </button>
-                  }
-                }
-                @default {
-                  {{ blocker.message ?? blocker.type }}
-                  @let withdrawn = withdrawnTeams(blocker);
-                  @if (withdrawn.length) {
-                    <ul class="m-0 mt-1 pl-4 text-secondary">
-                      @for (name of withdrawn; track $index) {
-                        <li>{{ name }}</li>
-                      }
-                    </ul>
-                  }
-                }
-              }
-            </li>
+              </div>
+            }
           }
-        </ul>
+        }
       </section>
 
       @if (formError(); as message) {
@@ -207,7 +306,7 @@
   <mat-dialog-actions align="end">
     @if (blockers().length || preview.error()) {
       <button mat-button mat-dialog-close type="button">
-        {{ "matches.close.dismiss" | transloco }}
+        {{ "matches.close.understood" | transloco }}
       </button>
     } @else {
       <button mat-button mat-dialog-close type="button">

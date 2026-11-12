@@ -478,10 +478,11 @@ test.describe("playoffs", () => {
 
     await page.getByRole("button", { name: "Cerrar fase regular" }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("Faltan 3 partidos por jugar")).toBeVisible();
     await expect(
-      dialog.getByText("Grupo A, jornada 2: Halcones vs Lobos"),
+      dialog.getByText("3 partidos pendientes", { exact: true }),
     ).toBeVisible();
+    await dialog.getByRole("button", { name: /Jornada 2/ }).click();
+    await expect(dialog.getByText("Halcones vs Lobos")).toBeVisible();
     await expect(
       dialog.getByText("Hay empates sin resolver en Grupo A, posiciones 2-3."),
     ).toBeVisible();

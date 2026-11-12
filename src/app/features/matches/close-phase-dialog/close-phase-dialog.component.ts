@@ -17,6 +17,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
@@ -24,6 +25,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTabsModule } from "@angular/material/tabs";
 import { applyEach, form, FormField, validate } from "@angular/forms/signals";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { map, Observable, of, switchMap } from "rxjs";
 import {
@@ -91,6 +93,7 @@ interface PlayoffRow {
     MatButtonModule,
     MatDatepickerModule,
     MatDialogModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -98,6 +101,7 @@ interface PlayoffRow {
     MatSelectModule,
     MatTabsModule,
     NgTemplateOutlet,
+    ScrollFadeComponent,
     TranslocoPipe,
   ],
 })
@@ -169,6 +173,50 @@ export class ClosePhaseDialogComponent {
   }
 
   readonly blockers = computed(() => this.preview.value()?.blockers ?? []);
+
+  /** Matches still to play, when that is what blocks the closing */
+  readonly pendingCount = computed(
+    () =>
+      this.blockers()
+        .map((blocker) => this.asPending(blocker))
+        .find((pending) => pending)?.count ?? 0,
+  );
+
+  /** The pending matches the backend lists, by matchday */
+  pendingView(pending: Extract<CloseBlocker, { type: "pending_matches" }>) {
+    const groups = new Map<
+      string,
+      {
+        key: string;
+        matchday: number;
+        title: string;
+        group: string | null;
+        matches: typeof pending.examples;
+      }
+    >();
+    const several =
+      new Set(pending.examples.map((match) => match.group)).size > 1;
+
+    for (const match of pending.examples) {
+      const key = `${match.group}|${match.matchday}`;
+      const group = groups.get(key) ?? {
+        key,
+        matchday: match.matchday,
+        title: this.transloco.translate("matches.close.blockers.matchday", {
+          matchday: match.matchday,
+        }),
+        /** Only to tell the groups apart: with a single one there is nothing to tell */
+        group: several ? match.group : null,
+        matches: [],
+      };
+
+      group.matches.push(match);
+      groups.set(key, group);
+    }
+
+    return { groups: [...groups.values()] };
+  }
+
   readonly warnings = computed(() => this.preview.value()?.warnings ?? []);
   private readonly entries = computed(
     () => this.preview.value()?.playoffs ?? [],
