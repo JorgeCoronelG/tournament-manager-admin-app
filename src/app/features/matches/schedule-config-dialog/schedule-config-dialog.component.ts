@@ -46,7 +46,7 @@ import { FieldsApi } from "../../fields/fields.api";
 import { FieldsQuery } from "../../fields/field.model";
 import { formatDate, parseDate } from "../../tournaments/tournament.model";
 import { ScheduleConfigApi } from "../schedule-config.api";
-import { deficitLines } from "../schedule.model";
+import { deficitLines, occupiedGroups, overlapLines } from "../schedule.model";
 import {
   alignEnd,
   clampWindows,
@@ -283,6 +283,8 @@ export class ScheduleConfigDialogComponent {
           model.start_date ?? parseDate(this.data.tournamentStartDate),
       });
       this.snapshotDays();
+      // Only the calculated capacity reports coinciding windows of other tournaments
+      this.calculate();
     });
   });
 
@@ -380,13 +382,40 @@ export class ScheduleConfigDialogComponent {
     return rows;
   });
 
-  protected readonly columns = [
-    "matchday",
-    "week",
-    "matches",
-    "slots",
-    "deficit",
-  ];
+  /** Some matchday has slots taken by other tournaments: the table shows them and what is left */
+  protected readonly hasOccupied = computed(() =>
+    (this.capacity()?.matchdays ?? []).some(
+      (day) => (day.slots_occupied ?? 0) > 0,
+    ),
+  );
+
+  protected readonly columns = computed(() =>
+    this.hasOccupied()
+      ? [
+          "matchday",
+          "week",
+          "matches",
+          "slots",
+          "occupied",
+          "available",
+          "deficit",
+        ]
+      : ["matchday", "week", "matches", "slots", "deficit"],
+  );
+
+  /** What other tournaments take, by field and tournament */
+  readonly occupiedGroups = computed(() =>
+    occupiedGroups(this.capacity()?.matchdays ?? [], (key, params) =>
+      this.transloco.translate(key, params),
+    ),
+  );
+
+  /** Other tournaments' windows that coincide with the configuration */
+  readonly overlapLines = computed(() =>
+    overlapLines(this.capacity()?.config_overlaps ?? [], (key, params) =>
+      this.transloco.translate(key, params),
+    ),
+  );
 
   /** One line per amount of missing slots, the largest first: "Faltan 2 espacios en las jornadas 3 y 5." */
   readonly deficitLines = computed(() =>

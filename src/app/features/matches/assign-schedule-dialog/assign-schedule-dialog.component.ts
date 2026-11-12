@@ -25,6 +25,7 @@ import { parseDate } from "../../tournaments/tournament.model";
 import { ScheduleApi } from "../schedule.api";
 import {
   deficitLines,
+  occupiedLines,
   SchedulePhase,
   ScheduleMode,
   SchedulePreview,
@@ -178,7 +179,7 @@ export class AssignScheduleDialogComponent {
    * The first box also tells how many matches get a time and how many do not.
    */
   readonly warningBlocks = computed<
-    Array<{ lines: string[]; outcome: boolean }>
+    Array<{ lines: string[]; reasons?: string[]; outcome: boolean }>
   >(() => {
     const result = this.preview();
     const warnings = result?.warnings ?? [];
@@ -193,9 +194,22 @@ export class AssignScheduleDialogComponent {
       (key, params) => this.transloco.translate(key, params),
     );
     const blocks = [
-      ...(lines.length ? [{ lines, outcome: false }] : []),
+      ...(lines.length
+        ? [
+            {
+              lines,
+              reasons: occupiedLines(result?.matchdays ?? [], (key, params) =>
+                this.transloco.translate(key, params),
+              ),
+              outcome: false,
+            },
+          ]
+        : []),
       ...warnings
-        .filter((warning) => !missing.includes(warning))
+        .filter(
+          (warning) =>
+            !missing.includes(warning) && warning.code !== "slot_taken",
+        )
         .map((warning) => ({ lines: [warning.message], outcome: false })),
     ];
 
@@ -205,6 +219,9 @@ export class AssignScheduleDialogComponent {
 
     return blocks;
   });
+
+  /** Matches left without a time because their slot was taken while assigning; null while not assigned */
+  protected readonly taken = signal<number | null>(null);
 
   /** "Sáb, 07 nov · 9:00 a. m." */
   when(iso: string): string {
@@ -265,7 +282,21 @@ export class AssignScheduleDialogComponent {
 
     this.run(
       this.api.generate(this.data.tournamentId, this.generateOptions()),
-      () => this.dialogRef.close(true),
+      (result) => {
+        const taken = result.warnings.filter(
+          (warning) => warning.code === "slot_taken",
+        ).length;
+
+        if (taken === 0) {
+          this.dialogRef.close(true);
+
+          return;
+        }
+
+        // It was saved: the notice stays until the user closes the dialog
+        this.dialogRef.disableClose = true;
+        this.taken.set(taken);
+      },
     );
   }
 

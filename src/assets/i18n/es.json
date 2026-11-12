@@ -755,6 +755,8 @@
       "confirm": "Quitar"
     },
     "assign": {
+      "takenOne": "1 partido quedó sin horario porque su espacio fue ocupado mientras se asignaba. Puedes asignarlo de nuevo.",
+      "takenMany": "{{count}} partidos quedaron sin horario porque su espacio fue ocupado mientras se asignaba. Puedes asignarlos de nuevo.",
       "action": "Asignar horarios",
       "playoffsAction": "Asignar horarios de liguilla",
       "playoffsTitle": "Asignar horarios de liguilla",
@@ -1004,7 +1006,34 @@
         "6": "Sábado",
         "7": "Domingo"
       },
+      "weekdaysOn": {
+        "1": "los lunes",
+        "2": "los martes",
+        "3": "los miércoles",
+        "4": "los jueves",
+        "5": "los viernes",
+        "6": "los sábados",
+        "7": "los domingos"
+      },
+      "overlaps": {
+        "title": "Posible conflicto de horarios.",
+        "line": "La <b>{{field}}</b> también está configurada para el <b>{{tournament}}</b> {{when}}",
+        "when": "{{day}} de <b>{{start}} a {{end}}</b>",
+        "note": "Puedes guardar esta configuración, pero algunos horarios ya están ocupados por partidos de otros torneos."
+      },
       "capacity": {
+        "configured": "Configurados",
+        "occupied": "Ocupados por otros",
+        "available": "Disponibles",
+        "occupiedTitle": "Espacios ocupados por otros torneos",
+        "occupiedMatchdayOne": "Jornada {{list}}",
+        "occupiedMatchdayMany": "Jornadas {{list}}",
+        "occupiedRange": "{{from}}–{{to}}",
+        "occupiedLine": "La {{field}} está ocupada por {{tournament}} {{days}} {{intervals}} ({{matchdays}}).",
+        "occupiedInterval": "de {{start}} a {{end}}",
+        "lineMatchdayOne": "jornada {{list}}",
+        "lineMatchdayMany": "jornadas {{list}}",
+        "range": "{{from}} a {{to}}",
         "playoffs": "Rondas de liguilla",
         "title": "Capacidad",
         "calculate": "Calcular capacidad",

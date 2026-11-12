@@ -1,3 +1,4 @@
+import type { ConfigOverlap, OccupiedSlot } from "./schedule.model";
 /** Time of day, 24 h `HH:mm` */
 export type Clock = string;
 
@@ -268,8 +269,14 @@ export interface MatchdayCapacity {
   start_date: string | null;
   end_date: string | null;
   matches_required: number;
+  /** Slots of the configuration */
+  slots_configured?: number;
+  /** Of those, taken by matches of other tournaments */
+  slots_occupied?: number;
+  /** What is left once the occupied ones are taken off */
   slots_available: number;
   deficit: number;
+  occupied_by_others?: OccupiedSlot[];
 }
 
 export interface CapacityWeek {
@@ -307,6 +314,8 @@ export interface Capacity {
   playoff_rounds?: PlayoffRoundCapacity[];
   playoff_warnings?: PlayoffWarning[];
   weeks: CapacityWeek[];
+  /** Windows of other tournaments that coincide with this configuration (absent when none) */
+  config_overlaps?: ConfigOverlap[];
   /** Empty when there is no pairing calendar */
   matchdays: MatchdayCapacity[];
   has_calendar: boolean;

@@ -16,6 +16,21 @@
     </div>
   }
 
+  @if (taken(); as count) {
+    <div
+      class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+      role="status"
+    >
+      <mat-icon class="shrink-0" svgIcon="mat:warning" />
+      <p class="m-0 text-sm">
+        {{
+          (count === 1 ? "matches.assign.takenOne" : "matches.assign.takenMany")
+            | transloco: { count }
+        }}
+      </p>
+    </div>
+  }
+
   <div class="grid gap-4 sm:grid-cols-2">
     @if (!playoffs) {
       <section>
@@ -137,6 +152,9 @@
           <div class="flex flex-col gap-1">
             @for (line of block.lines; track line) {
               <p class="m-0 text-sm">{{ line }}</p>
+            }
+            @for (reason of block.reasons ?? []; track reason) {
+              <p class="m-0 text-sm">{{ reason }}</p>
             }
             @if (block.outcome) {
               <p class="m-0 text-xs opacity-80">
@@ -337,24 +355,35 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close type="button">
-    {{ "common.cancel" | transloco }}
-  </button>
-  <button
-    (click)="calculate()"
-    [disabled]="working()"
-    mat-stroked-button
-    type="button"
-  >
-    {{ "matches.assign.preview" | transloco }}
-  </button>
-  <button
-    (click)="assign()"
-    [disabled]="!preview() || working()"
-    color="primary"
-    mat-flat-button
-    type="button"
-  >
-    {{ "matches.assign.confirm" | transloco }}
-  </button>
+  @if (taken() !== null) {
+    <button
+      [mat-dialog-close]="true"
+      color="primary"
+      mat-flat-button
+      type="button"
+    >
+      {{ "common.close" | transloco }}
+    </button>
+  } @else {
+    <button mat-button mat-dialog-close type="button">
+      {{ "common.cancel" | transloco }}
+    </button>
+    <button
+      (click)="calculate()"
+      [disabled]="working()"
+      mat-stroked-button
+      type="button"
+    >
+      {{ "matches.assign.preview" | transloco }}
+    </button>
+    <button
+      (click)="assign()"
+      [disabled]="!preview() || working()"
+      color="primary"
+      mat-flat-button
+      type="button"
+    >
+      {{ "matches.assign.confirm" | transloco }}
+    </button>
+  }
 </mat-dialog-actions>
