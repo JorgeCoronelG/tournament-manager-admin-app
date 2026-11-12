@@ -615,6 +615,19 @@ export class MatchesPageComponent {
     this.openDialog(true);
   }
 
+  /** What regenerating throws away of the regular phase, as loaded: assigned times, fixed ones and referees */
+  private readonly assignments = computed(() => {
+    const matches = this.groups()
+      .flatMap((group) => group.matchdays)
+      .flatMap((day) => day.matches);
+
+    return {
+      scheduled: matches.filter((match) => match.match_datetime).length,
+      locked: matches.filter((match) => match.schedule_locked).length,
+      referees: matches.filter((match) => match.referee).length,
+    };
+  });
+
   private openDialog(regenerate: boolean): void {
     const tournament = this.tournament();
 
@@ -632,6 +645,7 @@ export class MatchesPageComponent {
           tournamentId: tournament.id,
           rounds: tournament.rounds,
           regenerate,
+          assignments: this.assignments(),
         },
         // Focus the dialog itself, not the first control: nothing looks selected
         autoFocus: "dialog",

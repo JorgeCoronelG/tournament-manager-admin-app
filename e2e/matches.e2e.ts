@@ -159,7 +159,7 @@ test.describe("matches", () => {
     await page.getByRole("button", { name: "Regenerar" }).click();
     const dialog = page.getByRole("dialog");
     await expect(
-      dialog.getByText("Se reemplazarán todos los partidos."),
+      dialog.getByText("Se reemplazará el calendario de la fase regular."),
     ).toBeVisible();
     await dialog.getByRole("button", { name: "Regenerar" }).click();
     await expect(dialog).toBeHidden();

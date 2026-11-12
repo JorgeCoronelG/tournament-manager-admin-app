@@ -9,13 +9,24 @@
   <mat-dialog-content class="flex flex-col gap-3 !pt-2 min-w-[320px]">
     @if (data.regenerate) {
       <div
-        class="flex items-center gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+        class="flex items-start gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
         role="status"
       >
         <mat-icon class="shrink-0" svgIcon="mat:warning" />
-        <p class="m-0 text-sm">
-          {{ "matches.regenerate.warning" | transloco }}
-        </p>
+        <div class="flex flex-col gap-1">
+          <p class="m-0 text-sm font-medium">
+            {{ "matches.regenerate.warning" | transloco }}
+          </p>
+          <p class="m-0 text-sm">
+            {{ "matches.regenerate.warningDetail" | transloco }}
+          </p>
+          @if (lostText(); as lost) {
+            <p class="m-0 text-sm font-medium">{{ lost }}</p>
+          }
+          <p class="m-0 text-sm text-secondary">
+            {{ "matches.regenerate.warningClosing" | transloco }}
+          </p>
+        </div>
       </div>
     }
 
@@ -88,7 +99,12 @@
         class="size-4! shrink-0 text-base! text-blue-600 dark:text-blue-400"
         svgIcon="mat:info"
       />
-      <span>{{ "matches.generate.createdHint" | transloco }}</span>
+      <span>{{
+        (data.regenerate
+          ? "matches.regenerate.createdHint"
+          : "matches.generate.createdHint"
+        ) | transloco
+      }}</span>
     </p>
 
     <mat-checkbox
@@ -108,8 +124,8 @@
       {{ "common.cancel" | transloco }}
     </button>
     <button
+      [color]="data.regenerate ? 'warn' : 'primary'"
       [disabled]="generateForm().submitting()"
-      color="primary"
       mat-flat-button
       type="submit"
     >

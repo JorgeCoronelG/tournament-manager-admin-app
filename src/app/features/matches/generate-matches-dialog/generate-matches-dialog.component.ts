@@ -15,7 +15,7 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { form, FormField } from "@angular/forms/signals";
-import { TranslocoPipe } from "@jsverse/transloco";
+import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { GroupsApi } from "../../groups/groups.api";
 import { GenerateResult, estimateGroup } from "../match.model";
@@ -27,6 +27,8 @@ export interface GenerateMatchesDialogData {
   rounds: number;
   /** Replacing an existing calendar: asks for confirmation instead of just generating */
   regenerate: boolean;
+  /** Regenerating: the regular phase's matches with an assigned time, fixed by hand and with a referee */
+  assignments?: { scheduled: number; locked: number; referees: number };
 }
 
 /**
@@ -56,7 +58,42 @@ export class GenerateMatchesDialogComponent {
     );
   private readonly formSubmit = inject(FormSubmitService);
 
+  private readonly transloco = inject(TranslocoService);
+
   readonly data = inject<GenerateMatchesDialogData>(MAT_DIALOG_DATA);
+
+  /** "Se perderán 12 horarios asignados (3 fijados) y 8 árbitros asignados."; null when nothing is lost */
+  readonly lostText = computed(() => {
+    const {
+      scheduled = 0,
+      locked = 0,
+      referees = 0,
+    } = this.data.assignments ?? {};
+    const t = (base: string, count: number) =>
+      this.transloco.translate(`${base}${count === 1 ? "One" : "Many"}`, {
+        count,
+      });
+    const parts: string[] = [];
+
+    if (scheduled > 0) {
+      parts.push(
+        t("matches.regenerate.lostSchedules", scheduled) +
+          (locked > 0 ? ` ${t("matches.regenerate.lostLocked", locked)}` : ""),
+      );
+    }
+
+    if (referees > 0) {
+      parts.push(t("matches.regenerate.lostReferees", referees));
+    }
+
+    return parts.length
+      ? this.transloco.translate("matches.regenerate.lost", {
+          what: parts.join(
+            ` ${this.transloco.translate("matches.regenerate.and")} `,
+          ),
+        })
+      : null;
+  });
 
   private readonly groupsResource = inject(GroupsApi).view(
     signal(this.data.tournamentId),

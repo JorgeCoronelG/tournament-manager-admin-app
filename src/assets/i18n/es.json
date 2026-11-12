@@ -1071,9 +1071,20 @@
       "confirm": "Generar"
     },
     "regenerate": {
-      "action": "Regenerar",
+      "action": "Regenerar calendario",
       "title": "Regenerar calendario",
-      "warning": "Se reemplazarán todos los partidos. Esta acción no se puede deshacer.",
+      "warning": "Se reemplazará el calendario de la fase regular.",
+      "warningDetail": "Se eliminarán los partidos actuales y se generarán nuevos enfrentamientos desde cero.",
+      "warningClosing": "Esta acción no se puede deshacer.",
+      "lost": "Se perderán {{what}}.",
+      "lostSchedulesOne": "{{count}} horario asignado",
+      "lostSchedulesMany": "{{count}} horarios asignados",
+      "lostLockedOne": "({{count}} partido fijado)",
+      "lostLockedMany": "({{count}} partidos fijados)",
+      "lostRefereesOne": "{{count}} partido con árbitro asignado",
+      "lostRefereesMany": "{{count}} partidos con árbitros asignados",
+      "and": "y",
+      "createdHint": "Se generarán nuevamente las jornadas y los enfrentamientos. Después podrás volver a asignar fechas, horarios, canchas y árbitros.",
       "confirm": "Regenerar"
     },
     "delete": {
