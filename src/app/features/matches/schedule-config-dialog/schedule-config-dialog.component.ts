@@ -46,7 +46,13 @@ import { FieldsApi } from "../../fields/fields.api";
 import { FieldsQuery } from "../../fields/field.model";
 import { formatDate, parseDate } from "../../tournaments/tournament.model";
 import { ScheduleConfigApi } from "../schedule-config.api";
-import { deficitLines, occupiedGroups, overlapLines } from "../schedule.model";
+import { hasInvalidTime } from "../../../shared/time-error";
+import {
+  deficitLines,
+  occupiedGroups,
+  overlapLines,
+  shortClock,
+} from "../schedule.model";
 import {
   alignEnd,
   clampWindows,
@@ -59,6 +65,7 @@ import {
   dayClocks,
   defaultWindows,
   fitsMatch,
+  clockMinutes,
   isClock,
   PlayDay,
   ScheduleConfigModel,
@@ -212,6 +219,20 @@ export class ScheduleConfigDialogComponent {
       required(day.end);
       // The end waits for the start
       disabled(day.end, ({ valueOf }) => valueOf(day.start) === null);
+      // ...is later than the start (the message sits under the field)
+      validate(day.end, ({ value, valueOf }) => {
+        const clocks = dayClocks({
+          start: valueOf(day.start),
+          end: value(),
+        });
+
+        return clocks.start && clocks.end && !validWindow(clocks)
+          ? {
+              kind: "windowError",
+              message: this.transloco.translate("matches.config.windowError"),
+            }
+          : undefined;
+      });
       // ...and leaves room for at least one whole match
       validate(day.end, ({ value, valueOf }) =>
         fitsMatch(
@@ -238,6 +259,35 @@ export class ScheduleConfigDialogComponent {
           required(window.start);
           required(window.end);
           disabled(window.end, ({ valueOf }) => valueOf(window.start) === null);
+          // Both ends stay inside the day's hours: "Debe estar entre 7:00 a.m. y 2:00 p.m."
+          for (const edge of [window.start, window.end]) {
+            validate(edge, ({ value, valueOf }) => {
+              const date = value();
+              const clocks = dayClocks({
+                start: valueOf(day.start),
+                end: valueOf(day.end),
+              });
+              // Empty or half-typed values are the `required` rule's business
+              const clock = date ? dateToClock(date) : "";
+
+              return isClock(clock) &&
+                isClock(clocks.start) &&
+                isClock(clocks.end) &&
+                (clockMinutes(clock) < clockMinutes(clocks.start) ||
+                  clockMinutes(clock) > clockMinutes(clocks.end))
+                ? {
+                    kind: "outsideDay",
+                    message: this.transloco.translate(
+                      "matches.config.outsideDay",
+                      {
+                        start: shortClock(clocks.start),
+                        end: shortClock(clocks.end),
+                      },
+                    ),
+                  }
+                : undefined;
+            });
+          }
           validate(window.end, ({ value, valueOf }) => {
             const clocks = dayClocks({
               start: valueOf(window.start),
@@ -472,8 +522,14 @@ export class ScheduleConfigDialogComponent {
     );
   }
 
-  /** First message of a field's errors (the duration one says its own), else "required" */
-  errorText(errors: ReadonlyArray<{ message?: string }>): string {
+  /** "Ingresa una hora válida." for text that is not a time; else the first message of a field's errors (the duration one says its own), else "required" */
+  errorText(
+    errors: ReadonlyArray<{ message?: string; kind?: string }>,
+  ): string {
+    if (hasInvalidTime(errors)) {
+      return this.transloco.translate("validation.time");
+    }
+
     return (
       errors.find((error) => error.message)?.message ??
       this.transloco.translate("validation.required")
@@ -704,12 +760,20 @@ export class ScheduleConfigDialogComponent {
         return window;
       }
 
-      const end = alignEnd(
+      const aligned = alignEnd(
         now[i].start,
         now[i].end,
         this.duration() ?? 0,
         before[i].start,
       );
+      // A field never plays past the day's end: moving the start keeps it there
+      const dayEnd = dayClocks(this.model().days[dayIndex]).end;
+      const end =
+        isClock(aligned) &&
+        isClock(dayEnd) &&
+        clockMinutes(aligned) > clockMinutes(dayEnd)
+          ? dayEnd
+          : aligned;
 
       return end === now[i].end ? window : { ...window, end: clockToDate(end) };
     });
@@ -754,7 +818,16 @@ export class ScheduleConfigDialogComponent {
   }
 
   removeDay(index: number): void {
-    this.daySeen.delete(this.model().days[index]?.weekday);
+    const weekday = this.model().days[index]?.weekday;
+
+    this.daySeen.delete(weekday);
+    this.openFields.update((all) => {
+      const next = new Map(all);
+
+      next.delete(weekday);
+
+      return next;
+    });
     this.model.update((model) => ({
       ...model,
       days: model.days.filter((_, i) => i !== index),
@@ -819,8 +892,51 @@ export class ScheduleConfigDialogComponent {
     this.snapshotWindows();
   }
 
+  /** The fields whose panel is open, by weekday; a day with no entry has its first field open */
+  private readonly openFields = signal(new Map<number, Set<number>>());
+
+  isFieldOpen(weekday: number, fieldId: number, index: number): boolean {
+    return this.openFields().get(weekday)?.has(fieldId) ?? index === 0;
+  }
+
+  /** The user opened or closed a panel */
+  setFieldOpen(weekday: number, fieldId: number, open: boolean): void {
+    this.openFields.update((all) => {
+      const set = new Set(all.get(weekday) ?? []);
+
+      if (open) {
+        set.add(fieldId);
+      } else {
+        set.delete(fieldId);
+      }
+
+      return new Map(all).set(weekday, set);
+    });
+  }
+
   /** Fields used on a day: new ones start with a copy of the day's hours */
   setDayFields(index: number, ids: number[]): void {
+    const current = this.model().days[index];
+
+    if (current) {
+      // The select's own binding already wrote `field_ids`: the panels (`fields`) tell what was there
+      const had = current.fields.map((field) => field.field_id);
+      const added = ids.filter((id) => !had.includes(id));
+      const open = this.openFields().get(current.weekday);
+
+      if (added.length) {
+        // Adding a field opens only that one; the others close
+        this.openFields.update((all) =>
+          new Map(all).set(current.weekday, new Set([added[added.length - 1]])),
+        );
+      } else if (open && !ids.some((id) => open.has(id)) && ids.length) {
+        // Removing the open one leaves none: the first that remains opens
+        this.openFields.update((all) =>
+          new Map(all).set(current.weekday, new Set([ids[0]])),
+        );
+      }
+    }
+
     this.updateDay(index, (day) => ({
       ...day,
       field_ids: ids,

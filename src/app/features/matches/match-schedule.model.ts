@@ -32,3 +32,13 @@ export interface MatchScheduleBody {
   referee_user_id?: number | null;
   schedule_locked?: boolean;
 }
+
+/**
+ * "Ocupado en Rayos vs Dragones (Dom 03/01, 8:00 a.m.)." of the backend as
+ * "Ocupado · Rayos vs Dragones — Dom 03/01, 8:00 a.m."; any other reason as it comes
+ */
+export function busyReasonLabel(reason: string): string {
+  const parts = /^Ocupado en (.+?) \((.+)\)\.?$/.exec(reason.trim());
+
+  return parts ? `Ocupado · ${parts[1]} — ${parts[2]}` : reason;
+}

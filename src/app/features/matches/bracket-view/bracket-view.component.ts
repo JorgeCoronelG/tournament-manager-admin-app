@@ -178,6 +178,7 @@ export class BracketViewComponent {
       .open<ProgramMatchDialogComponent, ProgramMatchDialogData, boolean>(
         ProgramMatchDialogComponent,
         {
+          autoFocus: "dialog",
           data: {
             tournamentId: this.tournamentId(),
             match: this.toMatch(playoff, round, match),

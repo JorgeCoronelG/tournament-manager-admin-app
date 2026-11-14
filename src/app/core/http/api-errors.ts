@@ -17,13 +17,21 @@ export function errorMessageKey(error: HttpErrorResponse): string {
   return error.status >= 500 ? "errors.server" : "errors.generic";
 }
 
-/** The plain-text `error` the backend sends on business errors (e.g. "Código inválido o expirado.") */
+/**
+ * The message the backend sends on business errors: `error` as plain text
+ * ("Código inválido o expirado.") or as an object with a `message`
+ * (`{ code: "field_conflict", message: "La cancha ya está ocupada…" }`)
+ */
 export function backendMessage(error: HttpErrorResponse): string | null {
   const body: unknown = error.error;
-  const message =
+  const detail =
     body && typeof body === "object"
       ? (body as { error?: unknown }).error
       : null;
+  const message =
+    detail && typeof detail === "object" && !Array.isArray(detail)
+      ? (detail as { message?: unknown }).message
+      : detail;
 
   return typeof message === "string" && message ? message : null;
 }
@@ -43,6 +51,11 @@ export function fieldErrors(
       : null;
 
   if (!errors || typeof errors !== "object" || Array.isArray(errors)) {
+    return null;
+  }
+
+  // `{ code, message }` is a business error (a conflict), not errors by field
+  if (typeof (errors as { message?: unknown }).message === "string") {
     return null;
   }
 

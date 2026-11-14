@@ -787,9 +787,11 @@ export class MatchesPageComponent {
       .open<ProgramMatchDialogComponent, ProgramMatchDialogData, boolean>(
         ProgramMatchDialogComponent,
         {
+          autoFocus: "dialog",
           data: {
             tournamentId: tournament.id,
             match,
+            hasSeveralGroups: this.groups().length > 1,
             candidates: this.groups()
               .flatMap((group) => group.matchdays)
               .flatMap((day) => day.matches)

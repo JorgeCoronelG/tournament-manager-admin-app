@@ -14,13 +14,20 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
-import { form, FormField, required } from "@angular/forms/signals";
+import {
+  debounce,
+  form,
+  FormField,
+  required,
+  validate,
+} from "@angular/forms/signals";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTimepickerModule } from "@angular/material/timepicker";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { Observable } from "rxjs";
 import { fieldErrors } from "../../../core/http/api-errors";
@@ -30,8 +37,11 @@ import { FieldsQuery } from "../../fields/field.model";
 import { FieldsApi } from "../../fields/fields.api";
 import { formatDate, parseDate } from "../../tournaments/tournament.model";
 import { Match } from "../match.model";
+import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
+import { hasInvalidTime } from "../../../shared/time-error";
 import { MatchScheduleApi } from "../match-schedule.api";
-import { MatchWarning } from "../match-schedule.model";
+import { shortClock, sortSwapCandidates } from "../schedule.model";
+import { busyReasonLabel, MatchWarning } from "../match-schedule.model";
 import {
   clockToDate,
   dateToClock,
@@ -44,6 +54,8 @@ export interface ProgramMatchDialogData {
   match: Match;
   /** The tournament's other matches that are not played: the ones it can swap with */
   candidates: Match[];
+  /** The tournament has several groups: the match says which one it belongs to */
+  hasSeveralGroups?: boolean;
 }
 
 /** The picker of this dialog works in 12 h (a. m. / p. m.) */
@@ -76,10 +88,12 @@ const FORMATS_12H: MatDateFormats = {
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
+    ScrollFadeComponent,
     MatInputModule,
     MatProgressBarModule,
     MatSelectModule,
     MatTimepickerModule,
+    MatTooltipModule,
     TranslocoPipe,
   ],
 })
@@ -97,6 +111,9 @@ export class ProgramMatchDialogComponent {
 
   readonly home = this.data.match.home?.team_name ?? this.tbd;
   readonly away = this.data.match.away?.team_name ?? this.tbd;
+
+  /** Text that is not a time reads as empty to the form: it gets its own message */
+  readonly hasInvalidTime = hasInvalidTime;
 
   readonly view = signal<"edit" | "swap">("edit");
 
@@ -119,15 +136,26 @@ export class ProgramMatchDialogComponent {
   readonly programForm = form(this.model, (program) => {
     required(program.date);
     required(program.time);
+    // What is typed in the hour reaches the model (and the referees request) when the field loses focus
+    debounce(program.time, "blur");
+    // Half-typed text ("8") reads as an invalid date: it is only reported once the field loses focus
+    validate(program.time, ({ value }) =>
+      value() && Number.isNaN(value()?.getTime())
+        ? { kind: "invalid" }
+        : undefined,
+    );
     required(program.field);
-    required(program.referee);
   });
 
   private readonly date = computed(() => this.model().date);
   private readonly time = computed(() => this.model().time);
   private readonly fieldId = computed(() => this.model().field);
   private readonly refereeId = computed(() => this.model().referee);
-  readonly locked = signal(true);
+  /** A match that already has a schedule keeps whether it was fixed; a new one starts fixed */
+  private readonly initialLocked = this.data.match.match_datetime
+    ? !!this.data.match.schedule_locked
+    : true;
+  readonly locked = signal(this.initialLocked);
 
   /** Past days cannot be picked */
   readonly today = new Date();
@@ -153,7 +181,10 @@ export class ProgramMatchDialogComponent {
     const day = this.day();
     const time = this.time();
 
-    return day && time ? `${day}T${dateToClock(time)}` : undefined;
+    // While the hour is half-typed it is not a date yet: nothing is asked of the backend
+    return day && time && !Number.isNaN(time.getTime())
+      ? `${day}T${dateToClock(time)}`
+      : undefined;
   });
 
   private readonly slotsResource = this.api.availableSlots(
@@ -164,6 +195,20 @@ export class ProgramMatchDialogComponent {
     this.slotsResource.hasValue() ? this.slotsResource.value().slots : [],
   );
 
+  /** All the free slots are listed, not just the first ones */
+  readonly slotsExpanded = signal(false);
+  /** Free slots listed before "Ver los N espacios restantes" */
+  private static readonly SLOTS_SHOWN = 6;
+  readonly visibleSlots = computed(() =>
+    this.slotsExpanded()
+      ? this.slots()
+      : this.slots().slice(0, ProgramMatchDialogComponent.SLOTS_SHOWN),
+  );
+  /** Free slots past the first ones */
+  readonly hiddenSlots = computed(() =>
+    Math.max(0, this.slots().length - ProgramMatchDialogComponent.SLOTS_SHOWN),
+  );
+
   private readonly refereesResource = this.api.availableReferees(
     this.data.match.id,
     this.moment,
@@ -172,6 +217,15 @@ export class ProgramMatchDialogComponent {
     this.refereesResource.hasValue()
       ? this.refereesResource.value().referees
       : [],
+  );
+
+  /** Something differs from what the match had: only then there is anything to save */
+  readonly changed = computed(
+    () =>
+      this.moment() !== this.data.match.match_datetime?.slice(0, 16) ||
+      this.fieldId() !== (this.data.match.field?.id ?? null) ||
+      this.refereeId() !== (this.data.match.referee?.id ?? null) ||
+      this.locked() !== this.initialLocked,
   );
 
   readonly working = signal(false);
@@ -189,13 +243,15 @@ export class ProgramMatchDialogComponent {
   readonly options = computed(() => {
     const term = this.search().trim().toLowerCase();
 
-    return this.data.candidates.filter(
-      (match) =>
-        match.id !== this.data.match.id &&
-        (!term ||
-          [match.home?.team_name, match.away?.team_name].some((name) =>
-            name?.toLowerCase().includes(term),
-          )),
+    return sortSwapCandidates(
+      this.data.candidates.filter(
+        (match) =>
+          match.id !== this.data.match.id &&
+          (!term ||
+            [match.home?.team_name, match.away?.team_name].some((name) =>
+              name?.toLowerCase().includes(term),
+            )),
+      ),
     );
   });
 
@@ -219,6 +275,10 @@ export class ProgramMatchDialogComponent {
   }
 
   /** "Sáb 07/11 · 8:00 a.m. · Cancha 1" of a match, or its absence */
+  /** "7:00 a.m." for "07:00" */
+  readonly clockLabel = shortClock;
+  readonly busyReasonLabel = busyReasonLabel;
+
   slotOf(match: Match): string {
     return match.match_datetime
       ? slotLabel(match.match_datetime, match.field?.name, (weekday) =>
@@ -253,12 +313,17 @@ export class ProgramMatchDialogComponent {
     );
   }
 
-  /** Leaves date, hour and field empty and keeps the referee */
+  /** Leaves date, hour, field, referee and lock empty */
   clear(): void {
     this.confirmDialog
       .confirm({
         key: "matches.program.clear",
-        params: { match: this.nameOf(this.data.match) },
+        params: {
+          match: this.nameOf(this.data.match),
+          lock: this.data.match.schedule_locked
+            ? ` ${this.transloco.translate("matches.program.clear.lock")}`
+            : "",
+        },
       })
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -266,6 +331,8 @@ export class ProgramMatchDialogComponent {
             this.api.update(this.data.match.id, {
               match_datetime: null,
               field_id: null,
+              referee_user_id: null,
+              schedule_locked: false,
             }),
             () => this.finish("matches.program.cleared", []),
           );

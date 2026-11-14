@@ -3,7 +3,10 @@ import {
   datesRange,
   slotLabel,
   slotParts,
+  sortSwapCandidates,
 } from "./schedule.model";
+import { busyReasonLabel } from "./match-schedule.model";
+import { Match } from "./match.model";
 
 describe("schedule.model", () => {
   const names = (weekday: number) =>
@@ -76,5 +79,48 @@ describe("deficitLines", () => {
 
   it("says nothing without a deficit", () => {
     expect(deficitLines([{ matchday: 1, deficit: 0 }], translate)).toEqual([]);
+  });
+
+  describe("sortSwapCandidates", () => {
+    const make = (
+      id: number,
+      datetime: string | null,
+      field: string | null,
+      group: string,
+      matchday: number,
+    ) =>
+      ({
+        id,
+        match_datetime: datetime,
+        field: field ? { id: 1, name: field } : null,
+        group_name: group,
+        matchday,
+      }) as unknown as Match;
+
+    it("orders by date and hour, then field and group, with the undated last", () => {
+      const sorted = sortSwapCandidates([
+        make(1, null, null, "Grupo B", 2),
+        make(2, "2027-01-10T08:00:00", "Cancha 1", "Grupo A", 2),
+        make(3, "2027-01-03T09:00:00", "Cancha 1", "Grupo A", 1),
+        make(4, "2027-01-03T08:00:00", "Cancha 2", "Grupo B", 1),
+        make(5, "2027-01-03T08:00:00", "Cancha 1", "Grupo B", 1),
+        make(6, null, null, "Grupo A", 1),
+        make(7, "2027-01-03T08:00:00", "Cancha 1", "Grupo A", 1),
+      ]);
+
+      expect(sorted.map((match) => match.id)).toEqual([7, 5, 4, 3, 2, 6, 1]);
+    });
+  });
+
+  describe("busyReasonLabel", () => {
+    it("reorders the busy referee reason", () => {
+      expect(
+        busyReasonLabel("Ocupado en Rayos vs Dragones (Dom 03/01, 8:00 a.m.)."),
+      ).toBe("Ocupado · Rayos vs Dragones — Dom 03/01, 8:00 a.m.");
+    });
+
+    it("keeps any other reason as it comes", () => {
+      expect(busyReasonLabel("Sin disponibilidad")).toBe("Sin disponibilidad");
+    });
   });
 });

@@ -1658,8 +1658,8 @@ export async function mockMatchesApi(
           {
             weekday: 7,
             field: { id: 1, name: "Cancha 1" },
-            start: "08:00",
-            end: "13:00",
+            start_time: "08:00",
+            end_time: "13:00",
           },
         ],
         blocks: [],

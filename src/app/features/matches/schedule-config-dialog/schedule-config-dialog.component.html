@@ -147,7 +147,9 @@
               />
               <mat-timepicker #tp1 />
               @if (scheduleForm.days[d].start().errors().length) {
-                <mat-error>{{ "validation.required" | transloco }}</mat-error>
+                <mat-error>{{
+                  errorText(scheduleForm.days[d].start().errors())
+                }}</mat-error>
               }
             </mat-form-field>
             <mat-form-field class="w-40" subscriptSizing="dynamic">
@@ -205,17 +207,14 @@
             </button>
           </div>
 
-          @if (day.start && day.end && !validWindow(dayClocks(day))) {
-            <p class="m-0 text-xs text-red-600" role="alert">
-              {{ "matches.config.windowError" | transloco }}
-            </p>
-          }
-
           <mat-accordion class="block rounded border overflow-hidden" multi>
             @for (field of day.fields; track field.field_id; let f = $index) {
               <mat-expansion-panel
                 #panel="matExpansionPanel"
-                [expanded]="f === 0"
+                (expandedChange)="
+                  setFieldOpen(day.weekday, field.field_id, $event)
+                "
+                [expanded]="isFieldOpen(day.weekday, field.field_id, f)"
                 class="!rounded-none !shadow-none border-b last:border-b-0"
               >
                 <mat-expansion-panel-header>
@@ -244,7 +243,7 @@
                 @let overlaps =
                   overlappingWindows(field.windows.map(dayClocks));
                 @for (window of field.windows; track $index; let w = $index) {
-                  <div class="flex items-start gap-6">
+                  <div class="flex items-start gap-6 mb-3">
                     <mat-form-field class="flex-1">
                       <mat-label>{{
                         "matches.config.start" | transloco
@@ -282,7 +281,11 @@
                           .errors().length
                       ) {
                         <mat-error>{{
-                          "validation.required" | transloco
+                          errorText(
+                            scheduleForm.days[d].fields[f].windows[w]
+                              .start()
+                              .errors()
+                          )
                         }}</mat-error>
                       }
                     </mat-form-field>
@@ -498,6 +501,11 @@
                   />
                   <mat-timepicker #tp5 />
                   <mat-hint>{{ "matches.config.allDay" | transloco }}</mat-hint>
+                  @if (block.start().errors().length) {
+                    <mat-error>{{
+                      errorText(block.start().errors())
+                    }}</mat-error>
+                  }
                 </mat-form-field>
                 <mat-form-field>
                   <mat-label>{{ "matches.config.end" | transloco }}</mat-label>

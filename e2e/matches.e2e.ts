@@ -126,12 +126,12 @@ test.describe("matches", () => {
       true,
     );
 
-    await expect(
-      page.getByRole("button", { name: "Jornada 1" }),
-    ).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByRole("button", { name: "Jornada 1" })).toHaveClass(
+      /mat-expanded/,
+    );
     await expect(
       page.getByRole("button", { name: "Jornada 2" }),
-    ).toHaveAttribute("aria-expanded", "false");
+    ).not.toHaveClass(/mat-expanded/);
   });
 
   test("several groups get a tab each", async ({ page }) => {
@@ -430,6 +430,49 @@ test.describe("matches", () => {
     await expect(page.getByText("Horarios quitados: 3 partidos")).toBeVisible();
   });
 
+  test("adding a field opens only its panel, and removing the open one opens the first", async ({
+    page,
+  }) => {
+    await open(page, "Torneo 02", { generated: true });
+
+    await page.getByRole("button", { name: "Configurar horarios" }).click();
+    const dialog = page.getByRole("dialog");
+    const panel = (field: string) =>
+      dialog.getByRole("button", { name: new RegExp(field) });
+
+    await expect(panel("Cancha 01")).toHaveClass(/mat-expanded/);
+
+    await dialog.getByRole("combobox", { name: /Canchas/ }).click();
+    await page.getByRole("option", { name: "Cancha 02" }).click();
+    await page.keyboard.press("Escape");
+
+    await expect(panel("Cancha 02")).toHaveClass(/mat-expanded/);
+    await expect(panel("Cancha 01")).not.toHaveClass(/mat-expanded/);
+
+    await dialog.getByRole("combobox", { name: /Canchas/ }).click();
+    await page.getByRole("option", { name: "Cancha 02" }).click();
+    await page.keyboard.press("Escape");
+
+    await expect(panel("Cancha 01")).toHaveClass(/mat-expanded/);
+  });
+
+  test("a field window outside the day's hours says the range", async ({
+    page,
+  }) => {
+    await open(page, "Torneo 02", { generated: true });
+
+    await page.getByRole("button", { name: "Configurar horarios" }).click();
+    const dialog = page.getByRole("dialog");
+    const start = dialog.locator("mat-expansion-panel").getByLabel("Inicio");
+
+    await start.fill("6:00 AM");
+    await start.blur();
+
+    await expect(
+      dialog.getByText("Debe estar entre 8:00 a.m. y 1:00 p.m."),
+    ).toBeVisible();
+  });
+
   test("programs a match by hand with a suggestion and a referee", async ({
     page,
   }) => {
@@ -440,7 +483,7 @@ test.describe("matches", () => {
 
     await dialog.getByRole("button", { name: "Abrir calendario" }).click();
     await page.locator(".mat-calendar-body-today").click();
-    await dialog.getByRole("button", { name: "10:00 · Cancha 1" }).click();
+    await dialog.getByRole("button", { name: "10:00 a.m. · Cancha 1" }).click();
 
     await dialog.getByRole("combobox", { name: "Árbitro" }).click();
     await expect(page.getByRole("option", { name: /Luis Paz/ })).toBeDisabled();
@@ -475,7 +518,7 @@ test.describe("matches", () => {
       .first()
       .click();
     await expect(
-      dialog.getByText(/El árbitro viaja con el horario/),
+      dialog.getByText(/Los árbitros se intercambiarán junto con los horarios/),
     ).toBeVisible();
     await dialog
       .getByRole("button", { name: "Intercambiar", exact: true })

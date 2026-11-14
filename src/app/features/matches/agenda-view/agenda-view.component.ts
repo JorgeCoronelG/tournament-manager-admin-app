@@ -303,6 +303,7 @@ export class AgendaViewComponent {
       ProgramMatchDialogData,
       boolean
     >(ProgramMatchDialogComponent, {
+      autoFocus: "dialog",
       data: {
         tournamentId: match.tournament.id,
         match: this.toMatch(match),

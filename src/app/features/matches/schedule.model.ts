@@ -1,3 +1,4 @@
+import { Match } from "./match.model";
 import { escapeHtml } from "../../shared/confirm-dialog/confirm-dialog.service";
 export type ScheduleMode = "balanced" | "random";
 export type ScheduleScope = "all" | "unscheduled";
@@ -204,7 +205,7 @@ export function deficitLines(
 type Translate = (key: string, params?: Record<string, unknown>) => string;
 
 /** "08:00" → "8:00 a.m.", "15:30" → "3:30 p.m." */
-const shortClock = (clock: string): string => {
+export const shortClock = (clock: string): string => {
   const [hours, minutes] = clock.split(":").map(Number);
 
   // Non-breaking space: the "a.m." never ends up alone on the next line
@@ -469,5 +470,31 @@ export function overlapLines(
       tournament: escapeHtml(items[0].tournament_name ?? ""),
       when: joinList(when, translate("matches.config.capacity.and")),
     }).replace(/\.\.$/, ".");
+  });
+}
+
+/**
+ * Orders the matches a match can be swapped with: the ones with a date first,
+ * by date and hour, then field and group; the ones without a date at the end,
+ * by matchday and group.
+ */
+export function sortSwapCandidates(matches: readonly Match[]): Match[] {
+  const text = (a: string | null | undefined, b: string | null | undefined) =>
+    (a ?? "").localeCompare(b ?? "", "es", { numeric: true });
+
+  return [...matches].sort((a, b) => {
+    if (a.match_datetime && b.match_datetime) {
+      return (
+        new Date(a.match_datetime).getTime() -
+          new Date(b.match_datetime).getTime() ||
+        text(a.field?.name, b.field?.name) ||
+        text(a.group_name, b.group_name)
+      );
+    }
+    if (a.match_datetime || b.match_datetime) {
+      return a.match_datetime ? -1 : 1;
+    }
+
+    return a.matchday - b.matchday || text(a.group_name, b.group_name);
   });
 }
