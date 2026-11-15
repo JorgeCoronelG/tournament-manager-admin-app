@@ -14,6 +14,7 @@ import { RouterLink } from "@angular/router";
 import { TranslocoPipe } from "@jsverse/transloco";
 import { LeagueContextService } from "../../../../core/league-context/league-context.service";
 import { CurrentUserService } from "../../../../core/user/current-user.service";
+import { ScrollFadeComponent } from "../../../../shared/scroll-fade/scroll-fade.component";
 
 /** From this many leagues on, the list gets a search box */
 const SEARCH_FROM = 8;
@@ -34,6 +35,7 @@ const SEARCH_FROM = 8;
     MatProgressSpinnerModule,
     MatTooltipModule,
     RouterLink,
+    ScrollFadeComponent,
     TranslocoPipe,
   ],
 })

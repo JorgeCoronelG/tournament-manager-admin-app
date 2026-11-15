@@ -94,25 +94,33 @@
             />
           </div>
         }
-        @for (league of filtered(); track league.id) {
-          <button
-            (click)="select(league.id)"
-            [attr.aria-current]="league.id === active()?.id ? 'true' : null"
-            mat-menu-item
-            type="button"
-          >
-            @if (league.id === active()?.id) {
-              <mat-icon svgIcon="mat:check" />
-            } @else {
-              <span aria-hidden="true" class="inline-block w-6 shrink-0"></span>
-            }
-            <span>{{ league.name }}</span>
-          </button>
-        } @empty {
-          <p class="px-4 py-2 m-0 text-sm text-secondary">
-            {{ "table.emptyFiltered" | transloco }}
-          </p>
-        }
+        <app-scroll-fade
+          [maxHeight]="filtered().length > 4 ? 'max-h-53' : 'max-h-none'"
+          [thin]="true"
+        >
+          @for (league of filtered(); track league.id) {
+            <button
+              (click)="select(league.id)"
+              [attr.aria-current]="league.id === active()?.id ? 'true' : null"
+              mat-menu-item
+              type="button"
+            >
+              @if (league.id === active()?.id) {
+                <mat-icon svgIcon="mat:check" />
+              } @else {
+                <span
+                  aria-hidden="true"
+                  class="inline-block w-6 shrink-0"
+                ></span>
+              }
+              <span>{{ league.name }}</span>
+            </button>
+          } @empty {
+            <p class="px-4 py-2 m-0 text-sm text-secondary">
+              {{ "table.emptyFiltered" | transloco }}
+            </p>
+          }
+        </app-scroll-fade>
       </mat-menu>
     </div>
   }
