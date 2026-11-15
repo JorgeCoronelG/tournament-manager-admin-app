@@ -345,7 +345,7 @@
                       >{{ "matches.withdrawnTeam" | transloco }}</span
                     >
                   }
-                  <span class="truncate font-medium">{{
+                  <span [class]="resultClass(match, 'home')" class="truncate">{{
                     match.home?.team_name ?? "—"
                   }}</span>
                   <app-logo-image
@@ -356,7 +356,13 @@
                 </span>
                 <span class="text-secondary text-sm font-medium px-2">
                   @if (match.status === "played") {
-                    {{ match.home_score }} - {{ match.away_score }}
+                    <span [class]="scoreClass(match, 'home')">{{
+                      match.home_score
+                    }}</span>
+                    -
+                    <span [class]="scoreClass(match, 'away')">{{
+                      match.away_score
+                    }}</span>
                     @if (match.is_walkover) {
                       <span
                         [matTooltip]="walkoverHint(match)"
@@ -374,7 +380,7 @@
                     [src]="match.away?.logo_url ?? null"
                     class="w-8 h-8 rounded-full shrink-0"
                   />
-                  <span class="truncate font-medium">{{
+                  <span [class]="resultClass(match, 'away')" class="truncate">{{
                     match.away?.team_name ?? "—"
                   }}</span>
                   @if (
@@ -477,7 +483,7 @@
                     </button>
                   }
                 </span>
-                @if (match.status === "scheduled") {
+                @if (match.status === "scheduled" || match.referee) {
                   <span
                     [class.opacity-60]="!match.referee"
                     class="col-span-4 -mt-1 text-xs text-secondary"

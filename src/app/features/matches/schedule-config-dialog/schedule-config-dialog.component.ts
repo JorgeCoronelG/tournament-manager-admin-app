@@ -27,7 +27,6 @@ import {
   MAT_TIMEPICKER_CONFIG,
   MatTimepickerModule,
 } from "@angular/material/timepicker";
-import { RouterLink } from "@angular/router";
 import { MatTableModule } from "@angular/material/table";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {
@@ -85,6 +84,10 @@ export interface ScheduleConfigDialogData {
   matchDuration: number | null;
   /** Y-m-d the tournament starts: the calendar's first date until one is saved */
   tournamentStartDate: string;
+  /** The tournament is in its playoffs: the title says so */
+  playoffs?: boolean;
+  /** Dates picked for each round of the playoffs (Y-m-d), to calculate their capacity */
+  playoffDates?: Array<{ group_id: number; round_dates: string[] }>;
 }
 
 type TimeChoices = Array<{ label: string; value: Date }> | null;
@@ -124,7 +127,6 @@ type CapacityRow =
     MatTableModule,
     MatTimepickerModule,
     MatTooltipModule,
-    RouterLink,
     TranslocoPipe,
   ],
   providers: [
@@ -567,6 +569,11 @@ export class ScheduleConfigDialogComponent {
 
     return dates;
   }
+
+  /** Y-m-d the playoffs can start from, as the backend says it */
+  readonly playoffMinStart = computed(
+    () => this.capacity()?.playoff_min_start_date ?? null,
+  );
 
   /** "Liguilla Oro · Semifinal (ida)" */
   playoffRoundName(round: PlayoffRoundCapacity): string {
@@ -1081,10 +1088,13 @@ export class ScheduleConfigDialogComponent {
     );
   }
 
-  /** Closes without saving (the link to the tournament's management leaves the page) */
-  close(): void {
-    this.dialogRef.close(false);
-  }
+  /** The form as it was when the capacity was last calculated */
+  private readonly calculated = signal<string | null>(null);
+
+  /** The form changed since the capacity was calculated: asking again would give something new */
+  readonly changedSinceCalculated = computed(
+    () => JSON.stringify(this.model()) !== this.calculated(),
+  );
 
   /** Capacity with what the form has now, saved or not */
   calculate(): void {
@@ -1092,13 +1102,21 @@ export class ScheduleConfigDialogComponent {
       return;
     }
 
+    const snapshot = JSON.stringify(this.model());
+
     this.calculating.set(true);
     this.previewError.set(null);
     this.api
-      .previewCapacity(this.data.tournamentId, toBody(this.model(), formatDate))
+      .previewCapacity(this.data.tournamentId, {
+        ...toBody(this.model(), formatDate),
+        ...(this.data.playoffs && this.data.playoffDates?.length
+          ? { playoff_dates: this.data.playoffDates }
+          : {}),
+      })
       .subscribe({
         next: (capacity) => {
           this.preview.set(capacity);
+          this.calculated.set(snapshot);
           this.calculating.set(false);
         },
         error: (error: unknown) => {

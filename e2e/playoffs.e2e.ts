@@ -516,11 +516,14 @@ test.describe("playoffs", () => {
         "Hay equipos empatados entre los clasificados de Grupo A",
       ),
     ).toBeVisible();
-    await expect(dialog.getByText("1. Halcones (Grupo A, 1°)")).toBeVisible();
+    await expect(dialog.getByText("Grupo A · 1.º")).toBeVisible();
     await expect(
       dialog.getByText("Mejor sembrado vs peor sembrado"),
     ).toBeVisible();
-    await expect(dialog.getByText("Rondas siguientes: Final")).toBeVisible();
+    await expect(dialog.getByText("Rondas siguientes")).toBeVisible();
+    await expect(
+      dialog.getByRole("listitem").filter({ hasText: /^Final$/ }),
+    ).toBeVisible();
 
     // Swap the pairings: Halcones against Toros, Tigres against Lobos
     await dialog.getByRole("combobox", { name: "Cruce 1: equipo 2" }).click();
@@ -553,9 +556,13 @@ test.describe("playoffs", () => {
       .getByRole("button", { name: "Confirmar y pasar a liguilla" })
       .click();
     await expect(
-      page.getByText("ya no se podrán modificar sus resultados"),
+      page.getByText("sus resultados ya no podrán modificarse"),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Continuar" }).click();
+    await page
+      .getByRole("dialog")
+      .last()
+      .getByRole("button", { name: "Cerrar fase regular" })
+      .click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
     expect(api.writes).toEqual([
@@ -589,7 +596,11 @@ test.describe("playoffs", () => {
     await dialog
       .getByRole("button", { name: "Confirmar y pasar a liguilla" })
       .click();
-    await page.getByRole("button", { name: "Continuar" }).click();
+    await page
+      .getByRole("dialog")
+      .last()
+      .getByRole("button", { name: "Cerrar fase regular" })
+      .click();
 
     await expect(
       dialog.getByText("Las fechas de liguilla deben ser posteriores"),
@@ -617,7 +628,7 @@ test.describe("playoffs", () => {
     await expect(tie).toContainText("Vuelta");
     await expect(
       page.getByRole("article", { name: /Por definir/ }),
-    ).toContainText("Por definir");
+    ).toContainText("Ganador semifinal 1");
     await expect(
       page.getByRole("article", { name: "Halcones / Lobos" }),
     ).toContainText("Por jugar");
@@ -636,7 +647,8 @@ test.describe("playoffs", () => {
     // Lobos (home) against Halcones: the first leg ended 2-1 for Halcones
     await page
       .getByRole("article", { name: "Halcones / Lobos" })
-      .getByRole("button", { name: "Registrar resultado" })
+      .getByRole("button", { name: "Editar resultado" })
+      .last()
       .click();
     const dialog = page.getByRole("dialog");
     // The dialog moves the focus to the first field when it opens: wait for it, or the typing lands in the wrong one
@@ -679,7 +691,7 @@ test.describe("playoffs", () => {
     await page.getByRole("combobox", { name: "Liguilla" }).click();
     await page.getByRole("option", { name: "Plata" }).click();
 
-    await page.getByRole("button", { name: "Registrar resultado" }).click();
+    await page.getByRole("button", { name: "Editar resultado" }).click();
     const dialog = page.getByRole("dialog");
     // The dialog moves the focus to the first field when it opens: wait for it, or the typing lands in the wrong one
     await expect(dialog.getByLabel("Goles de Águilas")).toBeFocused();
@@ -709,7 +721,8 @@ test.describe("playoffs", () => {
 
     await page
       .getByRole("article", { name: "Halcones / Lobos" })
-      .getByRole("button", { name: "Registrar resultado" })
+      .getByRole("button", { name: "Editar resultado" })
+      .last()
       .click();
     const dialog = page.getByRole("dialog");
     // The dialog moves the focus to the first field when it opens: wait for it, or the typing lands in the wrong one
@@ -729,11 +742,16 @@ test.describe("playoffs", () => {
 
     await page
       .getByRole("article", { name: "Tigres / Toros" })
-      .getByRole("button", { name: "Anular resultado" })
+      .getByRole("button", { name: "Editar resultado" })
       .last()
       .click();
     await page
       .getByRole("dialog")
+      .getByRole("button", { name: "Anular resultado" })
+      .click();
+    await page
+      .getByRole("dialog")
+      .last()
       .getByRole("button", { name: "Anular", exact: true })
       .click();
 
@@ -752,7 +770,7 @@ test.describe("playoffs", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: /Registrar|Editar|Anular|Terminar/,
+        name: /Registrar|Editar|Anular|Finalizar/,
       }),
     ).toHaveCount(0);
   });
@@ -783,7 +801,7 @@ test.describe("playoffs", () => {
     await page.getByRole("tab", { name: "Liguilla" }).click();
 
     await expect(page.getByText("Campeón: Águilas")).toBeVisible();
-    await page.getByRole("button", { name: "Terminar torneo" }).click();
+    await page.getByRole("button", { name: "Finalizar torneo" }).click();
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Finalizar" })
@@ -799,7 +817,7 @@ test.describe("playoffs", () => {
     await page.getByRole("tab", { name: "Liguilla" }).click();
 
     await expect(
-      page.getByRole("button", { name: "Terminar torneo" }),
+      page.getByRole("button", { name: "Finalizar torneo" }),
     ).toHaveCount(0);
   });
 
@@ -819,8 +837,8 @@ test.describe("playoffs", () => {
     await expect(rows.nth(0)).toContainText("Grupo B");
     await expect(rows.nth(0)).toContainText("Clasifica");
     await expect(rows.nth(1)).not.toContainText("Clasifica");
-    await expect(rows.nth(1)).toHaveClass(/opacity-60/);
-    await expect(rows.nth(0)).not.toHaveClass(/opacity-60/);
+    await expect(rows.nth(1)).toHaveClass(/opacity-70/);
+    await expect(rows.nth(0)).not.toHaveClass(/opacity-70/);
   });
 
   test("tied teams look alike: not highlighted as qualified nor dimmed as out", async ({
@@ -834,10 +852,10 @@ test.describe("playoffs", () => {
     for (const tied of [0, 1]) {
       await expect(rows.nth(tied)).toContainText("Empate");
       await expect(rows.nth(tied)).not.toContainText("Clasifica");
-      await expect(rows.nth(tied)).not.toHaveClass(/opacity-60/);
+      await expect(rows.nth(tied)).not.toHaveClass(/opacity-70/);
     }
     // Clearly out of the cut: dimmed, without badges
-    await expect(rows.nth(2)).toHaveClass(/opacity-60/);
+    await expect(rows.nth(2)).toHaveClass(/opacity-70/);
     await expect(rows.nth(2)).not.toContainText("Empate");
   });
 
@@ -891,7 +909,7 @@ test.describe("playoffs", () => {
     await expect(
       dialog.getByRole("button", { name: "Confirmar y pasar a liguilla" }),
     ).toBeVisible();
-    await expect(dialog.getByText("1. Halcones (mejor 4.º)")).toHaveCount(0);
+    await expect(dialog.getByText("Grupo A · Mejor 4.º")).toHaveCount(0);
 
     await dialog.getByRole("button", { name: "Quitar orden manual" }).click();
     await page
@@ -910,7 +928,7 @@ test.describe("playoffs", () => {
     await page.getByRole("button", { name: "Cerrar fase regular" }).click();
 
     await expect(
-      page.getByRole("dialog").getByText("4. Lobos (mejor 4.º)"),
+      page.getByRole("dialog").getByText("Grupo B · Mejor 4.º"),
     ).toBeVisible();
   });
 });

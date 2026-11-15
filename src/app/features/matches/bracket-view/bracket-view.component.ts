@@ -17,11 +17,14 @@ import { MatSelectModule } from "@angular/material/select";
 import { form, FormField } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
-import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
 import { parseDate } from "../../tournaments/tournament.model";
 import { TournamentsApi } from "../../tournaments/tournaments.api";
 import { Match } from "../match.model";
+import {
+  FinishTournamentDialogComponent,
+  FinishTournamentDialogData,
+} from "../finish-tournament-dialog/finish-tournament-dialog.component";
 import {
   WalkoverDialogComponent,
   WalkoverDialogData,
@@ -31,10 +34,11 @@ import {
   ProgramMatchDialogComponent,
   ProgramMatchDialogData,
 } from "../program-match-dialog/program-match-dialog.component";
-import { slotLabel, slotParts } from "../schedule.model";
+import { slotLabel } from "../schedule.model";
 import {
   PlayoffResultDialogComponent,
   PlayoffResultDialogData,
+  PlayoffResultOutcome,
 } from "../playoff-result-dialog/playoff-result-dialog.component";
 import {
   BracketMatch,
@@ -63,7 +67,6 @@ import {
   ],
 })
 export class BracketViewComponent {
-  private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly matchesApi = inject(MatchesApi);
   private readonly snackbar = inject(SnackbarService);
@@ -123,9 +126,41 @@ export class BracketViewComponent {
     return round.index === playoff.rounds.at(-1)?.index;
   }
 
-  /** "8:00 p.m." */
-  timeOf(match: BracketMatch): string {
-    return slotParts(match.match_datetime ?? "").time;
+  /** The round being played: the first one with a tie still undecided */
+  isCurrent(playoff: BracketPlayoff, round: BracketRound): boolean {
+    return (
+      playoff.rounds.find((r) =>
+        r.ties.some((tie) => tie.winner_registration_id === null),
+      )?.index === round.index
+    );
+  }
+
+  /** A later round already has a result: this round's can no longer be changed */
+  hasLaterResults(playoff: BracketPlayoff, round: BracketRound): boolean {
+    return playoff.rounds.some(
+      (later) =>
+        later.index > round.index &&
+        later.ties.some((tie) =>
+          tie.matches.some((match) => match.status === "played"),
+        ),
+    );
+  }
+
+  /** "Ganador semifinal 1": the tie of the previous round that feeds a side that is not defined yet */
+  feederLabel(
+    playoff: BracketPlayoff,
+    round: BracketRound,
+    tieIndex: number,
+    side: "a" | "b",
+  ): string | null {
+    const previous = playoff.rounds[playoff.rounds.indexOf(round) - 1];
+
+    return previous
+      ? this.transloco.translate("matches.bracket.winnerOf", {
+          round: previous.name.toLowerCase(),
+          n: tieIndex * 2 + (side === "a" ? 1 : 2),
+        })
+      : null;
   }
 
   previousSlot(match: BracketMatch): string {
@@ -240,19 +275,24 @@ export class BracketViewComponent {
     }
 
     this.dialog
-      .open<PlayoffResultDialogComponent, PlayoffResultDialogData, boolean>(
+      .open<
         PlayoffResultDialogComponent,
-        {
-          data: { tournamentId: this.tournamentId(), tie, match },
-          width: "560px",
-          maxWidth: "95vw",
-        },
-      )
+        PlayoffResultDialogData,
+        PlayoffResultOutcome
+      >(PlayoffResultDialogComponent, {
+        data: { tournamentId: this.tournamentId(), tie, match },
+        width: "560px",
+        maxWidth: "95vw",
+      })
       .afterClosed()
       .subscribe((saved) => {
         if (saved) {
           this.changed.emit();
-          this.snackbar.notifySuccess("matches.result.saved");
+          this.snackbar.notifySuccess(
+            saved === "voided"
+              ? "matches.result.voided"
+              : "matches.result.saved",
+          );
         }
       });
   }
@@ -318,44 +358,28 @@ export class BracketViewComponent {
       });
   }
 
-  voidResult(match: BracketMatch): void {
-    if (!this.editable()) {
-      return;
-    }
-
-    this.confirmDialog
-      .confirm({
-        key: "matches.result.void",
-        params: {
-          home: match.home_team?.team_name ?? "—",
-          away: match.away_team?.team_name ?? "—",
-        },
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.matchesApi.clearResult(this.tournamentId(), match.id).subscribe({
-          next: () => {
-            this.changed.emit();
-            this.snackbar.notifySuccess("matches.result.voided");
-          },
-          error: (error: unknown) => this.snackbar.notifyFailure(error),
-        });
-      });
-  }
-
   finish(): void {
     if (!this.editable()) {
       return;
     }
 
-    this.confirmDialog
-      .confirm({
-        key: "tournaments.finish",
-        params: { name: this.tournamentName() },
+    this.dialog
+      .open<
+        FinishTournamentDialogComponent,
+        FinishTournamentDialogData,
+        boolean
+      >(FinishTournamentDialogComponent, {
+        autoFocus: "dialog",
+        data: {
+          tournamentName: this.tournamentName(),
+          champions: this.playoffs().flatMap((playoff) =>
+            playoff.champion
+              ? [{ liguilla: playoff.name, team: playoff.champion.team_name }]
+              : [],
+          ),
+        },
       })
+      .afterClosed()
       .subscribe((confirmed) => {
         if (!confirmed) {
           return;

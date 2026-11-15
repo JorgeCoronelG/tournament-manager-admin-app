@@ -326,34 +326,58 @@
 
 <ng-template #playoffView let-proposal let-index="index">
   <section class="flex flex-col gap-4">
-    <div>
-      <h3 class="m-0 mb-1 text-sm font-medium">
-        {{ "matches.close.qualified" | transloco }}
-      </h3>
-      <ol class="m-0 p-0 list-none text-sm">
-        @for (team of proposal.qualified; track team.registration_id) {
-          <li>
-            @if (bestOf(proposal, team.team_id); as best) {
-              {{
-                "matches.close.seedBest"
-                  | transloco
-                    : { seed: team.seed, team: team.team_name, position: best }
-              }}
-            } @else {
-              {{
-                "matches.close.seed"
-                  | transloco
-                    : {
-                        seed: team.seed,
-                        team: team.team_name,
-                        group: team.source_group,
-                        position: team.position,
-                      }
-              }}
-            }
-          </li>
-        }
-      </ol>
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="m-0 text-sm font-medium">
+          {{ "matches.close.qualified" | transloco }}
+        </h3>
+        <span class="text-sm text-secondary">
+          {{
+            "matches.close.qualifiedCount"
+              | transloco: { count: proposal.qualified.length }
+          }}
+        </span>
+      </div>
+      <app-scroll-fade
+        [maxHeight]="proposal.qualified.length > 4 ? 'max-h-60' : 'max-h-none'"
+        [thin]="true"
+      >
+        <ol
+          [class]="proposal.qualified.length > 4 ? 'pr-3' : ''"
+          class="m-0 p-0 list-none flex flex-col gap-2"
+        >
+          @for (team of proposal.qualified; track team.registration_id) {
+            <li class="flex items-center gap-3">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/5 text-sm text-secondary dark:bg-white/5"
+              >
+                {{ team.seed }}
+              </span>
+              <div class="min-w-0">
+                <p class="m-0 font-medium truncate">{{ team.team_name }}</p>
+                <p class="m-0 text-sm text-secondary">
+                  @if (bestOf(proposal, team.team_id); as best) {
+                    {{
+                      "matches.close.qualifiedBest"
+                        | transloco
+                          : { group: best.group, position: best.position }
+                    }}
+                  } @else {
+                    {{
+                      "matches.close.qualifiedFrom"
+                        | transloco
+                          : {
+                              group: team.source_group,
+                              position: team.position,
+                            }
+                    }}
+                  }
+                </p>
+              </div>
+            </li>
+          }
+        </ol>
+      </app-scroll-fade>
     </div>
 
     @if (proposal.best_of?.length) {
@@ -375,52 +399,85 @@
             </span>
           }
         </h3>
-        <button (click)="resetTies(index)" mat-stroked-button type="button">
-          {{ "matches.close.resetTies" | transloco }}
+        <button
+          (click)="resetTies(index)"
+          [attr.aria-label]="'matches.close.resetTies' | transloco"
+          [disabled]="!tiesChanged(index)"
+          [matTooltip]="'matches.close.resetTies' | transloco"
+          class="[&_.mat-mdc-button-touch-target]:hidden app-action-primary"
+          mat-icon-button
+          type="button"
+        >
+          <mat-icon svgIcon="mat:restart_alt" />
         </button>
       </div>
       <p class="m-0 mb-2 text-xs text-secondary">
         {{ "matches.close.pairingRule" | transloco }}
       </p>
 
-      @for (
-        tie of closeForm.playoffs[index].ties;
-        track $index;
-        let t = $index
-      ) {
-        <div class="flex items-start gap-3">
-          @for (side of [0, 1]; track side) {
-            <mat-form-field class="flex-1">
-              <mat-label>{{
-                (side === 0 ? "matches.close.teamA" : "matches.close.teamB")
-                  | transloco: { number: t + 1 }
-              }}</mat-label>
-              <mat-select
-                (selectionChange)="setSlot(index, t * 2 + side, $event.value)"
-                [value]="slotTeam(index, t * 2 + side)"
-              >
-                @for (team of proposal.qualified; track team.team_id) {
-                  <mat-option [value]="team.team_id"
-                    >{{ team.seed }}. {{ team.team_name }}</mat-option
+      <app-scroll-fade
+        [maxHeight]="proposal.qualified.length > 4 ? 'max-h-60' : 'max-h-none'"
+        [thin]="true"
+      >
+        <div [class]="proposal.qualified.length > 4 ? 'pr-3' : ''" class="pt-2">
+          @for (
+            tie of closeForm.playoffs[index].ties;
+            track $index;
+            let t = $index
+          ) {
+            <div class="flex items-start gap-3">
+              @for (side of [0, 1]; track side) {
+                <mat-form-field class="flex-1">
+                  <mat-label>{{
+                    (side === 0 ? "matches.close.teamA" : "matches.close.teamB")
+                      | transloco: { number: t + 1 }
+                  }}</mat-label>
+                  <mat-select
+                    (selectionChange)="
+                      setSlot(index, t * 2 + side, $event.value)
+                    "
+                    [value]="slotTeam(index, t * 2 + side)"
                   >
+                    @for (team of proposal.qualified; track team.team_id) {
+                      <mat-option [value]="team.team_id"
+                        >{{ team.seed }}. {{ team.team_name }}</mat-option
+                      >
+                    }
+                  </mat-select>
+                </mat-form-field>
+                @if (side === 0) {
+                  <span class="mt-4 text-secondary">{{
+                    "matches.vs" | transloco
+                  }}</span>
                 }
-              </mat-select>
-            </mat-form-field>
-            @if (side === 0) {
-              <span class="mt-4 text-secondary">{{
-                "matches.vs" | transloco
-              }}</span>
-            }
+              }
+            </div>
           }
         </div>
-      }
+      </app-scroll-fade>
     </div>
 
     @if (laterRounds(proposal).length) {
-      <p class="m-0 text-sm text-secondary">
-        {{ "matches.close.laterRounds" | transloco }}:
-        {{ laterRounds(proposal).join(", ") }}
-      </p>
+      <div class="flex flex-col gap-2">
+        <h3 class="m-0 text-sm font-medium">
+          {{ "matches.close.laterRounds" | transloco }}
+        </h3>
+        <ol
+          class="m-0 p-0 list-none flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-secondary"
+        >
+          @for (round of laterRounds(proposal); track round; let last = $last) {
+            <li>{{ round }}</li>
+            @if (!last) {
+              <li aria-hidden="true" class="flex">
+                <mat-icon
+                  class="!size-4 !text-base"
+                  svgIcon="mat:arrow_forward"
+                />
+              </li>
+            }
+          }
+        </ol>
+      </div>
     }
 
     <div>
@@ -441,43 +498,62 @@
         }
       </p>
 
-      @for (
-        row of closeForm.playoffs[index].dates;
-        track $index;
-        let d = $index
-      ) {
-        <mat-form-field class="w-full">
-          <mat-label>{{ matchLabels(proposal)[d] }}</mat-label>
-          <input
-            (beforeinput)="$event.preventDefault()"
-            (click)="picker.open()"
-            (keydown.enter)="picker.open()"
-            aria-readonly="true"
-            [formField]="row.date"
-            [matDatepicker]="picker"
-            autocomplete="off"
-            class="cursor-pointer"
-            matInput
-          />
-          <mat-datepicker-toggle
-            [for]="picker"
-            class="[&_.mat-mdc-button-touch-target]:hidden"
-            matIconSuffix
-          />
-          <mat-datepicker #picker />
-        </mat-form-field>
-      }
+      <app-scroll-fade
+        [maxHeight]="
+          matchLabels(proposal).length > 4 ? 'max-h-60' : 'max-h-none'
+        "
+        [thin]="true"
+      >
+        <div
+          [class]="matchLabels(proposal).length > 4 ? 'pr-3' : ''"
+          class="pt-2"
+        >
+          @for (
+            row of closeForm.playoffs[index].dates;
+            track $index;
+            let d = $index
+          ) {
+            <mat-form-field class="w-full">
+              <mat-label>{{ matchLabels(proposal)[d] }}</mat-label>
+              <input
+                (beforeinput)="$event.preventDefault()"
+                (click)="picker.open()"
+                (keydown.enter)="picker.open()"
+                aria-readonly="true"
+                [formField]="row.date"
+                [matDatepicker]="picker"
+                [min]="minDate(index, d)"
+                autocomplete="off"
+                class="cursor-pointer"
+                matInput
+              />
+              <mat-datepicker-toggle
+                [for]="picker"
+                class="[&_.mat-mdc-button-touch-target]:hidden"
+                matIconSuffix
+              />
+              <mat-datepicker #picker />
+            </mat-form-field>
+          }
+        </div>
+      </app-scroll-fade>
 
       @for (warning of warningsOf(proposal.name); track warning.message) {
         <div
-          class="flex items-center gap-3 mb-2 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+          class="flex items-center gap-3 my-4 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
           role="status"
         >
           <mat-icon class="shrink-0" svgIcon="mat:warning" />
           <p class="m-0 text-sm">{{ warning.message }}</p>
         </div>
       }
-      <button (click)="configureSchedule()" mat-stroked-button type="button">
+      <button
+        (click)="configureSchedule()"
+        [matTooltip]="'matches.close.configureHint' | transloco"
+        class="mb-1 [&_.mat-mdc-button-touch-target]:hidden"
+        mat-stroked-button
+        type="button"
+      >
         <mat-icon svgIcon="mat:calendar_month" />
         {{ "matches.config.action" | transloco }}
       </button>
@@ -543,7 +619,7 @@
           </thead>
           <tbody>
             @for (row of table.table; track row.registration_id) {
-              <tr [class]="!row.qualified && !row.tied ? 'opacity-60' : ''">
+              <tr [class]="!row.qualified && !row.tied ? 'opacity-70' : ''">
                 <td class="p-2">{{ row.rank }}</td>
                 <td class="p-2">
                   <span class="font-medium">{{ row.team_name }}</span>

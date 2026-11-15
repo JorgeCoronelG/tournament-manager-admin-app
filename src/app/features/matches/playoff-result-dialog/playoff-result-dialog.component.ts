@@ -18,6 +18,9 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { form, FormField, validate } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { firstValueFrom } from "rxjs";
+import { failureMessage } from "../../../core/http/api-errors";
+import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { MatchesApi } from "../matches.api";
 import {
@@ -32,6 +35,9 @@ export interface PlayoffResultDialogData {
   tie: BracketTie;
   match: BracketMatch;
 }
+
+/** What the dialog closes with: the score was saved, or it was voided */
+export type PlayoffResultOutcome = true | "voided";
 
 const MAX = 99;
 
@@ -60,7 +66,10 @@ const validScore = (value: number | null): boolean =>
 export class PlayoffResultDialogComponent {
   private readonly api = inject(MatchesApi);
   private readonly dialogRef =
-    inject<MatDialogRef<PlayoffResultDialogComponent, boolean>>(MatDialogRef);
+    inject<MatDialogRef<PlayoffResultDialogComponent, PlayoffResultOutcome>>(
+      MatDialogRef,
+    );
+  private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly formSubmit = inject(FormSubmitService);
   private readonly transloco = inject(TranslocoService);
 
@@ -71,6 +80,40 @@ export class PlayoffResultDialogComponent {
 
   /** The backend's refusal (first leg missing, next round already played...) */
   readonly formError = signal<string | null>(null);
+  readonly voiding = signal(false);
+
+  /** The match already has a result that can be voided */
+  readonly hasResult = this.data.match.status === "played";
+
+  /** Voids the result after confirming; the match goes back to scheduled */
+  voidResult(): void {
+    this.formError.set(null);
+    this.confirmDialog
+      .confirm({
+        key: "matches.result.void",
+        params: { home: this.homeName, away: this.awayName },
+      })
+      .subscribe(async (confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.voiding.set(true);
+
+        try {
+          await firstValueFrom(
+            this.api.clearResult(this.data.tournamentId, this.data.match.id),
+          );
+          this.dialogRef.close("voided");
+        } catch (error) {
+          this.formError.set(
+            failureMessage(error, (key) => this.transloco.translate(key)),
+          );
+        } finally {
+          this.voiding.set(false);
+        }
+      });
+  }
 
   private readonly model = signal<{
     home_goals: number | null;
@@ -153,6 +196,17 @@ export class PlayoffResultDialogComponent {
   scoreError(): string {
     return this.transloco.translate("matches.result.scoreError", { max: MAX });
   }
+
+  /** Name of the side ahead in the shootout, once both scores are filled and differ */
+  readonly penaltiesWinner = computed(() => {
+    const { home_penalties: home, away_penalties: away } = this.model();
+
+    if (!this.penaltiesAsked() || home === null || away === null) {
+      return null;
+    }
+
+    return home === away ? null : home > away ? this.homeName : this.awayName;
+  });
 
   penaltiesError(): string {
     return this.transloco.translate("matches.playoffResult.penaltiesError", {

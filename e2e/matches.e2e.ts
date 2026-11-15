@@ -231,10 +231,10 @@ test.describe("matches", () => {
       ["PATCH", "/1/result", { home_goals: 2, away_goals: 1 }],
     ]);
     await expect(page.getByText("2 - 1")).toBeVisible();
-    await expect(page.getByText("Jugado", { exact: true })).toBeVisible();
+    await expect(page.getByText("Finalizado", { exact: true })).toBeVisible();
     await expect(page.getByText("Sin horario", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("6 partidos en 3 jornadas · 1 jugados"),
+      page.getByText("6 partidos en 3 jornadas · 1 finalizados"),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Regenerar" }),
@@ -302,7 +302,7 @@ test.describe("matches", () => {
       .getByRole("button", { name: "Anular", exact: true })
       .click();
 
-    await expect(page.getByText("Jugado", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Finalizado", { exact: true })).toHaveCount(0);
     expect(api.writes).toEqual([["DELETE", "/1/result", null]]);
   });
 

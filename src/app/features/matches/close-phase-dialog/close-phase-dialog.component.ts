@@ -20,6 +20,7 @@ import {
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
@@ -96,6 +97,7 @@ interface PlayoffRow {
     MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
+    MatTooltipModule,
     MatInputModule,
     MatProgressBarModule,
     MatSelectModule,
@@ -155,6 +157,15 @@ export class ClosePhaseDialogComponent {
             tournamentId: this.data.tournamentId,
             matchDuration: this.data.matchDuration,
             tournamentStartDate: this.data.tournamentStartDate,
+            playoffs: true,
+            playoffDates: this.model()
+              .playoffs.map((playoff) => ({
+                group_id: playoff.group_id,
+                round_dates: playoff.dates
+                  .filter((row) => row.date !== null)
+                  .map((row) => formatDate(row.date as Date)),
+              }))
+              .filter((playoff) => playoff.round_dates.length > 0),
           },
           width: "960px",
           maxWidth: "95vw",
@@ -271,7 +282,7 @@ export class ClosePhaseDialogComponent {
       validate(playoff.dates, ({ value }) => {
         const dates = value().map((row) => row.date);
 
-        return dates.every((date) => date !== null) && datesInOrder(dates)
+        return dates.every((date) => date !== null) && datesInOrder(dates, true)
           ? undefined
           : { kind: "dates" };
       });
@@ -302,6 +313,37 @@ export class ClosePhaseDialogComponent {
       a: tie.team_a?.team_id ?? "",
       b: tie.team_b?.team_id ?? "",
     }));
+  }
+
+  /**
+   * Earliest day a match of the playoff can take: the day of the last one of the
+   * regular phase for the first, the day of the closest earlier date for the rest
+   * (two rounds can be played the same day at different hours)
+   */
+  minDate(index: number, matchIndex: number): Date | null {
+    const previous = (this.model().playoffs[index]?.dates ?? [])
+      .slice(0, matchIndex)
+      .reverse()
+      .find((row) => row.date !== null)?.date;
+    const base =
+      previous ??
+      (this.data.lastRegularDate ? parseDate(this.data.lastRegularDate) : null);
+
+    return base;
+  }
+
+  /** The pairings differ from the default ones: only then there is something to reset */
+  tiesChanged(index: number): boolean {
+    const proposal = this.proposals()[index];
+    const ties = this.model().playoffs[index]?.ties;
+
+    if (!proposal || !ties) {
+      return false;
+    }
+
+    return this.defaultTies(proposal).some(
+      (tie, t) => tie.a !== ties[t]?.a || tie.b !== ties[t]?.b,
+    );
   }
 
   /** "Restablecer cruces": back to best seed against worst seed */
@@ -431,12 +473,21 @@ export class ClosePhaseDialogComponent {
     );
   }
 
-  bestOf(proposal: PlayoffProposal, teamId: number): number | null {
-    return (
-      (proposal.best_of ?? []).find((table) =>
-        table.table.some((row) => row.team_id === teamId && row.qualified),
-      )?.position ?? null
-    );
+  bestOf(
+    proposal: PlayoffProposal,
+    teamId: number,
+  ): { position: number; group: string } | null {
+    for (const table of proposal.best_of ?? []) {
+      const row = table.table.find(
+        (candidate) => candidate.team_id === teamId && candidate.qualified,
+      );
+
+      if (row) {
+        return { position: table.position, group: row.group };
+      }
+    }
+
+    return null;
   }
 
   /** The order dialog for the tied teams of a comparison: the same one the standings use */
@@ -526,7 +577,7 @@ export class ClosePhaseDialogComponent {
       onFormError: (message) => this.formError.set(message),
       send: () =>
         this.confirmDialog
-          .confirm({ key: "matches.close.confirmation", tone: "danger" })
+          .confirm({ key: "matches.close.confirmation", tone: "primary" })
           .pipe(
             switchMap((confirmed): Observable<ClosePhaseResult | null> =>
               confirmed

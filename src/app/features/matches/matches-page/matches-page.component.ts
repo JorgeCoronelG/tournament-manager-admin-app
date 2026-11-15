@@ -127,6 +127,7 @@ export class MatchesPageComponent {
 
   protected readonly tournamentsResource = inject(TournamentsApi).options([
     "in_progress",
+    "playoffs",
   ]);
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
@@ -431,8 +432,15 @@ export class MatchesPageComponent {
     return this.roundsOf(group).length > 1;
   }
 
-  /** Short calendars open every section; long ones only the first */
+  /**
+   * Short calendars open every section; long ones only the first. In the
+   * playoffs the regular phase is over: every section starts closed
+   */
   isOpen(group: GroupSchedule, matchday: number): boolean {
+    if (this.tournament()?.status === "playoffs") {
+      return false;
+    }
+
     return (
       group.matchdays.length <= OPEN_ALL_UP_TO ||
       matchday === group.matchdays[0]?.matchday
@@ -480,7 +488,7 @@ export class MatchesPageComponent {
         {
           autoFocus: "dialog",
           data: { tournamentId: tournament.id, phase: this.scheduling() },
-          width: "960px",
+          width: this.scheduling() === "playoffs" ? "560px" : "960px",
           maxWidth: "95vw",
         },
       )
@@ -592,6 +600,7 @@ export class MatchesPageComponent {
             tournamentId: tournament.id,
             matchDuration: tournament.match_duration_minutes,
             tournamentStartDate: tournament.start_date,
+            playoffs: this.scheduling() === "playoffs",
           },
           width: "960px",
           maxWidth: "95vw",
@@ -747,6 +756,7 @@ export class MatchesPageComponent {
           },
           width: "720px",
           maxWidth: "95vw",
+          autoFocus: "dialog",
         },
       )
       .afterClosed()
@@ -844,6 +854,37 @@ export class MatchesPageComponent {
     return sides.length === 1 ? sides[0]?.registration_id : undefined;
   }
 
+  /**
+   * In a played match the winner stands out in bold and the loser (and its
+   * score) fades; a draw leaves the names as they are
+   */
+  resultClass(match: Match, side: "home" | "away"): string {
+    const { home_score: home, away_score: away } = match;
+
+    if (
+      match.status !== "played" ||
+      home == null ||
+      away == null ||
+      home === away
+    ) {
+      return "font-medium";
+    }
+
+    const won = side === "home" ? home > away : away > home;
+
+    return won ? "font-bold" : "font-medium text-gray-400 dark:text-gray-500";
+  }
+
+  /** Like `resultClass`, but in a draw the score is the one in bold */
+  scoreClass(match: Match, side: "home" | "away"): string {
+    const draw =
+      match.status === "played" &&
+      match.home_score != null &&
+      match.home_score === match.away_score;
+
+    return draw ? "font-bold" : this.resultClass(match, side);
+  }
+
   /** Reason of a default win, for the tooltip of its tag */
   walkoverHint(match: Match): string {
     return match.walkover_reason ?? "";
@@ -874,6 +915,10 @@ export class MatchesPageComponent {
             },
             goals: tournament.walkover_goals,
             playoff: false,
+            round: this.transloco.translate("matches.matchday", {
+              number: match.matchday,
+            }),
+            group: this.groups().length > 1 ? match.group_name : null,
             loserRegistrationId: this.withdrawnLoser(match),
           },
           width: "520px",

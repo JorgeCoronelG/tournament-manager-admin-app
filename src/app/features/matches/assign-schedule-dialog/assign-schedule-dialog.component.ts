@@ -271,7 +271,14 @@ export class AssignScheduleDialogComponent {
   calculate(): void {
     this.run(
       this.api.preview(this.data.tournamentId, this.options()),
-      (result) => this.preview.set(result),
+      (result) => {
+        this.preview.set(result);
+
+        // The playoffs' options are one column: the dialog opens narrow and widens once there are matches to show
+        if (this.playoffs) {
+          this.dialogRef.updateSize("960px");
+        }
+      },
     );
   }
 

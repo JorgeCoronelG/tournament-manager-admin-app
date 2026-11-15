@@ -318,8 +318,12 @@
     },
     "finish": {
       "title": "¿Finalizar torneo?",
-      "message": "¿Quieres finalizar el torneo <b>{{name}}</b>?\n\nUna vez finalizado, ya no podrás modificarlo. Esta acción no se puede deshacer.",
-      "confirm": "Finalizar"
+      "message": "¿Estás seguro de que deseas finalizar <b>{{name}}</b>?\n\nUna vez finalizado, no podrás modificar sus partidos, resultados ni configuraciones. Esta acción no se puede deshacer.",
+      "confirm": "Finalizar",
+      "champions": "Campeones del torneo",
+      "championOne": "Campeón del torneo",
+      "reviewOne": "Revisa el campeón antes de finalizar <b>{{name}}</b>.",
+      "reviewMany": "Revisa los campeones antes de finalizar <b>{{name}}</b>."
     },
     "delete": {
       "title": "¿Eliminar torneo?",
@@ -663,7 +667,7 @@
     "planning": "Inicia el torneo para generar el calendario.",
     "empty": "Este torneo aún no tiene calendario.",
     "error": "No pudimos cargar el calendario.",
-    "lockedHint": "Ya hay partidos jugados.",
+    "lockedHint": "No disponible: hay partidos finalizados.",
     "generated": "Calendario generado",
     "regenerated": "Calendario regenerado",
     "deleted": "Calendario borrado",
@@ -672,9 +676,9 @@
     "round": "Vuelta {{round}}",
     "vs": "vs",
     "toSchedule": "Por programar",
-    "played": "Jugado",
+    "played": "Finalizado",
     "noDate": "Sin horario",
-    "playedCount": "{{played}} jugados",
+    "playedCount": "{{played}} finalizados",
     "referee": "Árbitro: {{name}}",
     "noReferee": "Sin árbitro",
     "lockedMatch": "Fijado: el generador no lo mueve.",
@@ -720,13 +724,13 @@
     "clearPlayoffSchedule": {
       "action": "Quitar horarios de liguilla",
       "title": "Quitar horarios de liguilla",
-      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>{{count}} partidos</b> de liguilla.\n<small>Los partidos jugados y fijados no se modificarán.</small>",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>{{count}} partidos</b> de liguilla.\n<small>Los partidos finalizados y fijados no se modificarán.</small>",
       "confirm": "Quitar",
       "cleared": "Horarios quitados: {{count}} partidos"
     },
     "clearPlayoffScheduleOne": {
       "title": "Quitar horarios de liguilla",
-      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>1 partido</b> de liguilla.\n<small>Los partidos jugados y fijados no se modificarán.</small>",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>1 partido</b> de liguilla.\n<small>Los partidos finalizados y fijados no se modificarán.</small>",
       "confirm": "Quitar"
     },
     "agenda": {
@@ -755,14 +759,14 @@
     "clearSchedule": {
       "action": "Quitar horarios",
       "title": "¿Quitar horarios?",
-      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>{{count}} partidos</b>.\n\nLos partidos jugados y fijados no se modificarán.",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>{{count}} partidos</b>.\n\nLos partidos finalizados y fijados no se modificarán.",
       "confirm": "Quitar",
       "cleared": "Horarios quitados: {{count}} partidos",
       "nothing": "No hay horarios que se puedan quitar."
     },
     "clearScheduleOne": {
       "title": "¿Quitar horarios?",
-      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>1 partido</b>.\n\nLos partidos jugados y fijados no se modificarán.",
+      "message": "Se quitarán la fecha, hora, cancha y árbitro de <b>1 partido</b>.\n\nLos partidos finalizados y fijados no se modificarán.",
       "confirm": "Quitar"
     },
     "assign": {
@@ -786,7 +790,7 @@
       "scope": "Alcance",
       "scopeAll": "Todos los partidos pendientes",
       "scopeUnscheduled": "Solo los partidos sin horario",
-      "scopeAllNote": "Los partidos fijados no se mueven. Los demás pierden su árbitro al reasignarse.",
+      "scopeAllNote": "Los partidos jugados o con horario fijado no se modificarán. Los demás podrán cambiar de horario y perderán su árbitro asignado.",
       "preview": "Vista previa",
       "confirm": "Asignar",
       "summary": {
@@ -819,7 +823,7 @@
     },
     "tabs": {
       "agenda": "Agenda",
-      "schedule": "Calendario",
+      "schedule": "Fase regular",
       "standings": "Tabla de posiciones",
       "playoffs": "Liguilla"
     },
@@ -870,8 +874,9 @@
         "tiedQualified": "Hay equipos empatados entre los clasificados de {{group}}, posiciones {{positions}}."
       },
       "qualified": "Clasificados",
-      "seed": "{{seed}}. {{team}} ({{group}}, {{position}}°)",
-      "seedBest": "{{seed}}. {{team}} (mejor {{position}}.º)",
+      "qualifiedCount": "{{count}} equipos",
+      "qualifiedFrom": "{{group}} · {{position}}.º",
+      "qualifiedBest": "{{group}} · Mejor {{position}}.º",
       "twoLegs": "ida y vuelta",
       "resetTies": "Restablecer cruces",
       "pairingRule": "Por defecto: mejor sembrado vs peor sembrado.",
@@ -879,20 +884,22 @@
       "teamB": "Cruce {{number}}: equipo 2",
       "tiesError": "Cada cruce necesita dos equipos distintos y ningún equipo puede repetirse.",
       "laterRounds": "Rondas siguientes",
+      "configureHint": "Define los horarios y canchas disponibles para programar la liguilla.",
       "dates": "Fechas de los partidos",
-      "datesHint": "La primera fecha debe ser posterior al último partido de la fase regular.",
-      "datesHintAfter": "La primera fecha debe ser posterior al último partido de la fase regular ({{date}}).",
+      "datesHint": "Selecciona las fechas de cada ronda. La primera debe ser posterior al último partido de la fase regular.",
+      "datesHintAfter": "Selecciona las fechas de cada ronda. La primera debe ser posterior al {{date}}.",
       "confirmation": {
-        "title": "Cerrar fase regular",
-        "message": "Se cerrará la fase regular y ya no se podrán modificar sus resultados. ¿Desea continuar?",
-        "confirm": "Continuar"
+        "title": "¿Cerrar fase regular?",
+        "message": "Se cerrará la fase regular y sus resultados ya no podrán modificarse. Se crearán los partidos de liguilla con los cruces y fechas seleccionados.",
+        "confirm": "Cerrar fase regular"
       }
     },
     "playoffResult": {
       "global": "Global: {{home}}-{{away}}",
       "penalties": "Penales",
       "penaltiesOf": "Penales de {{team}}",
-      "penaltiesError": "Penales distintos, de 0 a {{max}}"
+      "penaltiesError": "Penales distintos, de 0 a {{max}}",
+      "penaltiesWinner": "Ganador: {{team}}"
     },
     "bracket": {
       "walkoverWin": "Gana por default",
@@ -904,20 +911,24 @@
       "first": "Ida",
       "second": "Vuelta",
       "toPlay": "Por jugar",
+      "winnerOf": "Ganador {{round}} {{n}}",
+      "resultLocked": "No puedes modificar este resultado porque la siguiente ronda ya tiene resultados registrados.",
       "pen": "pen.",
       "register": "Registrar resultado",
       "edit": "Editar",
       "global": "Global: {{a}}-{{b}}",
       "penaltiesWin": "Gana por penales",
-      "finish": "Terminar torneo"
+      "finish": "Finalizar torneo"
     },
     "walkover": {
       "action": "Ganado por default",
       "title": "Ganado por default",
       "question": "¿Qué equipo no se presentó?",
-      "summary": "El rival ganará {{goals}}-0.",
+      "resultTitle": "Resultado por default",
+      "summary": "{{team}} gana por default",
       "playoff": "Esto aplica a todos los partidos pendientes de este cruce y {{team}} avanza de ronda.",
       "reason": "Motivo (opcional)",
+      "reasonHint": "Ej. El equipo no se presentó o no completó los jugadores requeridos.",
       "confirm": "Registrar victoria por default",
       "tag": "Por default",
       "saved": "Victoria por default registrada"
@@ -936,8 +947,8 @@
       "voided": "Resultado anulado",
       "voidAction": "Anular resultado",
       "void": {
-        "title": "Anular resultado",
-        "message": "¿Seguro que quieres anular el resultado de {{home}} contra {{away}}? El partido volverá a estar por jugar.",
+        "title": "¿Anular resultado?",
+        "message": "Se eliminará el resultado de <b>{{home}} vs {{away}}</b> y el partido volverá a quedar pendiente. La tabla de posiciones y las estadísticas se actualizarán automáticamente.",
         "confirm": "Anular"
       }
     },
@@ -979,13 +990,14 @@
       "playoffsAction": "Configurar horarios de liguilla",
       "action": "Configurar horarios",
       "title": "Configurar horarios",
+      "playoffsTitle": "Configurar horarios de liguilla",
+      "playoffMinStart": "La liguilla puede iniciar a partir del",
       "saved": "Horarios guardados",
       "loadError": "No pudimos cargar la configuración de horarios.",
       "startDate": "Fecha de inicio del calendario",
-      "durationBefore": "Los partidos duran",
+      "durationBefore": "Duración de los partidos:",
       "durationMinutes": "{{minutes}} minutos",
-      "durationHint": "La duración se cambia en",
-      "durationLink": "Gestión del torneo",
+      "durationHint": ", definida en la configuración del torneo.",
       "noDuration": "Define la duración del partido en el torneo.",
       "days": "Días de juego",
       "daysHint": "Define los horarios generales de cada día y ajústalos por cancha si lo necesitas.",
@@ -1057,7 +1069,8 @@
         "lineMatchdayMany": "jornadas {{list}}",
         "range": "{{from}} a {{to}}",
         "playoffs": "Rondas de liguilla",
-        "title": "Capacidad",
+        "playoffsNoDates": "Elige las fechas de cada ronda en el cierre de fase para ver la capacidad.",
+        "title": "Capacidad de partidos",
         "calculate": "Calcular capacidad",
         "savedHint": "Calcula la capacidad para revisar tus cambios antes de guardarlos.",
         "error": "No pudimos calcular la capacidad.",

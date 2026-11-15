@@ -252,6 +252,8 @@ export interface ScheduleConfigBody {
     start_time: Clock;
     end_time: Clock;
   }>;
+  /** Only to calculate the capacity of the playoffs: the dates picked for each round */
+  playoff_dates?: Array<{ group_id: number; round_dates: string[] }>;
   blocks: Array<{
     date: string;
     field_id: number | null;
@@ -310,6 +312,8 @@ export interface PlayoffWarning {
 }
 
 export interface Capacity {
+  /** Y-m-d: the first day the playoffs can start */
+  playoff_min_start_date?: string | null;
   /** Only once the playoffs have dates; empty otherwise */
   playoff_rounds?: PlayoffRoundCapacity[];
   playoff_warnings?: PlayoffWarning[];

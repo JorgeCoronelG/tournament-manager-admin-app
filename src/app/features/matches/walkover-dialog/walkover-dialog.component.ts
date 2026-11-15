@@ -35,6 +35,10 @@ export interface WalkoverDialogData {
   goals: number;
   /** A playoff match decides the whole tie */
   playoff: boolean;
+  /** "Jornada 3": shown under the teams when it is known */
+  round?: string;
+  /** Group of the match, when the tournament has several */
+  group?: string | null;
   /** The team that is withdrawn, already picked as the one that did not show up */
   loserRegistrationId?: number;
 }

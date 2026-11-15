@@ -1,4 +1,9 @@
-<h2 mat-dialog-title>{{ "matches.config.title" | transloco }}</h2>
+<h2 mat-dialog-title>
+  {{
+    (data.playoffs ? "matches.config.playoffsTitle" : "matches.config.title")
+      | transloco
+  }}
+</h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
   <mat-dialog-content class="flex flex-col gap-5 !pt-2 min-w-[320px]">
@@ -29,27 +34,44 @@
     }
 
     <section class="flex flex-col gap-2">
-      <mat-form-field class="w-full sm:w-72">
-        <mat-label>{{ "matches.config.startDate" | transloco }}</mat-label>
-        <input
-          (beforeinput)="$event.preventDefault()"
-          (click)="startPicker.open()"
-          (keydown.enter)="startPicker.open()"
-          aria-readonly="true"
-          [formField]="scheduleForm.start_date"
-          [matDatepicker]="startPicker"
-          [min]="today"
-          autocomplete="off"
-          class="cursor-pointer"
-          matInput
-        />
-        <mat-datepicker-toggle
-          [for]="startPicker"
-          class="[&_.mat-mdc-button-touch-target]:hidden"
-          matIconSuffix
-        />
-        <mat-datepicker #startPicker />
-      </mat-form-field>
+      @if (data.playoffs) {
+        <mat-form-field class="w-full sm:w-72">
+          <mat-label>{{
+            "matches.config.playoffMinStart" | transloco
+          }}</mat-label>
+          <input
+            [value]="
+              playoffMinStart()
+                ? (parseDate(playoffMinStart()!) | date: 'dd/MM/yyyy')
+                : '—'
+            "
+            matInput
+            readonly
+          />
+        </mat-form-field>
+      } @else {
+        <mat-form-field class="w-full sm:w-72">
+          <mat-label>{{ "matches.config.startDate" | transloco }}</mat-label>
+          <input
+            (beforeinput)="$event.preventDefault()"
+            (click)="startPicker.open()"
+            (keydown.enter)="startPicker.open()"
+            aria-readonly="true"
+            [formField]="scheduleForm.start_date"
+            [matDatepicker]="startPicker"
+            [min]="today"
+            autocomplete="off"
+            class="cursor-pointer"
+            matInput
+          />
+          <mat-datepicker-toggle
+            [for]="startPicker"
+            class="[&_.mat-mdc-button-touch-target]:hidden"
+            matIconSuffix
+          />
+          <mat-datepicker #startPicker />
+        </mat-form-field>
+      }
 
       @if (duration()) {
         <div
@@ -63,14 +85,7 @@
               "matches.config.durationMinutes"
                 | transloco: { minutes: duration() }
             }}</strong
-            >.
-            {{ "matches.config.durationHint" | transloco }}
-            <a
-              (click)="close()"
-              class="underline"
-              routerLink="/dashboard/torneos"
-              >{{ "matches.config.durationLink" | transloco }}</a
-            >.
+            >{{ "matches.config.durationHint" | transloco }}
           </p>
         </div>
       } @else if (!loading()) {
@@ -570,7 +585,7 @@
         </h3>
         <button
           (click)="calculate()"
-          [disabled]="!valid() || calculating()"
+          [disabled]="!valid() || calculating() || !changedSinceCalculated()"
           [attr.aria-label]="'matches.config.capacity.calculate' | transloco"
           [matTooltip]="'matches.config.capacity.calculate' | transloco"
           class="app-action-primary"
@@ -580,7 +595,7 @@
           <mat-icon svgIcon="mat:refresh" />
         </button>
       </div>
-      @if (capacity()?.matchdays?.length) {
+      @if (!data.playoffs && capacity()?.matchdays?.length) {
         <p class="m-0 text-xs text-secondary">
           {{ "matches.config.capacity.savedHint" | transloco }}
         </p>
@@ -648,7 +663,9 @@
           </div>
         }
 
-        @if (!capacity.matchdays.length) {
+        @if (data.playoffs) {
+          <!-- the capacity of the playoffs' rounds is below -->
+        } @else if (!capacity.matchdays.length) {
           <p class="m-0 text-sm text-secondary">
             {{ "matches.config.capacity.noCalendar" | transloco }}
           </p>
@@ -801,8 +818,8 @@
           }
         }
 
-        @if (capacity.playoff_rounds?.length) {
-          <h4 class="m-0 mt-4 mb-1 text-sm font-medium">
+        @if (data.playoffs || capacity.playoff_rounds?.length) {
+          <h4 class="m-0 mb-1 text-sm font-medium">
             {{ "matches.config.capacity.playoffs" | transloco }}
           </h4>
 
@@ -819,52 +836,58 @@
             </div>
           }
 
-          <table class="w-full text-sm text-left">
-            <thead>
-              <tr class="border-b">
-                <th class="py-2 pr-3 font-medium">
-                  {{ "matches.assign.round" | transloco }}
-                </th>
-                <th class="py-2 pr-3 font-medium">
-                  {{ "matches.assign.date" | transloco }}
-                </th>
-                <th class="py-2 pr-3 font-medium">
-                  {{ "matches.assign.matches" | transloco }}
-                </th>
-                <th class="py-2 pr-3 font-medium">
-                  {{ "matches.config.capacity.slots" | transloco }}
-                </th>
-                <th class="py-2 font-medium">
-                  {{ "matches.config.capacity.deficit" | transloco }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (round of capacity.playoff_rounds; track $index) {
+          @if (!capacity.playoff_rounds?.length) {
+            <p class="m-0 text-sm text-secondary">
+              {{ "matches.config.capacity.playoffsNoDates" | transloco }}
+            </p>
+          } @else {
+            <table class="w-full text-sm text-left">
+              <thead>
                 <tr class="border-b">
-                  <td class="py-2 pr-3 font-medium">
-                    {{ playoffRoundName(round) }}
-                  </td>
-                  <td class="py-2 pr-3 whitespace-nowrap">
-                    {{ parseDate(round.date) | date: "dd/MM/yyyy" }}
-                  </td>
-                  <td class="py-2 pr-3">{{ round.matches_required }}</td>
-                  <td class="py-2 pr-3">{{ round.slots_available }}</td>
-                  <td
-                    [class]="
-                      round.deficit > 0
-                        ? 'py-2 font-medium text-amber-800 dark:text-amber-400'
-                        : round.deficit === 0
-                          ? 'py-2 font-medium text-green-800 dark:text-green-400'
-                          : 'py-2'
-                    "
-                  >
-                    {{ round.deficit }}
-                  </td>
+                  <th class="py-2 pr-3 font-medium">
+                    {{ "matches.assign.round" | transloco }}
+                  </th>
+                  <th class="py-2 pr-3 font-medium">
+                    {{ "matches.assign.date" | transloco }}
+                  </th>
+                  <th class="py-2 pr-3 font-medium">
+                    {{ "matches.assign.matches" | transloco }}
+                  </th>
+                  <th class="py-2 pr-3 font-medium">
+                    {{ "matches.config.capacity.slots" | transloco }}
+                  </th>
+                  <th class="py-2 font-medium">
+                    {{ "matches.config.capacity.deficit" | transloco }}
+                  </th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (round of capacity.playoff_rounds; track $index) {
+                  <tr class="border-b">
+                    <td class="py-2 pr-3 font-medium">
+                      {{ playoffRoundName(round) }}
+                    </td>
+                    <td class="py-2 pr-3 whitespace-nowrap">
+                      {{ parseDate(round.date) | date: "dd/MM/yyyy" }}
+                    </td>
+                    <td class="py-2 pr-3">{{ round.matches_required }}</td>
+                    <td class="py-2 pr-3">{{ round.slots_available }}</td>
+                    <td
+                      [class]="
+                        round.deficit > 0
+                          ? 'py-2 font-medium text-amber-800 dark:text-amber-400'
+                          : round.deficit === 0
+                            ? 'py-2 font-medium text-green-800 dark:text-green-400'
+                            : 'py-2'
+                      "
+                    >
+                      {{ round.deficit }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
         }
       }
     </section>
