@@ -42,7 +42,6 @@
     "registrations": "Inscripciones",
     "groups": "Grupos",
     "schedule": "Calendario",
-    "agenda": "Agenda",
     "statistics": "Estadísticas",
     "rosters": "Plantillas",
     "players": "Jugadores",
@@ -648,9 +647,6 @@
       "confirm": "Autorizar"
     }
   },
-  "agenda": {
-    "title": "Agenda"
-  },
   "statistics": {
     "title": "Estadísticas",
     "pickTournament": "Selecciona un torneo para consultar sus estadísticas.",
@@ -663,7 +659,7 @@
     "tournament": "Torneo",
     "pickTournament": "Selecciona un torneo para consultar su calendario.",
     "onlyInProgress": "Solo se muestran torneos en curso.",
-    "noTournaments": "Esta liga aún no tiene torneos.",
+    "noTournaments": "No hay torneos en curso ni en liguilla en esta liga.",
     "planning": "Inicia el torneo para generar el calendario.",
     "empty": "Este torneo aún no tiene calendario.",
     "error": "No pudimos cargar el calendario.",
@@ -685,7 +681,7 @@
     "rescheduled": "Reprogramado",
     "rescheduledHint": "Antes: {{slot}}",
     "program": {
-      "action": "Programar",
+      "action": "Programar partido",
       "title": "Programar partido",
       "date": "Fecha",
       "time": "Hora",
@@ -751,6 +747,18 @@
       "noField": "Sin cancha",
       "noReferee": "Solo sin árbitro",
       "unscheduled": "{{count}} partidos sin horario",
+      "unscheduledOne": "1 partido sin horario",
+      "global": "Global: {{home}} - {{away}}",
+      "penalties": "Penales: {{home}} - {{away}}",
+      "pendingTitle": "Partidos pendientes de programar",
+      "columns": {
+        "time": "Hora",
+        "match": "Partido",
+        "tournament": "Torneo",
+        "phase": "Fase",
+        "field": "Cancha",
+        "referee": "Árbitro"
+      },
       "openCalendar": "Ver calendario",
       "open": "Programar {{match}}",
       "empty": "No hay partidos programados para este periodo.",
@@ -822,8 +830,9 @@
       "slot": "Día, hora y cancha"
     },
     "tabs": {
-      "agenda": "Agenda",
       "schedule": "Fase regular",
+      "byTournament": "Por torneo",
+      "agenda": "Agenda de la liga",
       "standings": "Tabla de posiciones",
       "playoffs": "Liguilla"
     },
@@ -1074,8 +1083,9 @@
         "calculate": "Calcular capacidad",
         "savedHint": "Calcula la capacidad para revisar tus cambios antes de guardarlos.",
         "error": "No pudimos calcular la capacidad.",
-        "lockedOutsideOne": "1 partido fijado a mano está fuera de los horarios configurados.",
-        "lockedOutsideMany": "{{count}} partidos fijados a mano están fuera de los horarios configurados.",
+        "lockedOutsideOne": "1 partido con horario fijo no coinciden con los horarios configurados.",
+        "lockedOutsideMany": "{{count}} partidos con horario fijo no coinciden con los horarios configurados.",
+        "lockedOutsideHint": "Estos partidos conservarán su horario al asignar o regenerar el calendario. Puedes modificar su programación o ajustar los horarios configurados.",
         "outdated": "Algunos horarios ya no coinciden con la configuración; vuelve a asignarlos.",
         "weekColumn": "Días de juego",
         "matchday": "Jornada",

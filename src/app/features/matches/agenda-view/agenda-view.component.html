@@ -24,7 +24,7 @@
   <button (click)="today()" mat-stroked-button type="button">
     {{ "matches.agenda.today" | transloco }}
   </button>
-  <mat-form-field class="w-44">
+  <mat-form-field class="w-44 [&_.mat-mdc-form-field-subscript-wrapper]:hidden">
     <mat-label>{{ "matches.agenda.date" | transloco }}</mat-label>
     <input
       (dateChange)="setAnchor($event.value)"
@@ -39,8 +39,6 @@
     />
     <mat-datepicker #picker />
   </mat-form-field>
-  <span class="font-medium">{{ rangeLabel() }}</span>
-
   <mat-button-toggle-group
     (change)="view.set($event.value)"
     [aria-label]="'matches.agenda.view' | transloco"
@@ -55,6 +53,8 @@
     }}</mat-button-toggle>
   </mat-button-toggle-group>
 </div>
+
+<p class="m-0 mb-4 font-medium">{{ rangeLabel() }}</p>
 
 <div class="flex flex-wrap items-start gap-3">
   <mat-form-field class="w-56">
@@ -103,18 +103,36 @@
   </mat-checkbox>
 </div>
 
-@for (item of unscheduled(); track item.id) {
-  <p class="m-0 mb-2 text-sm flex flex-wrap items-center gap-2">
-    <span class="font-medium">{{ item.name }}:</span>
-    {{ "matches.agenda.unscheduled" | transloco: { count: item.count } }}
-    <button
-      (click)="openCalendar.emit(item.id)"
-      class="underline text-primary-600 cursor-pointer bg-transparent border-0 p-0"
-      type="button"
-    >
-      {{ "matches.agenda.openCalendar" | transloco }}
-    </button>
-  </p>
+@if (unscheduled().length) {
+  <section class="mb-4 rounded border">
+    <h3 class="m-0 flex items-center gap-2 px-4 py-3 text-sm font-medium">
+      <mat-icon class="!size-5 !text-xl" svgIcon="mat:pending_actions" />
+      {{ "matches.agenda.pendingTitle" | transloco }}
+    </h3>
+    @for (item of unscheduled(); track item.id) {
+      <div class="flex items-center justify-between gap-3 border-t px-4 py-3">
+        <div class="min-w-0">
+          <p class="m-0 truncate font-medium">{{ item.name }}</p>
+          <p class="m-0 text-sm text-secondary">
+            {{
+              (item.count === 1
+                ? "matches.agenda.unscheduledOne"
+                : "matches.agenda.unscheduled"
+              ) | transloco: { count: item.count }
+            }}
+          </p>
+        </div>
+        <button
+          (click)="openCalendar.emit(item.id)"
+          class="shrink-0"
+          mat-button
+          type="button"
+        >
+          {{ "matches.agenda.openCalendar" | transloco }}
+        </button>
+      </div>
+    }
+  </section>
 }
 
 <mat-progress-bar
@@ -129,7 +147,9 @@
       {{ "common.retry" | transloco }}
     </button>
   </div>
-} @else if (resource.hasValue() && !matches().length) {
+} @else if (!resource.hasValue()) {
+  <!-- Asking for a date: only the progress bar shows, so neither the grid nor the empty message appear before the data -->
+} @else if (!matches().length) {
   <p class="py-10 px-6 text-center text-secondary">
     {{ "matches.agenda.empty" | transloco }}
   </p>
@@ -149,7 +169,7 @@
         </div>
       </div>
       @for (column of columns(); track column.id) {
-        <div class="w-56 shrink-0 border-l">
+        <div class="w-72 shrink-0 border-l">
           <div class="h-8 px-2 flex items-center text-sm font-medium truncate">
             {{ column.name || ("matches.agenda.noField" | transloco) }}
           </div>
@@ -162,10 +182,7 @@
             }
             @for (match of columnMatches(column.id); track match.id) {
               <ng-container
-                *ngTemplateOutlet="
-                  card;
-                  context: { $implicit: match, absolute: true }
-                "
+                *ngTemplateOutlet="card; context: { $implicit: match }"
               />
             }
           </div>
@@ -175,28 +192,152 @@
   </div>
 } @else {
   @for (day of days(); track day.date) {
-    <section class="mb-4">
-      <h3 class="m-0 mb-1 text-sm font-medium">
+    <section class="mb-4 rounded border">
+      <h3 class="m-0 px-4 pt-3 text-sm font-medium">
         {{ weekdayName(day.date) }}
         {{ parseDate(day.date) | date: "dd/MM/yyyy" }}
       </h3>
-      <ul class="m-0 p-0 list-none border rounded">
-        @for (match of day.matches; track match.id) {
-          <li class="border-b last:border-b-0">
-            <ng-container
-              *ngTemplateOutlet="
-                card;
-                context: { $implicit: match, absolute: false }
-              "
-            />
-          </li>
-        }
-      </ul>
+      <table class="w-full table-fixed border-collapse text-left text-sm">
+        <colgroup>
+          <col class="w-[10%]" />
+          <col class="w-[25%]" />
+          <col class="w-[19%]" />
+          <col class="w-[14%]" />
+          <col class="w-[12%]" />
+          <col class="w-[20%]" />
+        </colgroup>
+        <thead>
+          <tr class="text-xs text-secondary">
+            <th class="pb-2 pl-4 pr-4 pt-3 font-normal" scope="col">
+              {{ "matches.agenda.columns.time" | transloco }}
+            </th>
+            <th class="pb-2 pr-4 pt-3 font-normal" scope="col">
+              {{ "matches.agenda.columns.match" | transloco }}
+            </th>
+            <th class="pb-2 pr-4 pt-3 font-normal" scope="col">
+              {{ "matches.agenda.columns.tournament" | transloco }}
+            </th>
+            <th class="pb-2 pr-4 pt-3 font-normal" scope="col">
+              {{ "matches.agenda.columns.phase" | transloco }}
+            </th>
+            <th class="pb-2 pr-4 pt-3 font-normal" scope="col">
+              {{ "matches.agenda.columns.field" | transloco }}
+            </th>
+            <th class="pb-2 pr-4 pt-3 font-normal" scope="col">
+              {{ "matches.agenda.columns.referee" | transloco }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (match of day.matches; track match.id) {
+            <!-- The whole row is the click target: the match's button stretches over it -->
+            <tr
+              class="relative border-t transition-colors has-[button:enabled]:hover:bg-primary-600/10"
+            >
+              <td class="py-3 pl-4 pr-4 align-top">
+                <span class="flex items-center gap-1">
+                  {{ time(match) }}
+                  @if (match.schedule_locked) {
+                    <mat-icon class="!w-3 !h-3" svgIcon="mat:lock" />
+                  }
+                </span>
+              </td>
+              <td class="py-3 pr-4 align-top font-medium">
+                <button
+                  (click)="program(match)"
+                  [attr.aria-label]="
+                    'matches.agenda.open'
+                      | transloco
+                        : {
+                            match:
+                              (match.home_team ?? '—') +
+                              ' vs ' +
+                              (match.away_team ?? '—'),
+                          }
+                  "
+                  [disabled]="!canProgram(match)"
+                  class="m-0 border-0 bg-transparent p-0 text-left font-medium text-inherit enabled:cursor-pointer after:absolute after:inset-0 after:content-['']"
+                  type="button"
+                >
+                  @if (hasScore(match)) {
+                    <span class="flex items-center gap-2">
+                      <span [class]="resultClass(match, 'home')">{{
+                        match.home_team ?? "—"
+                      }}</span>
+                      <span class="shrink-0 text-center">
+                        <span class="block">
+                          <span [class]="scoreClass(match, 'home')">{{
+                            match.home_score
+                          }}</span>
+                          -
+                          <span [class]="scoreClass(match, 'away')">{{
+                            match.away_score
+                          }}</span>
+                        </span>
+                        @if (hasGlobal(match)) {
+                          <span
+                            class="block text-xs font-normal text-secondary"
+                          >
+                            {{
+                              "matches.agenda.global"
+                                | transloco
+                                  : {
+                                      home: match.global_home,
+                                      away: match.global_away,
+                                    }
+                            }}
+                          </span>
+                        }
+                        @if (hasShootout(match)) {
+                          <span
+                            class="block text-xs font-normal text-secondary"
+                          >
+                            {{
+                              "matches.agenda.penalties"
+                                | transloco
+                                  : {
+                                      home: match.home_penalties,
+                                      away: match.away_penalties,
+                                    }
+                            }}
+                          </span>
+                        }
+                      </span>
+                      <span [class]="resultClass(match, 'away')">{{
+                        match.away_team ?? "—"
+                      }}</span>
+                    </span>
+                  } @else {
+                    {{ match.home_team ?? "—" }} vs {{ match.away_team ?? "—" }}
+                  }
+                </button>
+              </td>
+              <td class="py-3 pr-4 align-top">{{ match.tournament.name }}</td>
+              <td class="py-3 pr-4 align-top">{{ match.round_label }}</td>
+              <td class="py-3 pr-4 align-top">
+                {{
+                  match.field?.name ?? ("matches.agenda.noField" | transloco)
+                }}
+              </td>
+              <td
+                [class.opacity-60]="!match.referee"
+                class="py-3 pr-4 align-top"
+              >
+                {{
+                  match.referee
+                    ? (match.referee.name ?? "—")
+                    : ("matches.noReferee" | transloco)
+                }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
   }
 }
 
-<ng-template #card let-match let-absolute="absolute">
+<ng-template #card let-match>
   <button
     (click)="program(match)"
     [attr.aria-label]="
@@ -208,28 +349,57 @@
             }
     "
     [disabled]="!canProgram(match)"
-    [style.height.px]="absolute ? box(match).height : null"
-    [style.top.px]="absolute ? box(match).top : null"
+    [style.height.px]="box(match).height"
+    [style.top.px]="box(match).top"
     [class]="
-      (absolute
-        ? 'absolute left-1 right-1 overflow-hidden rounded border px-2 py-1 bg-primary-600/10 border-primary-600/40 '
-        : 'flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 ') +
-      'text-left text-xs bg-transparent enabled:cursor-pointer'
+      match.status === 'played'
+        ? 'border-gray-300 dark:border-gray-600'
+        : 'border-primary-600/40'
     "
+    class="absolute left-1 right-1 overflow-hidden rounded border bg-transparent px-2 py-1 text-left text-xs transition-colors enabled:cursor-pointer enabled:hover:bg-primary-600/10"
     type="button"
   >
     <span class="block truncate font-medium">
-      {{ time(match) }} · {{ match.home_team ?? "—" }} vs
-      {{ match.away_team ?? "—" }}
+      {{ time(match) }} ·
+      @if (hasScore(match)) {
+        <span class="mr-1" [class]="resultClass(match, 'home')">{{
+          match.home_team ?? "—"
+        }}</span>
+        <span [class]="scoreClass(match, 'home')">{{ match.home_score }}</span>
+        -
+        <span [class]="scoreClass(match, 'away')">{{ match.away_score }}</span>
+        <span class="ml-1" [class]="resultClass(match, 'away')">{{
+          match.away_team ?? "—"
+        }}</span>
+      } @else {
+        {{ match.home_team ?? "—" }} vs {{ match.away_team ?? "—" }}
+      }
       @if (match.schedule_locked) {
         <mat-icon class="!w-3 !h-3 align-middle" svgIcon="mat:lock" />
       }
     </span>
+    @if (hasScore(match) && (hasGlobal(match) || hasShootout(match))) {
+      <span class="block truncate text-secondary">
+        @if (hasGlobal(match)) {
+          {{
+            "matches.agenda.global"
+              | transloco: { home: match.global_home, away: match.global_away }
+          }}
+        }
+        @if (hasGlobal(match) && hasShootout(match)) {
+          ·
+        }
+        @if (hasShootout(match)) {
+          {{
+            "matches.agenda.penalties"
+              | transloco
+                : { home: match.home_penalties, away: match.away_penalties }
+          }}
+        }
+      </span>
+    }
     <span class="block truncate text-secondary">
       {{ match.tournament.name }} · {{ match.round_label }}
-      @if (!absolute) {
-        · {{ match.field?.name ?? ("matches.agenda.noField" | transloco) }}
-      }
     </span>
     <span [class.opacity-60]="!match.referee" class="block truncate">
       {{

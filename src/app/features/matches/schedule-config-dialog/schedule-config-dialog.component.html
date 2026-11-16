@@ -631,7 +631,13 @@
             class="flex items-center gap-3 p-3 rounded border border-gray-400 bg-gray-100 text-gray-800 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
             role="status"
           >
-            <mat-icon class="shrink-0" svgIcon="mat:info" />
+            <mat-icon
+              [matTooltip]="
+                'matches.config.capacity.lockedOutsideHint' | transloco
+              "
+              class="shrink-0 cursor-help"
+              svgIcon="mat:info"
+            />
             <p class="m-0 text-sm">
               {{
                 (capacity.locked_outside_schedule === 1

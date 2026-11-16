@@ -38,13 +38,10 @@ export const tournamentsRoutes: Routes = [
       ),
   },
   {
+    // The league agenda lives in the calendar now: old links land there
     path: "agenda",
-    title: "agenda.title",
-    canActivate: [capabilityGuard("groups.manage")],
-    loadComponent: () =>
-      import("../matches/agenda-page/agenda-page.component").then(
-        (m) => m.AgendaPageComponent,
-      ),
+    redirectTo: "calendario",
+    pathMatch: "full",
   },
   {
     path: "estadisticas",

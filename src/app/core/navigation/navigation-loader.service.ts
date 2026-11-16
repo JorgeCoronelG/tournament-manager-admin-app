@@ -84,12 +84,6 @@ const NAVIGATION: NavigationItem[] = [
           },
           {
             type: "link",
-            label: "nav.agenda",
-            route: "/dashboard/torneos/agenda",
-            capability: "groups.manage",
-          },
-          {
-            type: "link",
             label: "nav.statistics",
             route: "/dashboard/torneos/estadisticas",
             capability: "groups.manage",

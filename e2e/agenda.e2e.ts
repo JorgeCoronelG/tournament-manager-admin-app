@@ -42,7 +42,8 @@ async function open(page: Page, options: AgendaApiOptions = {}) {
   await mockFieldsApi(page, { fields: makeFields(2) });
   await mockRefereesApi(page, { referees: [] });
   const api = await mockAgendaApi(page, options);
-  await gotoApp(page, "/dashboard/torneos/agenda");
+  await gotoApp(page, "/dashboard/torneos/calendario");
+  await page.getByRole("tab", { name: "Agenda de la liga" }).click();
 
   return api;
 }
@@ -68,7 +69,10 @@ test.describe("agenda", () => {
 
     // The notice's link opens that tournament's calendar
     await page.getByRole("button", { name: "Ver calendario" }).first().click();
-    await expect(page).toHaveURL(/\/torneos\/calendario\?torneo=\d+$/);
+    await expect(page.getByRole("tab", { name: "Por torneo" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   test("filters by field and by matches without a referee", async ({

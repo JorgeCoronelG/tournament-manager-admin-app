@@ -13,6 +13,17 @@ export interface AgendaMatch {
   field: { id: number; name: string | null } | null;
   referee: { id: number; name: string | null } | null;
   status: "scheduled" | "played" | "cancelled";
+  /** Result, once the match was played (null before) */
+  home_score?: number | null;
+  away_score?: number | null;
+  /** Shootout, only when a playoff match ended level */
+  home_penalties?: number | null;
+  away_penalties?: number | null;
+  /** 1 or 2 in a two-leg playoff tie, null otherwise */
+  leg?: 1 | 2 | null;
+  /** Both legs added up, only on a played second leg */
+  global_home?: number | null;
+  global_away?: number | null;
   schedule_locked: boolean;
 }
 

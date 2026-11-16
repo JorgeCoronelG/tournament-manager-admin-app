@@ -5,6 +5,7 @@ import {
   computed,
   ElementRef,
   inject,
+  linkedSignal,
   input,
   output,
   signal,
@@ -94,9 +95,21 @@ export class AgendaViewComponent {
   readonly view = signal<"day" | "week">("day");
   readonly anchor = signal(new Date());
 
-  readonly tournament = signal<number | "">("");
-  readonly referee = signal<number | "">("");
-  readonly field = signal<number | "">("");
+  /** The league the filters belong to: changing it empties them, since their options are the league's */
+  private readonly leagueId = computed(() => this.league.activeLeague()?.id);
+
+  readonly tournament = linkedSignal<number | undefined, number | "">({
+    source: this.leagueId,
+    computation: () => "",
+  });
+  readonly referee = linkedSignal<number | undefined, number | "">({
+    source: this.leagueId,
+    computation: () => "",
+  });
+  readonly field = linkedSignal<number | undefined, number | "">({
+    source: this.leagueId,
+    computation: () => "",
+  });
   readonly noReferee = signal(false);
 
   private readonly refereesQuery = signal<RefereesQuery>({
@@ -212,15 +225,13 @@ export class AgendaViewComponent {
       })),
   );
 
-  /** "Sáb 07/11" or "07/11 - 13/11" */
+  /** "Domingo 15 de noviembre", or "Lunes 9 de noviembre - Domingo 15 de noviembre" for a week */
   readonly rangeLabel = computed(() => {
     const { from, to } = this.range();
     const text = (date: Date) =>
-      `${this.transloco
-        .translate(`matches.config.weekdays.${((date.getDay() + 6) % 7) + 1}`)
-        .slice(0, 3)} ${String(date.getDate()).padStart(2, "0")}/${String(
-        date.getMonth() + 1,
-      ).padStart(2, "0")}`;
+      `${this.transloco.translate(
+        `matches.config.weekdays.${((date.getDay() + 6) % 7) + 1}`,
+      )} ${date.getDate()} de ${date.toLocaleDateString("es", { month: "long" })}`;
 
     return this.view() === "day" ? text(from) : `${text(from)} - ${text(to)}`;
   });
@@ -272,6 +283,75 @@ export class AgendaViewComponent {
   }
 
   /** Only a match not played, of a tournament that is still being scheduled, can be moved */
+  /** The match was played and the backend sent its score */
+  hasScore(match: AgendaMatch): boolean {
+    return (
+      match.status === "played" &&
+      typeof match.home_score === "number" &&
+      typeof match.away_score === "number"
+    );
+  }
+
+  /**
+   * Bold for the winner and gray for the loser; both plain when there is none:
+   * a draw, or the first leg of a two-leg tie (the tie is decided in the second)
+   */
+  resultClass(match: AgendaMatch, side: "home" | "away"): string {
+    const plain = "font-medium";
+
+    if (!this.hasScore(match) || match.leg === 1) {
+      return plain;
+    }
+
+    let home: number | null | undefined = match.home_score;
+    let away: number | null | undefined = match.away_score;
+
+    if (match.leg === 2) {
+      // The tie goes by the global score
+      home = match.global_home;
+      away = match.global_away;
+    }
+
+    if (this.hasShootout(match)) {
+      home = match.home_penalties;
+      away = match.away_penalties;
+    }
+
+    if (typeof home !== "number" || typeof away !== "number" || home === away) {
+      return plain;
+    }
+
+    const won = side === "home" ? home > away : away > home;
+
+    return won ? "font-bold" : "font-medium text-gray-400 dark:text-gray-500";
+  }
+
+  /** The goals: in bold on a draw and in a two-leg tie, where one leg alone does not decide */
+  scoreClass(match: AgendaMatch, side: "home" | "away"): string {
+    return match.leg || match.home_score === match.away_score
+      ? "font-bold"
+      : this.resultClass(
+          { ...match, home_penalties: null, away_penalties: null },
+          side,
+        );
+  }
+
+  /** A played second leg, with both legs added up */
+  hasGlobal(match: AgendaMatch): boolean {
+    return (
+      typeof match.global_home === "number" &&
+      typeof match.global_away === "number"
+    );
+  }
+
+  /** The match was decided by a shootout */
+  hasShootout(match: AgendaMatch): boolean {
+    return (
+      typeof match.home_penalties === "number" &&
+      typeof match.away_penalties === "number"
+    );
+  }
+
   canProgram(match: AgendaMatch): boolean {
     return (
       match.status === "scheduled" &&

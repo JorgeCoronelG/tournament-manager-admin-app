@@ -40,6 +40,7 @@ import {
   AssignScheduleDialogComponent,
   AssignScheduleDialogData,
 } from "../assign-schedule-dialog/assign-schedule-dialog.component";
+import { AgendaViewComponent } from "../agenda-view/agenda-view.component";
 import { ScheduleApi } from "../schedule.api";
 import { ScheduleConfigApi } from "../schedule-config.api";
 import { datesRange, slotLabel } from "../schedule.model";
@@ -89,6 +90,7 @@ const OPEN_ALL_UP_TO = 4;
   templateUrl: "./matches-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AgendaViewComponent,
     AppBreadcrumbsComponent,
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
@@ -401,6 +403,15 @@ export class MatchesPageComponent {
     this.transloco.translate("nav.tournaments"),
     this.transloco.translate("nav.schedule"),
   ]);
+
+  /** The top tab: "Por torneo" (0) or the league's agenda (1) */
+  readonly selectedMain = signal(0);
+
+  /** A tournament's link in the agenda: its calendar opens in "Por torneo" */
+  openCalendar(tournamentId: number): void {
+    this.picker.set({ tournament: tournamentId });
+    this.selectedMain.set(0);
+  }
 
   /** The section tab: the calendar, or the bracket (only once the playoffs started) */
   readonly selectedSection = signal(0);
