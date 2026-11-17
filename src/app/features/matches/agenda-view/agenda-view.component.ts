@@ -323,7 +323,7 @@ export class AgendaViewComponent {
 
     const won = side === "home" ? home > away : away > home;
 
-    return won ? "font-bold" : "font-medium text-gray-400 dark:text-gray-500";
+    return won ? "font-bold" : "font-medium text-gray-500 dark:text-gray-400";
   }
 
   /** The goals: in bold on a draw and in a two-leg tie, where one leg alone does not decide */

@@ -169,7 +169,7 @@
         </div>
       </div>
       @for (column of columns(); track column.id) {
-        <div class="w-72 shrink-0 border-l">
+        <div class="w-80 shrink-0 border-l">
           <div class="h-8 px-2 flex items-center text-sm font-medium truncate">
             {{ column.name || ("matches.agenda.noField" | transloco) }}
           </div>
@@ -200,17 +200,19 @@
       <table class="w-full table-fixed border-collapse text-left text-sm">
         <colgroup>
           <col class="w-[10%]" />
-          <col class="w-[25%]" />
+          <col class="w-[3%]" />
+          <col class="w-[24%]" />
           <col class="w-[19%]" />
           <col class="w-[14%]" />
-          <col class="w-[12%]" />
-          <col class="w-[20%]" />
+          <col class="w-[11%]" />
+          <col class="w-[19%]" />
         </colgroup>
         <thead>
           <tr class="text-xs text-secondary">
             <th class="pb-2 pl-4 pr-4 pt-3 font-normal" scope="col">
               {{ "matches.agenda.columns.time" | transloco }}
             </th>
+            <th class="pb-2 pt-3 font-normal" scope="col"></th>
             <th class="pb-2 pr-4 pt-3 font-normal" scope="col">
               {{ "matches.agenda.columns.match" | transloco }}
             </th>
@@ -235,12 +237,27 @@
               class="relative border-t transition-colors has-[button:enabled]:hover:bg-primary-600/10"
             >
               <td class="py-3 pl-4 pr-4 align-top">
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1 whitespace-nowrap">
                   {{ time(match) }}
                   @if (match.schedule_locked) {
                     <mat-icon class="!w-3 !h-3" svgIcon="mat:lock" />
                   }
                 </span>
+              </td>
+              <td class="py-3 align-top">
+                @if (match.status === "played") {
+                  <span
+                    class="flex size-4 items-center justify-center rounded-full bg-green-600 text-white"
+                  >
+                    <mat-icon class="!size-3" svgIcon="mat:check" />
+                  </span>
+                } @else if (canProgram(match)) {
+                  <span
+                    class="flex size-4 items-center justify-center text-primary-600"
+                  >
+                    <mat-icon class="!size-4" svgIcon="mat:calendar_month" />
+                  </span>
+                }
               </td>
               <td class="py-3 pr-4 align-top font-medium">
                 <button
@@ -338,75 +355,98 @@
 }
 
 <ng-template #card let-match>
-  <button
-    (click)="program(match)"
-    [attr.aria-label]="
-      'matches.agenda.open'
-        | transloco
-          : {
-              match:
-                (match.home_team ?? '—') + ' vs ' + (match.away_team ?? '—'),
-            }
-    "
-    [disabled]="!canProgram(match)"
+  <div
     [style.height.px]="box(match).height"
     [style.top.px]="box(match).top"
-    [class]="
-      match.status === 'played'
-        ? 'border-gray-300 dark:border-gray-600'
-        : 'border-primary-600/40'
-    "
-    class="absolute left-1 right-1 overflow-hidden rounded border bg-transparent px-2 py-1 text-left text-xs transition-colors enabled:cursor-pointer enabled:hover:bg-primary-600/10"
-    type="button"
+    class="absolute left-1 right-1"
   >
-    <span class="block truncate font-medium">
-      {{ time(match) }} ·
-      @if (hasScore(match)) {
-        <span class="mr-1" [class]="resultClass(match, 'home')">{{
-          match.home_team ?? "—"
-        }}</span>
-        <span [class]="scoreClass(match, 'home')">{{ match.home_score }}</span>
-        -
-        <span [class]="scoreClass(match, 'away')">{{ match.away_score }}</span>
-        <span class="ml-1" [class]="resultClass(match, 'away')">{{
-          match.away_team ?? "—"
-        }}</span>
-      } @else {
-        {{ match.home_team ?? "—" }} vs {{ match.away_team ?? "—" }}
-      }
-      @if (match.schedule_locked) {
-        <mat-icon class="!w-3 !h-3 align-middle" svgIcon="mat:lock" />
-      }
-    </span>
-    @if (hasScore(match) && (hasGlobal(match) || hasShootout(match))) {
-      <span class="block truncate text-secondary">
-        @if (hasGlobal(match)) {
-          {{
-            "matches.agenda.global"
-              | transloco: { home: match.global_home, away: match.global_away }
-          }}
+    <button
+      (click)="program(match)"
+      [attr.aria-label]="
+        'matches.agenda.open'
+          | transloco
+            : {
+                match:
+                  (match.home_team ?? '—') + ' vs ' + (match.away_team ?? '—'),
+              }
+      "
+      [disabled]="!canProgram(match)"
+      [class]="
+        match.status === 'played'
+          ? 'border-gray-300 dark:border-gray-600'
+          : 'border-primary-600/40'
+      "
+      class="absolute inset-0 overflow-hidden rounded border bg-transparent py-1 pl-2 pr-9 text-left text-xs transition-colors enabled:cursor-pointer enabled:hover:bg-primary-600/10"
+      type="button"
+    >
+      <span class="block truncate font-medium">
+        {{ time(match) }} ·
+        @if (hasScore(match)) {
+          <span class="mr-1" [class]="resultClass(match, 'home')">{{
+            match.home_team ?? "—"
+          }}</span>
+          <span [class]="scoreClass(match, 'home')">{{
+            match.home_score
+          }}</span>
+          -
+          <span [class]="scoreClass(match, 'away')">{{
+            match.away_score
+          }}</span>
+          <span class="ml-1" [class]="resultClass(match, 'away')">{{
+            match.away_team ?? "—"
+          }}</span>
+        } @else {
+          {{ match.home_team ?? "—" }} vs {{ match.away_team ?? "—" }}
         }
-        @if (hasGlobal(match) && hasShootout(match)) {
-          ·
-        }
-        @if (hasShootout(match)) {
-          {{
-            "matches.agenda.penalties"
-              | transloco
-                : { home: match.home_penalties, away: match.away_penalties }
-          }}
+        @if (match.schedule_locked) {
+          <mat-icon class="!w-3 !h-3 align-middle" svgIcon="mat:lock" />
         }
       </span>
+      @if (hasScore(match) && (hasGlobal(match) || hasShootout(match))) {
+        <span class="block truncate text-secondary">
+          @if (hasGlobal(match)) {
+            {{
+              "matches.agenda.global"
+                | transloco
+                  : { home: match.global_home, away: match.global_away }
+            }}
+          }
+          @if (hasGlobal(match) && hasShootout(match)) {
+            ·
+          }
+          @if (hasShootout(match)) {
+            {{
+              "matches.agenda.penalties"
+                | transloco
+                  : { home: match.home_penalties, away: match.away_penalties }
+            }}
+          }
+        </span>
+      }
+      <span class="block truncate text-secondary">
+        {{ match.tournament.name }} · {{ match.round_label }}
+      </span>
+      <span [class.opacity-60]="!match.referee" class="block truncate">
+        {{
+          match.referee
+            ? ("matches.referee"
+              | transloco: { name: match.referee.name ?? "—" })
+            : ("matches.noReferee" | transloco)
+        }}
+      </span>
+    </button>
+    @if (match.status === "played") {
+      <span
+        class="pointer-events-none absolute right-2 top-2.5 flex size-4 items-center justify-center rounded-full bg-green-600 text-white"
+      >
+        <mat-icon class="!size-3" svgIcon="mat:check" />
+      </span>
+    } @else if (canProgram(match)) {
+      <span
+        class="pointer-events-none absolute right-2 top-1.5 flex size-6 items-center justify-center rounded-full text-primary-600"
+      >
+        <mat-icon class="!size-4" svgIcon="mat:calendar_month" />
+      </span>
     }
-    <span class="block truncate text-secondary">
-      {{ match.tournament.name }} · {{ match.round_label }}
-    </span>
-    <span [class.opacity-60]="!match.referee" class="block truncate">
-      {{
-        match.referee
-          ? ("matches.referee" | transloco: { name: match.referee.name ?? "—" })
-          : ("matches.noReferee" | transloco)
-      }}
-    </span>
-  </button>
+  </div>
 </ng-template>
