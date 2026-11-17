@@ -13,16 +13,22 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTableModule } from "@angular/material/table";
 import { MatTabsModule } from "@angular/material/tabs";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
-import { StandingGroup, StandingRow } from "../match.model";
+import { StandingGroup, StandingPlayoff, StandingRow } from "../match.model";
+import { colorByPriority } from "./playoff-palette";
 import {
   TieOrderDialogComponent,
   TieOrderDialogData,
 } from "../tie-order-dialog/tie-order-dialog.component";
 import { StandingsApi } from "../standings.api";
+import { StandingsExportService } from "../standings-export/standings-export.service";
+import { buildImageData } from "../standings-export/standings-image.model";
 
 /** The tables of the regular phase, a tab per group; tied teams can be ordered by hand while it is open */
 @Component({
@@ -34,7 +40,9 @@ import { StandingsApi } from "../standings.api";
     MatButtonModule,
     MatIconModule,
     MatTableModule,
+    MatProgressSpinnerModule,
     MatTabsModule,
+    MatTooltipModule,
     NgTemplateOutlet,
     TranslocoPipe,
   ],
@@ -43,11 +51,17 @@ export class StandingsViewComponent {
   private readonly api = inject(StandingsApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly exporter = inject(StandingsExportService);
+  private readonly league = inject(LeagueContextService);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
   readonly tournamentId = input.required<number>();
+  /** For the exported image */
+  readonly tournamentName = input("");
   readonly groups = input.required<readonly StandingGroup[]>();
+  /** The playoffs the table feeds: they colour the teams that qualify */
+  readonly playoffs = input<readonly StandingPlayoff[]>([]);
   /** Only a tournament in progress lets the order of tied teams be set */
   readonly editable = input(false);
 
@@ -72,26 +86,91 @@ export class StandingsViewComponent {
 
   readonly selectedTab = signal(0);
 
-  /** The tiebreakers of a group, in order, as text: "Puntos, Diferencia de goles..." */
+  /** The image is being generated */
+  protected readonly exporting = signal(false);
+
+  /** The button shares the image (a phone) or downloads it (a desktop) */
+  protected readonly canShare = this.exporter.canShareFiles;
+
+  /** Generates the image of a group's table and shares or downloads it */
+  async exportImage(group: StandingGroup): Promise<void> {
+    if (this.exporting()) {
+      return;
+    }
+
+    this.exporting.set(true);
+
+    try {
+      const data = buildImageData({
+        leagueName: this.league.activeLeague()?.name ?? "",
+        tournamentName: this.tournamentName(),
+        group,
+        groupsCount: this.groups().length,
+        playoffs: this.playoffs(),
+        now: new Date(),
+        legendLabel: (playoff) => this.legendLabel(playoff),
+      });
+
+      await this.exporter.export(data, this.tournamentName(), data.groupName);
+    } catch {
+      this.snackbar.error(
+        this.transloco.translate("matches.standings.export.error"),
+      );
+    } finally {
+      this.exporting.set(false);
+    }
+  }
+
+  /** The playoffs by priority with their colour: the same in every group and theme */
+  protected readonly legend = computed(() => colorByPriority(this.playoffs()));
+
+  private readonly playoffsById = computed(
+    () => new Map(this.legend().map((item) => [item.playoff.id, item])),
+  );
+
+  /** The playoff a row qualifies to, with its colour */
+  qualifying(row: StandingRow) {
+    return row.playoff == null || row.playoff_pending
+      ? null
+      : (this.playoffsById().get(row.playoff.id) ?? null);
+  }
+
+  /** "Clasifica a Finales", or "Clasificación por definir" while a tie on the line decides it; empty otherwise */
+  qualifyHint(row: StandingRow): string {
+    if (row.playoff_pending) {
+      return this.transloco.translate("matches.standings.qualifyPending");
+    }
+
+    const qualified = this.qualifying(row);
+
+    return qualified
+      ? this.transloco.translate("matches.standings.qualifiesTo", {
+          name: qualified.playoff.name,
+        })
+      : "";
+  }
+
+  /** "Finales (1-2)": the positions text comes from the backend as it is */
+  legendLabel(playoff: StandingPlayoff): string {
+    return `${playoff.name} (${playoff.positions})`;
+  }
+
+  /** The tiebreakers of a group, in order, as text: "Puntos · Diferencia de goles..." */
   criteria(group: StandingGroup): string {
     return group.criteria
       .map((criterion) =>
         this.transloco.translate(`tournaments.tiebreaker.${criterion}`),
       )
-      .join(", ");
+      .join(" · ");
   }
 
-  /** Before any match is played everyone is level, which is nothing to resolve */
-  private started(group: StandingGroup): boolean {
-    return group.rows.some((row) => row.played > 0);
-  }
-
+  /** Ties only count once the group's regular matches are over: before that they can still resolve themselves */
   hasTies(group: StandingGroup): boolean {
-    return group.ties.length > 0 && this.started(group);
+    return group.ties_pending === true;
   }
 
   isTied(group: StandingGroup, row: StandingRow): boolean {
-    return row.tied && this.started(group);
+    return row.tied && this.hasTies(group);
   }
 
   hasManualOrder = (group: StandingGroup): boolean =>
@@ -113,6 +192,7 @@ export class StandingsViewComponent {
           key: row.registration_id,
           team_name: row.team_name,
           logo_url: row.logo_url,
+          position: row.position,
         })),
     );
 
@@ -121,9 +201,12 @@ export class StandingsViewComponent {
         TieOrderDialogComponent,
         {
           data: {
-            title: this.transloco.translate("matches.standings.order.title", {
-              group: group.group_name,
-            }),
+            // With a single group there is no name to tell apart
+            title: this.single()
+              ? this.transloco.translate("matches.standings.order.titleSingle")
+              : this.transloco.translate("matches.standings.order.title", {
+                  group: group.group_name,
+                }),
             sets,
             save: (ids) =>
               this.api.saveManualOrder(
@@ -132,6 +215,7 @@ export class StandingsViewComponent {
                 ids,
               ),
           },
+          autoFocus: "dialog",
           width: "460px",
           maxWidth: "95vw",
         },

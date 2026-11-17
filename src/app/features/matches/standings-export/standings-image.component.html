@@ -1,0 +1,125 @@
+<header
+  class="flex items-center gap-6 rounded-b-3xl bg-gradient-to-r from-indigo-950 via-indigo-900 to-indigo-700 px-14 py-8 text-white"
+>
+  <span
+    class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white/15"
+  >
+    <mat-icon class="!size-12 text-white" svgIcon="mat:emoji_events" />
+  </span>
+  <span class="h-16 w-px bg-white/40"></span>
+  <div class="min-w-0">
+    <p class="m-0 text-4xl font-bold">{{ data().leagueName }}</p>
+    <p class="m-0 mt-1 text-2xl text-indigo-100">{{ data().tournamentName }}</p>
+  </div>
+</header>
+
+<section class="px-14 pb-10 pt-8">
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <h2 class="m-0 text-4xl font-bold">
+        {{ "matches.standings.export.title" | transloco }}
+      </h2>
+      <p class="m-0 mt-1 text-xl text-gray-500">{{ subtitle() }}</p>
+    </div>
+    <p class="m-0 mt-2 flex items-center gap-2 text-lg text-gray-500">
+      <mat-icon class="!size-6" svgIcon="mat:calendar_month" />
+      {{
+        "matches.standings.export.updated" | transloco: { date: data().updated }
+      }}
+    </p>
+  </div>
+
+  @if (data().legend.length) {
+    <ul class="m-0 mt-6 flex list-none flex-wrap gap-3 p-0">
+      @for (item of data().legend; track item.label) {
+        <li
+          [class]="item.chip"
+          class="inline-flex items-center gap-3 rounded-full px-5 py-2 text-lg font-medium"
+        >
+          <span [class]="item.bar" class="h-5 w-1.5 rounded-full"></span>
+          {{ item.label }}
+        </li>
+      }
+    </ul>
+  }
+
+  @if (data().tiesPending) {
+    <p
+      class="m-0 mt-6 rounded-lg border border-amber-500 bg-amber-50 px-5 py-3 text-lg text-amber-900"
+    >
+      {{ "matches.standings.export.tiesNote" | transloco }}
+    </p>
+  }
+
+  <table
+    class="mt-6 w-full border-separate border-spacing-0 overflow-hidden rounded-xl border border-gray-300 text-left text-xl"
+  >
+    <thead>
+      <tr class="bg-gray-100 text-lg">
+        <th class="px-5 py-3 font-medium">
+          {{ "matches.standings.columns.position" | transloco }}
+        </th>
+        <th class="py-3 pr-4 font-medium">
+          {{ "matches.standings.columns.team" | transloco }}
+        </th>
+        @for (column of columns; track column[0]) {
+          <th
+            [class.font-bold]="column[0] === 'points'"
+            class="px-2 py-3 text-center font-medium"
+          >
+            {{ "matches.standings.columns." + column[1] | transloco }}
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of data().rows; track $index) {
+        <tr>
+          <td class="relative w-28 border-t border-gray-200 px-5 py-3">
+            @if (row.bar) {
+              <span
+                [class]="row.bar"
+                class="absolute bottom-2 left-0 top-2 w-1.5 rounded-full"
+              ></span>
+            }
+            <span class="ml-4 inline-block font-medium">{{
+              row.position
+            }}</span>
+          </td>
+          <td class="border-t border-gray-200 py-3 pr-4">
+            <span class="flex items-center gap-4">
+              <img
+                [alt]="row.team_name"
+                [src]="row.logo_url || shield"
+                class="size-9 shrink-0 rounded-full object-cover"
+                crossorigin="anonymous"
+              />
+              <span class="font-medium">{{ row.team_name }}</span>
+            </span>
+          </td>
+          @for (column of columns; track column[0]) {
+            <td
+              [class.font-bold]="column[0] === 'points'"
+              class="border-t border-gray-200 px-2 py-3 text-center"
+            >
+              {{ row[column[0]] }}
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <p class="m-0 mt-6 text-lg text-gray-500">
+    {{ "matches.standings.export.abbreviations" | transloco }}
+  </p>
+
+  <div
+    class="mt-6 flex items-center justify-between border-t border-gray-300 pt-5 text-xl"
+  >
+    <span class="text-gray-600">
+      {{ "matches.standings.export.footer" | transloco }}
+    </span>
+    <span class="font-bold text-indigo-900">{{ data().leagueName }}</span>
+  </div>
+</section>

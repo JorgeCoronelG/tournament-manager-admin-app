@@ -63,7 +63,9 @@
                     (changed)="standingsResource.reload()"
                     [editable]="editable()"
                     [groups]="standings()"
+                    [playoffs]="playoffs()"
                     [tournamentId]="tournament()!.id"
+                    [tournamentName]="tournament()!.name"
                   />
                 }
               }

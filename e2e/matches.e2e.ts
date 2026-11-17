@@ -203,7 +203,12 @@ test.describe("matches", () => {
     ).toHaveCount(0);
   });
 
-  const PLAYED = { generated: true, played: true, groups: [FOUR] };
+  const PLAYED = {
+    generated: true,
+    played: true,
+    regularComplete: true,
+    groups: [FOUR],
+  };
 
   test("captures a result and shows the score, the played tag and the count", async ({
     page,
@@ -316,7 +321,7 @@ test.describe("matches", () => {
     );
 
     await expect(
-      page.getByText("Orden: Puntos, Diferencia de goles, Goles a favor."),
+      page.getByText("Orden: Puntos · Diferencia de goles · Goles a favor"),
     ).toBeVisible();
     await expect(page.locator("tr[mat-row]")).toHaveCount(4);
     await expect(

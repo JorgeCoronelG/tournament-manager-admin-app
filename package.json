@@ -31,6 +31,7 @@
     "@ngx-loading-bar/http-client": "^7.0.1",
     "@ngx-loading-bar/router": "^7.0.1",
     "@tailwindcss/postcss": "^4.3.3",
+    "html-to-image": "1.11.13",
     "luxon": "^3.7.2",
     "rxjs": "^7.4.0",
     "simplebar": "^6.3.3",

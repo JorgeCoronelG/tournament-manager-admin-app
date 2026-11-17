@@ -658,8 +658,8 @@
     "title": "Calendario",
     "tournament": "Torneo",
     "pickTournament": "Selecciona un torneo para consultar su calendario.",
-    "onlyInProgress": "Solo se muestran torneos en curso.",
-    "noTournaments": "No hay torneos en curso ni en liguilla en esta liga.",
+    "onlyInProgress": "Solo se muestran torneos activos.",
+    "noTournaments": "No hay torneos activos en esta liga.",
     "planning": "Inicia el torneo para generar el calendario.",
     "empty": "Este torneo aún no tiene calendario.",
     "error": "No pudimos cargar el calendario.",
@@ -846,7 +846,8 @@
       "blockedTitle": "No se puede cerrar la fase regular",
       "blockedPending": "Hay {{count}} partidos pendientes de resultado. Todos deben estar resueltos antes de continuar a la liguilla.",
       "blockedPendingOne": "Hay 1 partido pendiente de resultado. Debe estar resuelto antes de continuar a la liguilla.",
-      "blockedGeneric": "Resuelve lo siguiente antes de continuar a la liguilla.",
+      "blockedGenericOne": "Resuelve el siguiente pendiente para continuar a la liguilla.",
+      "blockedGeneric": "Resuelve los siguientes pendientes para continuar a la liguilla.",
       "showDetail": "Ver detalle",
       "hideDetail": "Ocultar detalle",
       "understood": "Entendido",
@@ -860,14 +861,17 @@
         "pendingShort": "{{count}} pendientes",
         "match": "{{home}} vs {{away}}",
         "noCalendar": "Primero genera el calendario",
-        "ties": "Hay empates sin resolver en {{group}}, posiciones {{positions}}.",
+        "tiesIntro": "Hay empates sin resolver en las siguientes posiciones:",
+        "and": "y",
+        "tiePosition": "Posición {{list}}",
+        "tiePositions": "Posiciones {{list}}",
         "goToStandings": "Definir el orden en la tabla de posiciones",
         "bestTies": "Hay empate en los mejores {{position}}.º lugares."
       },
       "bestOrder": "Definir orden: mejores {{position}}.º lugares",
       "clearBestOrder": {
-        "title": "Quitar orden manual",
-        "message": "¿Seguro que quieres quitar el orden manual? Los equipos volverán a estar empatados.",
+        "title": "¿Quitar orden manual?",
+        "message": "¿Quieres quitar el orden manual de la fase regular? Los equipos volverán a ordenarse según los criterios de desempate y los empates sin resolver aparecerán nuevamente.",
         "confirm": "Quitar"
       },
       "best": {
@@ -964,7 +968,7 @@
     "standings": {
       "withdrawn": "Baja",
       "error": "No pudimos cargar la tabla de posiciones.",
-      "criteria": "Orden: {{criteria}}.",
+      "criteria": "Orden:",
       "tied": "Hay equipos empatados sin resolver.",
       "tie": "Empate",
       "defineOrder": "Definir orden",
@@ -983,9 +987,40 @@
         "goalDifference": "DG",
         "points": "Pts"
       },
+      "export": {
+        "download": "Descargar imagen",
+        "share": "Compartir imagen",
+        "generating": "Generando imagen...",
+        "downloadTip": "Incluye equipos, estadísticas y zonas de clasificación",
+        "shareTip": "Compartir la tabla como imagen",
+        "error": "No pudimos generar la imagen. Intenta de nuevo.",
+        "title": "Tabla de posiciones",
+        "phase": "Fase regular",
+        "matchday": "Jornada {{n}}",
+        "updated": "Actualizado: {{date}}",
+        "tiesNote": "Hay empates sin resolver. La clasificación puede cambiar.",
+        "abbreviations": "PJ: Jugados · PG: Ganados · PE: Empatados · PP: Perdidos · GF: Goles a favor · GC: Goles en contra · DG: Diferencia de goles · Pts: Puntos",
+        "footer": "Clasificación actual del torneo"
+      },
+      "manualOrderApplied": "Orden manual aplicado",
+      "qualifiesTo": "Clasifica a {{name}}",
+      "qualifyPending": "Clasificación por definir",
+      "tips": {
+        "played": "Partidos jugados",
+        "won": "Partidos ganados",
+        "drawn": "Partidos empatados",
+        "lost": "Partidos perdidos",
+        "goalsFor": "Goles a favor",
+        "goalsAgainst": "Goles en contra",
+        "goalDifference": "Diferencia de goles",
+        "points": "Puntos"
+      },
       "order": {
         "title": "Definir orden: {{group}}",
+        "titleSingle": "Definir orden",
         "hint": "Ordena los equipos empatados del mejor al peor.",
+        "hintPositions": "Ordena los equipos empatados en las posiciones {{range}}, del mejor al peor.",
+        "positions": "Posiciones {{range}}",
         "set": "Empate {{number}}"
       },
       "clearOrder": {

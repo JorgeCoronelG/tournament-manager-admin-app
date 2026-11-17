@@ -159,6 +159,20 @@ export interface StandingRow {
   tied: boolean;
   /** The team was withdrawn: it stays in the table but does not qualify */
   withdrawn?: boolean;
+  /** The playoff the team qualifies to (absent or null when it does not) */
+  playoff?: { id: number; name: string; priority: number } | null;
+  /** A tie that crosses the qualification line leaves it undecided until the order is set: no playoff colour yet */
+  playoff_pending?: boolean;
+}
+
+/** A playoff the regular phase feeds, in the legend of the table */
+export interface StandingPlayoff {
+  id: number;
+  name: string;
+  /** 1 is the main playoff: it always takes the first colour */
+  priority: number;
+  /** Where it takes teams from, as short text: "1-2", "3", "Mejor 4.o" (sources joined by commas) */
+  positions: string;
 }
 
 export interface StandingGroup {
@@ -171,9 +185,15 @@ export interface StandingGroup {
   ties: number[][];
   /** True when the backend keeps a manual order for the group (absent if it does not say) */
   has_manual_order?: boolean;
+  /** Every regular match of the group has been played */
+  complete?: boolean;
+  /** The group is complete and some teams are still tied (and no manual order settles them) */
+  ties_pending?: boolean;
 }
 
 /** `GET /standings` */
 export interface Standings {
   groups: StandingGroup[];
+  /** The tournament's playoffs (absent or empty when it has none) */
+  playoffs?: StandingPlayoff[];
 }

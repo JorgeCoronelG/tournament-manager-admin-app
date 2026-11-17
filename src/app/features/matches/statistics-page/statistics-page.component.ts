@@ -62,6 +62,7 @@ export class StatisticsPageComponent {
 
   protected readonly tournamentsResource = inject(TournamentsApi).options([
     "in_progress",
+    "playoffs",
   ]);
   readonly tournaments = computed(() =>
     this.tournamentsResource.hasValue()
@@ -127,6 +128,12 @@ export class StatisticsPageComponent {
   readonly standings = computed(() =>
     this.standingsResource.hasValue()
       ? this.standingsResource.value().groups
+      : [],
+  );
+
+  readonly playoffs = computed(() =>
+    this.standingsResource.hasValue()
+      ? (this.standingsResource.value().playoffs ?? [])
       : [],
   );
 

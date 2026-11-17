@@ -1388,6 +1388,8 @@ export interface MatchesApiOptions {
   generated?: boolean;
   /** The first match is already played (2 - 1): the calendar is frozen */
   played?: boolean;
+  /** The group's regular matches count as over (the real backend says it with `complete`), so ties are pending */
+  regularComplete?: boolean;
   /** Refuses every write with this 422 message */
   refuse?: string;
   /** Tiebreakers the standings report, in order */
@@ -1431,6 +1433,7 @@ export async function mockMatchesApi(
     rounds = 1,
     generated = false,
     played = false,
+    regularComplete = false,
     refuse,
     criteria = ["points", "goal_difference", "goals_for"],
   }: MatchesApiOptions = {},
@@ -1633,6 +1636,12 @@ export async function mockMatchesApi(
         i = j + 1;
       }
 
+      const complete =
+        regularComplete ||
+        matches
+          .filter((x) => x.group_id === group.id)
+          .every((x) => x.status === "played");
+
       return {
         group_id: group.id,
         group_name: group.name,
@@ -1640,6 +1649,8 @@ export async function mockMatchesApi(
         rows,
         ties,
         has_manual_order: manual.has(group.id),
+        complete,
+        ties_pending: complete && ties.length > 0,
       };
     }),
   });

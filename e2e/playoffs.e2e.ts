@@ -484,7 +484,12 @@ test.describe("playoffs", () => {
     await dialog.getByRole("button", { name: /Jornada 2/ }).click();
     await expect(dialog.getByText("Halcones vs Lobos")).toBeVisible();
     await expect(
-      dialog.getByText("Hay empates sin resolver en Grupo A, posiciones 2-3."),
+      dialog.getByText(
+        "Hay empates sin resolver en las siguientes posiciones:",
+      ),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText("Posiciones 2–3", { exact: true }),
     ).toBeVisible();
     await expect(
       dialog.getByRole("button", { name: "Confirmar y pasar a liguilla" }),

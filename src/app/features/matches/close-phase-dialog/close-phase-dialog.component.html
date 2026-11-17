@@ -77,13 +77,18 @@
                   ) | transloco: { count: count }
                 }}
               } @else {
-                {{ "matches.close.blockedGeneric" | transloco }}
+                {{
+                  (shownBlockers().length === 1
+                    ? "matches.close.blockedGenericOne"
+                    : "matches.close.blockedGeneric"
+                  ) | transloco
+                }}
               }
             </p>
           </div>
         </div>
 
-        @for (blocker of blockers(); track $index) {
+        @for (blocker of shownBlockers(); track $index) {
           <hr class="m-0 border-t" />
 
           @switch (blocker.type) {
@@ -205,18 +210,24 @@
                     {{ "matches.standings.defineOrder" | transloco }}
                   </button>
                 } @else {
-                  @let tie = asTies(blocker)!;
-                  {{
-                    "matches.close.blockers.ties"
-                      | transloco
-                        : {
-                            group: tie.group,
-                            positions: blockerRange(tie.positions),
-                          }
-                  }}
+                  {{ "matches.close.blockers.tiesIntro" | transloco }}
+                  <span class="mt-2 flex flex-col gap-2">
+                    @for (row of tieRows(); track $index) {
+                      <span>
+                        @if (row.group) {
+                          <span class="font-medium">{{ row.group }}</span>
+                          <span class="ml-2 text-secondary"
+                            >· {{ row.positions }}</span
+                          >
+                        } @else {
+                          <span class="font-medium">{{ row.positions }}</span>
+                        }
+                      </span>
+                    }
+                  </span>
                   <button
                     (click)="goToStandings()"
-                    class="ml-1 underline text-primary-600 cursor-pointer bg-transparent border-0 p-0"
+                    class="mt-2 underline text-primary-600 cursor-pointer bg-transparent border-0 p-0"
                     type="button"
                   >
                     {{ "matches.close.blockers.goToStandings" | transloco }}

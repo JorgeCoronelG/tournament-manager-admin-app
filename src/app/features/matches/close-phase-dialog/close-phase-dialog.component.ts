@@ -185,6 +185,56 @@ export class ClosePhaseDialogComponent {
 
   readonly blockers = computed(() => this.preview.value()?.blockers ?? []);
 
+  /** The blockers as listed: every tie among a group's positions is one entry, drawn once with all of them */
+  readonly shownBlockers = computed(() => {
+    let tiesShown = false;
+
+    return this.blockers().filter((blocker) => {
+      if (!this.asTies(blocker)) {
+        return true;
+      }
+
+      const first = !tiesShown;
+      tiesShown = true;
+
+      return first;
+    });
+  });
+
+  /** Ties among positions of a group, one row per group: "Grupo A · Posiciones 2–3 y 5–7" */
+  readonly tieRows = computed(() => {
+    const byGroup = new Map<string, number[][]>();
+
+    for (const blocker of this.blockers()) {
+      const tie = this.asTies(blocker);
+
+      if (tie) {
+        byGroup.set(tie.group, [
+          ...(byGroup.get(tie.group) ?? []),
+          tie.positions,
+        ]);
+      }
+    }
+
+    // With a single group there is nothing to tell apart: only its positions are shown
+    const several = byGroup.size > 1;
+
+    return [...byGroup.entries()].map(([group, sets]) => {
+      const ranges = sets.map((positions) => this.dashRange(positions));
+      const single = sets.length === 1 && sets[0].length === 1;
+
+      return {
+        group: several ? group : null,
+        positions: this.transloco.translate(
+          single
+            ? "matches.close.blockers.tiePosition"
+            : "matches.close.blockers.tiePositions",
+          { list: this.joinList(ranges) },
+        ),
+      };
+    });
+  });
+
   /** Matches still to play, when that is what blocks the closing */
   readonly pendingCount = computed(
     () =>
@@ -440,6 +490,22 @@ export class ClosePhaseDialogComponent {
     return first === last ? `${first}` : `${first}-${last}`;
   }
 
+  /** "2–3" for consecutive positions, "3" for one */
+  private dashRange(positions: number[]): string {
+    const [first, last] = [Math.min(...positions), Math.max(...positions)];
+
+    return first === last ? `${first}` : `${first}–${last}`;
+  }
+
+  /** "a", "a y b", "a, b y c" */
+  private joinList(items: string[]): string {
+    const and = this.transloco.translate("matches.close.blockers.and");
+
+    return items.length < 2
+      ? (items[0] ?? "")
+      : `${items.slice(0, -1).join(", ")} ${and} ${items.at(-1)}`;
+  }
+
   asPending(blocker: CloseBlocker) {
     return blocker.type === "pending_matches"
       ? (blocker as Extract<CloseBlocker, { type: "pending_matches" }>)
@@ -504,6 +570,7 @@ export class ClosePhaseDialogComponent {
       .open<TieOrderDialogComponent, TieOrderDialogData, boolean>(
         TieOrderDialogComponent,
         {
+          autoFocus: "dialog",
           data: {
             title: this.transloco.translate("matches.close.bestOrder", {
               position: table.position,

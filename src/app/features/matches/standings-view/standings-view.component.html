@@ -17,11 +17,58 @@
 }
 
 <ng-template #groupTable let-group>
-  <p class="m-0 mb-3 text-sm text-secondary">
-    {{
-      "matches.standings.criteria" | transloco: { criteria: criteria(group) }
-    }}
-  </p>
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+    <p class="m-0 text-sm text-secondary">
+      <span class="mr-1 font-semibold">{{
+        "matches.standings.criteria" | transloco
+      }}</span>
+      {{ criteria(group) }}
+    </p>
+    @if (group.rows.length > 0) {
+      @let exportKey =
+        canShare
+          ? "matches.standings.export.shareTip"
+          : "matches.standings.export.downloadTip";
+      <button
+        (click)="exportImage(group)"
+        [attr.aria-label]="exportKey | transloco"
+        [disabled]="exporting()"
+        [matTooltip]="exportKey | transloco"
+        mat-stroked-button
+        type="button"
+      >
+        <span class="inline-flex items-center gap-2">
+          @if (exporting()) {
+            <mat-spinner class="shrink-0" diameter="18" />
+          } @else {
+            <mat-icon [svgIcon]="canShare ? 'mat:share' : 'mat:image'" />
+          }
+          {{
+            (exporting()
+              ? "matches.standings.export.generating"
+              : canShare
+                ? "matches.standings.export.share"
+                : "matches.standings.export.download"
+            ) | transloco
+          }}
+        </span>
+      </button>
+    }
+  </div>
+
+  @if (legend().length > 0) {
+    <ul class="m-0 mb-3 flex list-none flex-wrap gap-2 p-0">
+      @for (item of legend(); track item.playoff.id) {
+        <li
+          [class]="item.color.chip"
+          class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
+        >
+          <span [class]="item.color.bar" class="h-3 w-1 rounded-full"></span>
+          {{ legendLabel(item.playoff) }}
+        </li>
+      }
+    </ul>
+  }
 
   @if (hasTies(group)) {
     <div
@@ -40,11 +87,19 @@
     </div>
   }
 
-  @if (editable() && hasManualOrder(group)) {
-    <div class="mb-3">
-      <button (click)="clearOrder(group)" mat-stroked-button type="button">
-        {{ "matches.standings.clearOrderAction" | transloco }}
-      </button>
+  @if (hasManualOrder(group)) {
+    <div class="mb-3 flex flex-wrap items-center gap-3">
+      <span
+        class="inline-flex items-center gap-1.5 rounded-full bg-gray-500/10 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400"
+      >
+        <mat-icon class="!size-4 shrink-0" svgIcon="mat:info" />
+        {{ "matches.standings.manualOrderApplied" | transloco }}
+      </span>
+      @if (editable()) {
+        <button (click)="clearOrder(group)" mat-stroked-button type="button">
+          {{ "matches.standings.clearOrderAction" | transloco }}
+        </button>
+      }
     </div>
   }
 
@@ -54,7 +109,26 @@
         <th *matHeaderCellDef mat-header-cell>
           {{ "matches.standings.columns.position" | transloco }}
         </th>
-        <td *matCellDef="let row" mat-cell>{{ row.position }}</td>
+        <td
+          *matCellDef="let row"
+          [matTooltip]="qualifyHint(row)"
+          [matTooltipDisabled]="!qualifyHint(row)"
+          class="relative"
+          mat-cell
+        >
+          @let qualified = qualifying(row);
+          @if (qualified) {
+            <span
+              [attr.aria-label]="qualifyHint(row)"
+              [class]="qualified.color.bar"
+              class="absolute bottom-2 left-0 top-2 w-1 rounded-full"
+              role="img"
+            ></span>
+          } @else if (row.playoff_pending) {
+            <span class="sr-only">{{ qualifyHint(row) }}</span>
+          }
+          {{ row.position }}
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="team">
@@ -99,12 +173,19 @@
         track column[0]
       ) {
         <ng-container [matColumnDef]="column[0]">
-          <th *matHeaderCellDef mat-header-cell>
+          <th
+            *matHeaderCellDef
+            [class.font-semibold]="column[0] === 'points'"
+            [matTooltip]="'matches.standings.tips.' + column[1] | transloco"
+            class="text-center"
+            mat-header-cell
+          >
             {{ "matches.standings.columns." + column[1] | transloco }}
           </th>
           <td
             *matCellDef="let row"
-            [class.font-medium]="column[0] === 'points'"
+            [class.font-semibold]="column[0] === 'points'"
+            class="text-center"
             mat-cell
           >
             {{ row[column[0]] }}
