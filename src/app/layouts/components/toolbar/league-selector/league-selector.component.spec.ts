@@ -41,6 +41,8 @@ describe("LeagueSelectorComponent", () => {
             activeLeague: active,
             isLoading: loading,
             error: failure,
+            allInactive: signal(false),
+            disabled: signal(false),
             select,
             reload,
             clear,

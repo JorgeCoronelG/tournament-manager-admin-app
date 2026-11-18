@@ -2,4 +2,6 @@
 export interface MyLeague {
   id: number;
   name: string;
+  /** Only the superadmin receives inactive leagues; absent means active */
+  status?: "active" | "inactive";
 }

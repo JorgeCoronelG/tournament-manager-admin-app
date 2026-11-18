@@ -133,15 +133,35 @@
     "fields": {
       "name": "Nombre",
       "admin": "Encargado",
+      "status": "Estado",
       "createdAt": "Alta",
       "actions": "Acciones"
     },
     "filters": {
-      "admin": "Filtrar por encargado"
+      "admin": "Filtrar por encargado",
+      "allStatuses": "Todos los estados"
     },
     "actions": {
       "edit": "Editar",
+      "activate": "Activar liga",
+      "deactivate": "Desactivar liga",
       "delete": "Eliminar"
+    },
+    "status": {
+      "active": "Activa",
+      "inactive": "Inactiva"
+    },
+    "activated": "Liga activada.",
+    "deactivated": "Liga desactivada.",
+    "activate": {
+      "title": "¿Activar liga?",
+      "message": "La liga <b>{{name}}</b> volverá a estar disponible para su operación.",
+      "confirm": "Activar"
+    },
+    "deactivate": {
+      "title": "¿Desactivar liga?",
+      "message": "La liga <b>{{name}}</b> dejará de estar disponible para su operación mientras permanezca inactiva.\n\nSu información se conservará y podrás volver a activarla en cualquier momento.",
+      "confirm": "Desactivar"
     },
     "delete": {
       "title": "¿Eliminar liga?",
@@ -240,6 +260,8 @@
     "error": "No pudimos cargar tus ligas.",
     "noneAdmin": "Aún no tienes ligas asignadas, contacta al administrador",
     "noneSuperadmin": "Aún no hay ligas. Crea una en Ligas",
+    "disabled": "Tus ligas están desactivadas. Contacta al super administrador.",
+    "allInactive": "Todas tus ligas están desactivadas. Actívalas en Ligas",
     "required": "Selecciona una liga para continuar.",
     "choose": "Selecciona una liga",
     "clear": "Limpiar liga",

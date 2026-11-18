@@ -47,6 +47,8 @@ export class LeagueSelectorComponent {
   readonly active = this.context.activeLeague;
   readonly isLoading = this.context.isLoading;
   readonly error = this.context.error;
+  readonly allInactive = this.context.allInactive;
+  readonly disabled = this.context.disabled;
 
   readonly visible = computed(() => this.currentUser.can("leagues.select"));
   /** The superadmin can create the league that is missing; a league admin cannot */

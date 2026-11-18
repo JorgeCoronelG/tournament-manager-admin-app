@@ -10,10 +10,14 @@ export interface LeagueAdmin {
   status: UserStatus;
 }
 
+export type LeagueStatus = "active" | "inactive";
+
 export interface League {
   id: number;
   name: string;
   admin: LeagueAdmin;
+  status: LeagueStatus;
+  is_active: boolean;
   /** ISO 8601 date */
   created_at: string;
 }
@@ -29,6 +33,7 @@ export type LeagueSortField = "name" | "created_at";
 export interface LeaguesFilters {
   search: string;
   adminUserId: number | "";
+  status: LeagueStatus | "";
 }
 
 export type LeaguesQuery = LeaguesFilters & PageQuery;

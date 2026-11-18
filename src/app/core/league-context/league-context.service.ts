@@ -1,5 +1,13 @@
 import { httpResource } from "@angular/common/http";
-import { computed, inject, linkedSignal, Service } from "@angular/core";
+import {
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  Service,
+  signal,
+  untracked,
+} from "@angular/core";
 import { SettingsService } from "../settings/settings.service";
 import { PaginatedResponse } from "../http/paginated-response.model";
 import { CurrentUserService } from "../user/current-user.service";
@@ -47,7 +55,18 @@ export class LeagueContextService {
       : undefined;
   });
 
-  readonly leagues = computed(() => this.resource.value()?.data ?? []);
+  private readonly allLeagues = computed(
+    () => this.resource.value()?.data ?? [],
+  );
+
+  /** Inactive leagues (the superadmin receives them) are not offered nor selectable */
+  readonly leagues = computed(() =>
+    this.allLeagues().filter((league) => league.status !== "inactive"),
+  );
+  /** There are leagues, but all of them are deactivated (superadmin) */
+  readonly allInactive = computed(
+    () => this.leagues().length === 0 && this.allLeagues().length > 0,
+  );
 
   readonly activeLeague = computed<MyLeague | null>(() => {
     const leagues = this.leagues();
@@ -59,6 +78,24 @@ export class LeagueContextService {
   });
   readonly activeLeagueId = computed(() => this.activeLeague()?.id ?? null);
 
+  // A league that leaves the list (it was deactivated) is forgotten: if it were only hidden, it
+  // would come back selected on its own when it is activated again
+  private readonly forgetGone = effect(() => {
+    const id = this.chosenId();
+
+    if (
+      id !== null &&
+      this.resource.hasValue() &&
+      !this.leagues().some((league) => league.id === id)
+    ) {
+      untracked(() => this.clear());
+    }
+  });
+
+  private readonly disabledFlag = signal(false);
+  /** The backend refused a league screen because the league is deactivated */
+  readonly disabled = this.disabledFlag.asReadonly();
+
   readonly isLoading = this.resource.isLoading;
   readonly error = this.resource.error;
 
@@ -68,6 +105,7 @@ export class LeagueContextService {
       return;
     }
 
+    this.disabledFlag.set(false);
     this.chosenId.set(id);
     writeActiveLeagueId(this.userId(), id);
   }
@@ -76,6 +114,13 @@ export class LeagueContextService {
   clear(): void {
     this.chosenId.set(null);
     writeActiveLeagueId(this.userId(), null);
+  }
+
+  /** Drops the league the backend refused as deactivated and loads the list again */
+  markDisabled(): void {
+    this.disabledFlag.set(true);
+    this.chosenId.set(null);
+    this.resource.reload();
   }
 
   reload(): void {

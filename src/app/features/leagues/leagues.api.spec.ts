@@ -19,6 +19,8 @@ const league = (id: number): League => ({
     email: "ana@example.com",
     status: "active",
   },
+  status: "active",
+  is_active: true,
   created_at: "2026-01-01T00:00:00.000Z",
 });
 
@@ -56,6 +58,7 @@ describe("LeaguesApi", () => {
       pageSize: 10,
       search: "norte",
       adminUserId: 7,
+      status: "",
       sort: "-created_at",
     });
 
@@ -85,6 +88,7 @@ describe("LeaguesApi", () => {
       pageSize: 5,
       search: "",
       adminUserId: "",
+      status: "",
       sort: "",
     });
 

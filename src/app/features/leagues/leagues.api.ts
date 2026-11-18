@@ -33,9 +33,10 @@ export class LeaguesApi {
     return paginatedResource<League, LeaguesQuery>(
       () => this.url("/leagues"),
       query,
-      ({ search, adminUserId }) => ({
+      ({ search, adminUserId, status }) => ({
         ...(search ? { search } : {}),
         ...(adminUserId !== "" ? { admin_user_id: adminUserId } : {}),
+        ...(status ? { status } : {}),
       }),
     );
   }
@@ -52,6 +53,14 @@ export class LeaguesApi {
     return this.http.put<League>(
       this.url(`/leagues/${id}`),
       league,
+      this.ownErrors,
+    );
+  }
+
+  setStatus(id: number, isActive: boolean) {
+    return this.http.patch<League>(
+      this.url(`/leagues/${id}/status`),
+      { is_active: isActive },
       this.ownErrors,
     );
   }

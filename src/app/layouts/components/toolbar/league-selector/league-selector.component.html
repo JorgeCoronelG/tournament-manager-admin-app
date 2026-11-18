@@ -25,18 +25,24 @@
     </span>
   } @else if (leagues().length === 0) {
     @if (canManageLeagues()) {
+      @let superKey =
+        allInactive()
+          ? "leagueSelector.allInactive"
+          : "leagueSelector.noneSuperadmin";
       <a
-        [attr.title]="'leagueSelector.noneSuperadmin' | transloco"
+        [attr.title]="superKey | transloco"
         class="block truncate px-2 text-sm underline max-w-40 sm:max-w-xs"
         routerLink="/dashboard/ligas"
-        >{{ "leagueSelector.noneSuperadmin" | transloco }}</a
+        >{{ superKey | transloco }}</a
       >
     } @else {
+      @let noneKey =
+        disabled() ? "leagueSelector.disabled" : "leagueSelector.noneAdmin";
       <span
-        [attr.title]="'leagueSelector.noneAdmin' | transloco"
+        [attr.title]="noneKey | transloco"
         class="block truncate px-2 text-sm text-secondary max-w-40 sm:max-w-lg"
         role="status"
-        >{{ "leagueSelector.noneAdmin" | transloco }}</span
+        >{{ noneKey | transloco }}</span
       >
     }
   } @else if (leagues().length === 1 && active()) {

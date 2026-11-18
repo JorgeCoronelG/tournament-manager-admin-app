@@ -18,7 +18,14 @@ export const leagueContextInterceptor: HttpInterceptorFn = (request, next) => {
         (error.status === 403 || error.status === 404) &&
         leagueContext.isActiveLeagueUrl(request.url)
       ) {
-        leagueContext.reload();
+        if (
+          error.status === 403 &&
+          JSON.stringify(error.error ?? "").includes("desactivada")
+        ) {
+          leagueContext.markDisabled();
+        } else {
+          leagueContext.reload();
+        }
       }
 
       return throwError(() => error);

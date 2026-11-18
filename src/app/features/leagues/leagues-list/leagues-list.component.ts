@@ -10,6 +10,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from "@angular/material/select";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSortModule } from "@angular/material/sort";
@@ -51,6 +52,7 @@ import { LeaguesApi } from "../leagues.api";
     MatInputModule,
     MatPaginatorModule,
     MatProgressBarModule,
+    MatSelectModule,
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
@@ -66,10 +68,14 @@ export class LeaguesListComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
-  readonly columns = ["name", "admin", "created_at", "actions"];
+  readonly columns = ["name", "admin", "status", "created_at", "actions"];
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
-  readonly filters = signal<LeaguesFilters>({ search: "", adminUserId: "" });
+  readonly filters = signal<LeaguesFilters>({
+    search: "",
+    adminUserId: "",
+    status: "",
+  });
   readonly filtersForm = form(this.filters, (filter) => {
     debounce(filter.search, 300);
   });
@@ -118,6 +124,31 @@ export class LeaguesListComponent {
   private reloadLists(): void {
     this.resource.reload();
     this.leagueContext.reload();
+  }
+
+  toggleActive(league: League): void {
+    this.confirmDialog
+      .confirm({
+        key: league.is_active ? "leagues.deactivate" : "leagues.activate",
+        params: { name: league.name },
+        tone: "primary",
+        cancelOutlined: true,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.api.setStatus(league.id, !league.is_active).subscribe({
+          next: () => {
+            this.reloadLists();
+            this.snackbar.notifySuccess(
+              league.is_active ? "leagues.deactivated" : "leagues.activated",
+            );
+          },
+          error: (error: unknown) => this.snackbar.notifyFailure(error),
+        });
+      });
   }
 
   remove(league: League): void {

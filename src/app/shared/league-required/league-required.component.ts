@@ -35,10 +35,18 @@ import { CurrentUserService } from "../../core/user/current-user.service";
       <p class="py-10 px-6 text-center text-secondary" role="status">
         @if (currentUser.can("leagues.manage")) {
           <a class="underline" routerLink="/dashboard/ligas">{{
-            "leagueSelector.noneSuperadmin" | transloco
+            (context.allInactive()
+              ? "leagueSelector.allInactive"
+              : "leagueSelector.noneSuperadmin"
+            ) | transloco
           }}</a>
         } @else {
-          {{ "leagueSelector.noneAdmin" | transloco }}
+          {{
+            (context.disabled()
+              ? "leagueSelector.disabled"
+              : "leagueSelector.noneAdmin"
+            ) | transloco
+          }}
         }
       </p>
     } @else {

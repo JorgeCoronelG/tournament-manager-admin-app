@@ -30,6 +30,8 @@ describe("LeagueRequiredComponent", () => {
             activeLeague: active,
             isLoading: signal(false),
             error: signal(undefined),
+            allInactive: signal(false),
+            disabled: signal(false),
             reload,
           },
         },

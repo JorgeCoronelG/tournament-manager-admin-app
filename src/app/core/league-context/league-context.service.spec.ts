@@ -14,6 +14,7 @@ import { Role } from "../auth/role.model";
 import { CurrentUserService } from "../user/current-user.service";
 import { leagueContextInterceptor } from "./league-context.interceptor";
 import { LeagueContextService } from "./league-context.service";
+import { readActiveLeagueId } from "./league-context.storage";
 import { MyLeague } from "./my-league.model";
 
 const leagues = (...ids: number[]): MyLeague[] =>
@@ -79,6 +80,31 @@ describe("LeagueContextService", () => {
     expect(params.get("page")).toBe("1");
     expect(params.get("per_page")).toBe("100");
     expect(service.isLoading()).toBe(true);
+  });
+
+  it("forgets the chosen league when it is deactivated, so it does not come back selected when activated again", async () => {
+    const service = setup();
+    signInAs(1, "superadmin");
+    await respond(leagues(1, 2, 3));
+    service.select(2);
+    expect(service.activeLeagueId()).toBe(2);
+
+    service.reload();
+    await respond([
+      { id: 1, name: "Liga 1", status: "active" },
+      { id: 2, name: "Liga 2", status: "inactive" },
+      { id: 3, name: "Liga 3", status: "active" },
+    ]);
+    expect(service.activeLeagueId()).toBeNull();
+
+    service.reload();
+    await respond([
+      { id: 1, name: "Liga 1", status: "active" },
+      { id: 2, name: "Liga 2", status: "active" },
+      { id: 3, name: "Liga 3", status: "active" },
+    ]);
+    expect(service.activeLeagueId()).toBeNull();
+    expect(readActiveLeagueId(1)).toBeNull();
   });
 
   it("selects the only league by itself", async () => {
