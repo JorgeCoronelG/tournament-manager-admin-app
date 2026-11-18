@@ -62,6 +62,23 @@ export interface GotoOptions {
 }
 
 /** Waits for the splash screen to disappear and, for pages inside the layout, for it to be ready */
+/** The superadmin's panel cards: the backend sums them up */
+async function mockDashboardSummary(page: Page): Promise<void> {
+  await page.route(/\/dashboard\/summary(\?.*)?$/, (route) =>
+    route.fulfill({
+      json: {
+        leagues_active: 7,
+        tournaments_active: 19,
+        teams_in_active_tournaments: 142,
+        players_in_active_tournaments: 2310,
+        matches_this_week: 96,
+        referees_active: 48,
+        week: { from: "2026-11-16", to: "2026-11-22" },
+      },
+    }),
+  );
+}
+
 export async function gotoApp(
   page: Page,
   path = "/dashboard",
@@ -70,6 +87,7 @@ export async function gotoApp(
   if (path.startsWith("/dashboard")) {
     await mockSession(page);
     await mockMyLeagues(page, leagues);
+    await mockDashboardSummary(page);
   }
 
   await page.goto(path);

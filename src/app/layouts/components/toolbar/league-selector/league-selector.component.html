@@ -80,7 +80,11 @@
       >
         <mat-icon svgIcon="mat:sports_soccer" />
         <span class="truncate max-w-28 sm:max-w-xs">{{
-          active()?.name ?? ("leagueSelector.choose" | transloco)
+          active()?.name ??
+            ((canManageLeagues()
+              ? "leagueSelector.all"
+              : "leagueSelector.choose"
+            ) | transloco)
         }}</span>
         <mat-icon iconPositionEnd svgIcon="mat:arrow_drop_down" />
       </button>
@@ -99,6 +103,22 @@
               type="search"
             />
           </div>
+        }
+        @if (canManageLeagues()) {
+          <!-- The superadmin can go back to every league: no league selected -->
+          <button
+            (click)="clear()"
+            [attr.aria-current]="active() ? null : 'true'"
+            mat-menu-item
+            type="button"
+          >
+            @if (!active()) {
+              <mat-icon svgIcon="mat:check" />
+            } @else {
+              <span aria-hidden="true" class="inline-block w-6 shrink-0"></span>
+            }
+            <span>{{ "leagueSelector.all" | transloco }}</span>
+          </button>
         }
         <app-scroll-fade
           [maxHeight]="filtered().length > 4 ? 'max-h-53' : 'max-h-none'"

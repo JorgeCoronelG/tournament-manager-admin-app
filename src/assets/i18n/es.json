@@ -50,10 +50,30 @@
   },
   "dashboard": {
     "title": "Panel",
-    "stats": {
-      "tournaments": "Torneos",
-      "matches": "Partidos",
-      "players": "Jugadores"
+    "error": "No pudimos cargar el resumen del panel.",
+    "pickLeague": "Selecciona una liga para ver su resumen.",
+    "cards": {
+      "leagues": "Ligas activas",
+      "tournaments": "Torneos activos",
+      "teams": "Equipos inscritos",
+      "players": "Jugadores activos",
+      "matches": "Partidos esta semana",
+      "referees": "Árbitros activos"
+    },
+    "tips": {
+      "leagues": "Ligas con estatus activo en todo el sistema.",
+      "tournaments": "Torneos en curso o en liguilla de ligas activas.",
+      "teams": "Equipos con inscripción activa en torneos en curso o en liguilla.",
+      "players": "Jugadores con plantilla activa en torneos en curso o en liguilla.",
+      "matches": "Partidos programados o jugados del {{from}} al {{to}}.",
+      "referees": "Árbitros con estado activo en alguna liga activa."
+    },
+    "tipsLeague": {
+      "tournaments": "Torneos en curso o en liguilla de esta liga.",
+      "teams": "Equipos con inscripción activa en torneos en curso o en liguilla de esta liga.",
+      "players": "Jugadores con plantilla activa en torneos en curso o en liguilla de esta liga.",
+      "matches": "Partidos programados o jugados del {{from}} al {{to}}.",
+      "referees": "Árbitros con estado activo en esta liga."
     }
   },
   "users": {
@@ -264,6 +284,7 @@
     "allInactive": "Todas tus ligas están desactivadas. Actívalas en Ligas",
     "required": "Selecciona una liga para continuar.",
     "choose": "Selecciona una liga",
+    "all": "Todas las ligas",
     "clear": "Limpiar liga",
     "change": "Liga activa: {{name}}. Cambiar de liga",
     "current": "Liga activa: {{name}}",
