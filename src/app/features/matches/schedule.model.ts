@@ -135,7 +135,7 @@ export function slotLabel(
     .join(" · ");
 }
 
-/** "02/11 - 08/11" for the first and last day of the matches that have a date; null when none has */
+/** "02/11 - 08/11" for the first and last day of the matches that have a date, just "02/11" when it is the same day; null when none has */
 export function datesRange(
   matches: ReadonlyArray<{ match_datetime: string | null }>,
 ): string | null {
@@ -150,7 +150,11 @@ export function datesRange(
 
   const short = (date: string) => `${date.slice(8, 10)}/${date.slice(5, 7)}`;
 
-  return `${short(dates[0])} - ${short(dates[dates.length - 1])}`;
+  const [first, last] = [dates[0], dates[dates.length - 1]];
+
+  return first.slice(0, 10) === last.slice(0, 10)
+    ? short(first)
+    : `${short(first)} - ${short(last)}`;
 }
 
 /**

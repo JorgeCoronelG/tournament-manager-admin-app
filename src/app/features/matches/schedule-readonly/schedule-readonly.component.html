@@ -1,0 +1,159 @@
+@if (resource.error()) {
+  <div class="bg-foreground rounded shadow py-10 px-6 text-center" role="alert">
+    <p class="text-secondary mb-4">
+      {{ "matches.history.error" | transloco }}
+    </p>
+    <button (click)="resource.reload()" mat-stroked-button type="button">
+      {{ "common.retry" | transloco }}
+    </button>
+  </div>
+} @else if (!resource.hasValue()) {
+  <div aria-busy="true" class="animate-pulse">
+    <div class="h-4 w-48 rounded bg-gray-500/20"></div>
+    @for (card of [1, 2, 3]; track card) {
+      <div class="bg-foreground rounded shadow mt-4 p-5">
+        <div class="h-5 w-40 rounded bg-gray-500/20"></div>
+        <div class="mt-4 h-10 rounded bg-gray-500/10"></div>
+        <div class="mt-2 h-10 rounded bg-gray-500/10"></div>
+      </div>
+    }
+  </div>
+} @else if (total() === 0) {
+  <p
+    class="bg-foreground rounded shadow m-0 py-10 px-6 text-center text-secondary"
+  >
+    {{ "matches.history.empty" | transloco }}
+  </p>
+} @else {
+  @if (currentGroup(); as group) {
+    <p class="m-0 mb-4 text-sm text-secondary">
+      {{
+        "matches.count"
+          | transloco
+            : { matches: matchesOf(group), matchdays: group.matchdays.length }
+      }}
+    </p>
+  }
+
+  @if (groups().length === 1) {
+    <ng-container
+      *ngTemplateOutlet="groupView; context: { $implicit: groups()[0] }"
+    />
+  } @else {
+    <mat-tab-group [(selectedIndex)]="selectedTab" animationDuration="0">
+      @for (group of groups(); track group.group_id) {
+        <mat-tab [label]="group.group_name">
+          <div class="pt-4">
+            <ng-container
+              *ngTemplateOutlet="groupView; context: { $implicit: group }"
+            />
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+}
+
+<ng-template #groupView let-group>
+  @for (round of roundsOf(group); track round.round) {
+    @if (roundsOf(group).length > 1) {
+      <h2 class="mt-4 mb-2 text-lg font-medium">
+        {{ "matches.round" | transloco: { round: round.round } }}
+      </h2>
+    }
+
+    <mat-accordion multi>
+      @for (day of round.matchdays; track day.matchday) {
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{ "matches.matchday" | transloco: { number: day.matchday } }}
+              @if (rangeOf(day.matches); as range) {
+                <span class="ml-3 text-sm font-normal text-secondary">{{
+                  range
+                }}</span>
+              }
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <ul class="m-0 p-0 list-none">
+            @for (match of day.matches; track match.id) {
+              <li
+                class="grid items-center gap-2 py-2 border-b last:border-b-0 sm:grid-cols-[1fr_1fr_auto_1fr_1fr] sm:gap-3"
+              >
+                <span
+                  [class.opacity-60]="!match.referee"
+                  class="text-xs text-secondary"
+                >
+                  @if (match.referee) {
+                    {{
+                      "matches.referee"
+                        | transloco: { name: match.referee.name ?? "—" }
+                    }}
+                  }
+                </span>
+
+                <div class="flex items-center justify-center gap-3 sm:contents">
+                  <span class="flex min-w-0 items-center justify-end gap-2">
+                    <span [class]="nameClass(match, 'home')" class="truncate">{{
+                      match.home?.team_name ?? "—"
+                    }}</span>
+                    <app-logo-image
+                      [alt]="match.home?.team_name ?? ''"
+                      [src]="match.home?.logo_url ?? null"
+                      class="h-8 w-8 shrink-0 rounded-full"
+                    />
+                  </span>
+                  <span class="px-2 text-sm">
+                    @if (match.status === "played") {
+                      <span [class]="nameClass(match, 'home')">{{
+                        match.home_score
+                      }}</span>
+                      -
+                      <span [class]="nameClass(match, 'away')">{{
+                        match.away_score
+                      }}</span>
+                      @if (match.is_walkover) {
+                        <span
+                          [matTooltip]="match.walkover_reason ?? ''"
+                          class="ml-1 inline-block rounded-full bg-gray-500/10 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400"
+                          >{{ "matches.walkover.tag" | transloco }}</span
+                        >
+                      }
+                    } @else {
+                      {{ "matches.vs" | transloco }}
+                    }
+                  </span>
+                  <span class="flex min-w-0 items-center gap-2">
+                    <app-logo-image
+                      [alt]="match.away?.team_name ?? ''"
+                      [src]="match.away?.logo_url ?? null"
+                      class="h-8 w-8 shrink-0 rounded-full"
+                    />
+                    <span [class]="nameClass(match, 'away')" class="truncate">{{
+                      match.away?.team_name ?? "—"
+                    }}</span>
+                  </span>
+                </div>
+
+                <span
+                  class="flex items-center justify-center gap-2 whitespace-nowrap text-sm text-secondary sm:justify-end"
+                >
+                  @if (match.status !== "played") {
+                    <span
+                      class="inline-block rounded-full bg-gray-500/10 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400"
+                      >{{ "matches.history.unplayed" | transloco }}</span
+                    >
+                  }
+                  @if (match.match_datetime) {
+                    {{ slotText(match) }}
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+</ng-template>

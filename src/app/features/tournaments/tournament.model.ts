@@ -111,6 +111,26 @@ export interface TournamentsFilters {
 
 export type TournamentsQuery = TournamentsFilters & PageQuery;
 
+/** A finished tournament in the history (`GET /tournaments/history`) */
+export interface TournamentHistoryRow {
+  id: number;
+  name: string;
+  /** Y-m-d */
+  start_date: string;
+  /** Y-m-d of the last match that was not cancelled; null when there is none */
+  end_date: string | null;
+  teams_count: number;
+  playoffs_count: number;
+}
+
+export interface TournamentHistoryFilters {
+  search: string;
+  /** The year of the tournaments; "" for every year */
+  year: number | "";
+}
+
+export type TournamentHistoryQuery = TournamentHistoryFilters & PageQuery;
+
 /** `Y-m-d` to a local date (`new Date("2026-03-01")` would be UTC and shift a day) */
 export function parseDate(value: string): Date {
   const [year, month, day] = value.split("-").map(Number);
@@ -124,4 +144,35 @@ export function formatDate(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** A team as the summary names it */
+export interface SummaryTeam {
+  id: number;
+  name: string;
+  logo_url: string | null;
+}
+
+/** The result of a playoff in the summary */
+export interface SummaryPlayoff {
+  id: number;
+  name: string;
+  /** Where it takes teams from, as short text: "1-2", "3", "Mejor 4.o" */
+  positions: string;
+  champion: SummaryTeam | null;
+  runner_up: SummaryTeam | null;
+}
+
+/** `GET /tournaments/{id}/summary`: everything comes calculated by the backend */
+export interface TournamentSummary {
+  teams_count: number;
+  playoffs_count: number;
+  matches_played: number;
+  goals_scored: number;
+  playoffs: SummaryPlayoff[];
+  /** Only without playoffs: the leader of each group's table; null when it is not defined */
+  champion: {
+    source: "standings";
+    teams: Array<SummaryTeam & { group_id: number; group_name: string }>;
+  } | null;
 }

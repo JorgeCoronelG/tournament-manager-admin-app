@@ -44,6 +44,8 @@ export interface ListStateOptions<
   resetOn?: Signal<unknown>;
   /** Initial page size (default 5) */
   pageSize?: number;
+  /** The page to open on the first time (e.g. one remembered when coming back to the list); filters and order changes still go to page 1 */
+  initialPaging?: Signal<Pick<PageQuery, "page" | "pageSize"> | undefined>;
   /** Builds the request from the reactive query, e.g. `(query) => this.api.list(query)` */
   load: (query: Signal<F & PageQuery>) => PaginatedResource<T, R>;
 }
@@ -64,6 +66,7 @@ export function listState<
   defaultSort,
   resetOn,
   pageSize = 5,
+  initialPaging,
   load,
 }: ListStateOptions<F, T, R>) {
   // Another context (e.g. league) starts again from the default order
@@ -77,10 +80,11 @@ export function listState<
     Pick<PageQuery, "page" | "pageSize">
   >({
     source: () => [filters(), sortState(), resetOn?.()],
-    computation: (_, previous) => ({
-      page: 0,
-      pageSize: previous?.value.pageSize ?? pageSize,
-    }),
+    computation: (_, previous) =>
+      (!previous && initialPaging?.()) || {
+        page: 0,
+        pageSize: previous?.value.pageSize ?? pageSize,
+      },
   });
 
   const query = computed<F & PageQuery>(() => ({

@@ -38,6 +38,8 @@ export interface StandingsImageData {
   legend: ImageLegendItem[];
   rows: ImageRow[];
   tiesPending: boolean;
+  /** The tournament is over: "Tabla final" instead of the matchday reached */
+  final: boolean;
 }
 
 /** "Torneo Cuatro" -> "torneo-cuatro": lower case, no accents, hyphens for anything else */
@@ -74,6 +76,8 @@ export function buildImageData(input: {
   groupsCount: number;
   playoffs: readonly StandingPlayoff[];
   now: Date;
+  /** The tournament is finished */
+  final?: boolean;
   /** Text of each legend item, "Finales (1-2)" */
   legendLabel: (playoff: StandingPlayoff) => string;
 }): StandingsImageData {
@@ -109,5 +113,6 @@ export function buildImageData(input: {
           : null,
     })),
     tiesPending: input.group.ties_pending === true,
+    final: input.final === true,
   };
 }

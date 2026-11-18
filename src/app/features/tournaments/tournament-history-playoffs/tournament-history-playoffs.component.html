@@ -1,0 +1,59 @@
+@if (resource.error()) {
+  <div class="bg-foreground rounded shadow py-10 px-6 text-center" role="alert">
+    <p class="text-secondary mb-4">
+      {{ "tournaments.history.playoffs.error" | transloco }}
+    </p>
+    <button (click)="resource.reload()" mat-stroked-button type="button">
+      {{ "common.retry" | transloco }}
+    </button>
+  </div>
+} @else if (!resource.hasValue()) {
+  <div aria-busy="true" class="flex animate-pulse gap-6">
+    @for (round of [1, 2]; track round) {
+      <div class="w-96 shrink-0">
+        <div class="h-5 w-28 rounded bg-gray-500/20"></div>
+        <div class="bg-foreground rounded shadow mt-3 p-3">
+          <div class="h-8 rounded bg-gray-500/10"></div>
+          <div class="mt-2 h-8 rounded bg-gray-500/10"></div>
+          <div class="mt-4 h-16 rounded bg-gray-500/10"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (!selected()) {
+  <p
+    class="bg-foreground rounded shadow m-0 py-10 px-6 text-center text-secondary"
+  >
+    {{ "tournaments.history.playoffs.none" | transloco }}
+  </p>
+} @else {
+  @if (playoffs().length > 1) {
+    <nav [tabPanel]="panel" class="mb-4" mat-tab-nav-bar>
+      @for (playoff of playoffs(); track playoff.group_id) {
+        <a
+          #active="routerLinkActive"
+          [active]="selected()?.group_id === playoff.group_id"
+          [routerLink]="[
+            '/dashboard/torneos/historial',
+            tournamentId(),
+            'liguilla',
+            playoff.group_id,
+          ]"
+          mat-tab-link
+          routerLinkActive
+        >
+          {{ playoff.name }}
+        </a>
+      }
+    </nav>
+  }
+
+  <mat-tab-nav-panel #panel>
+    <app-bracket-view
+      [playoffs]="[selected()!]"
+      [readOnly]="true"
+      [tournamentId]="tournamentId()!"
+      tournamentName=""
+    />
+  </mat-tab-nav-panel>
+}

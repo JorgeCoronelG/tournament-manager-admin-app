@@ -7,7 +7,10 @@ import { LeagueContextService } from "../../core/league-context/league-context.s
 import {
   NewTournament,
   Tournament,
+  TournamentHistoryQuery,
+  TournamentHistoryRow,
   TournamentStatus,
+  TournamentSummary,
   TournamentsQuery,
 } from "./tournament.model";
 
@@ -50,6 +53,49 @@ export class TournamentsApi {
         ...(gender ? { gender } : {}),
         ...(status ? { status } : {}),
       }),
+    );
+  }
+
+  /** One tournament of the league; waits while `id` is undefined. A missing one is reported by the page, not by a snackbar */
+  get(id: Signal<number | undefined>) {
+    return httpResource<Tournament>(() => {
+      const tournamentId = id();
+      const url =
+        tournamentId === undefined
+          ? undefined
+          : this.league.leagueApi(`/tournaments/${tournamentId}`);
+
+      return url ? { url, context: this.ownErrors.context } : undefined;
+    });
+  }
+
+  /** The summary of a finished tournament; waits while `id` is undefined */
+  summary(id: Signal<number | undefined>) {
+    return httpResource<TournamentSummary>(() => {
+      const tournamentId = id();
+
+      return tournamentId === undefined
+        ? undefined
+        : this.league.leagueApi(`/tournaments/${tournamentId}/summary`);
+    });
+  }
+
+  /** A page of the league's finished tournaments, newest first, with their teams and playoffs */
+  history(query: Signal<TournamentHistoryQuery>) {
+    return paginatedResource<TournamentHistoryRow, TournamentHistoryQuery>(
+      () => this.league.leagueApi("/tournaments/history"),
+      query,
+      ({ search, year }) => ({
+        ...(search ? { search } : {}),
+        ...(year ? { year } : {}),
+      }),
+    );
+  }
+
+  /** The years that have finished tournaments in the league, for the history filter */
+  historyYears() {
+    return httpResource<{ data: number[] }>(() =>
+      this.league.leagueApi("/tournaments/history/years"),
     );
   }
 

@@ -43,6 +43,15 @@ describe("schedule.model", () => {
     ).toBe("02/11 - 08/11");
     expect(datesRange([{ match_datetime: null }])).toBeNull();
   });
+
+  it("shows a single day when every match is on the same one", () => {
+    expect(
+      datesRange([
+        { match_datetime: "2026-01-14T17:00:00" },
+        { match_datetime: "2026-01-14T19:00:00" },
+      ]),
+    ).toBe("14/01");
+  });
 });
 
 describe("deficitLines", () => {

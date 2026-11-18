@@ -118,7 +118,12 @@
     class="mt-6 flex items-center justify-between border-t border-gray-300 pt-5 text-xl"
   >
     <span class="text-gray-600">
-      {{ "matches.standings.export.footer" | transloco }}
+      {{
+        (data().final
+          ? "matches.standings.export.footerFinal"
+          : "matches.standings.export.footer"
+        ) | transloco
+      }}
     </span>
     <span class="font-bold text-indigo-900">{{ data().leagueName }}</span>
   </div>

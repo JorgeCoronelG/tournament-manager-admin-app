@@ -48,12 +48,16 @@ export class StandingsImageComponent {
 
   /** "Fase regular · Grupo A · Jornada 7" */
   protected readonly subtitle = computed(() => {
-    const { groupName, matchday } = this.data();
+    const { groupName, matchday, final } = this.data();
 
     return [
-      this.transloco.translate("matches.standings.export.phase"),
+      this.transloco.translate(
+        final
+          ? "matches.standings.export.finalTable"
+          : "matches.standings.export.phase",
+      ),
       groupName,
-      matchday > 0
+      !final && matchday > 0
         ? this.transloco.translate("matches.standings.export.matchday", {
             n: matchday,
           })

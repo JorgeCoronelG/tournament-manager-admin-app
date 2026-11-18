@@ -117,6 +117,22 @@ describe("buildImageData", () => {
     expect(build().updated).toBe("17/11/2026");
   });
 
+  it("marks the image of a finished tournament as the final table", () => {
+    expect(build().final).toBe(false);
+    expect(
+      buildImageData({
+        leagueName: "Liga Demo",
+        tournamentName: "Torneo Cuatro",
+        group: group(),
+        groupsCount: 1,
+        playoffs,
+        now: new Date(2026, 10, 17),
+        final: true,
+        legendLabel: (playoff) => playoff.name,
+      }).final,
+    ).toBe(true);
+  });
+
   it("flags the unresolved ties", () => {
     expect(build().tiesPending).toBe(false);
     expect(build(group({ ties_pending: true })).tiesPending).toBe(true);

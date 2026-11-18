@@ -43,6 +43,7 @@
     "groups": "Grupos",
     "schedule": "Calendario",
     "statistics": "Estadísticas",
+    "history": "Historial",
     "rosters": "Plantillas",
     "players": "Jugadores",
     "list": "Listado"
@@ -248,6 +249,57 @@
   },
   "tournaments": {
     "title": "Torneos",
+    "history": {
+      "title": "Historial de torneos",
+      "search": "Buscar torneo...",
+      "year": "Año",
+      "allYears": "Todos los años",
+      "columns": {
+        "tournament": "Torneo",
+        "teams": "Equipos",
+        "playoffs": "Liguillas",
+        "actions": "Acciones"
+      },
+      "stats": {
+        "tabs": {
+          "standings": "Posiciones"
+        },
+        "empty": "No hay posiciones para este torneo.",
+        "error": "No pudimos cargar las posiciones del torneo."
+      },
+      "playoffs": {
+        "none": "Este torneo no tuvo liguilla.",
+        "error": "No pudimos cargar las llaves de la liguilla."
+      },
+      "summary": {
+        "teams": "Equipos participantes",
+        "playoffs": "Liguillas disputadas",
+        "matches": "Partidos jugados",
+        "goals": "Goles anotados",
+        "results": "Resultados de las liguillas",
+        "champion": "Campeón",
+        "runnerUp": "Subcampeón: {{team}}",
+        "positions": "Posiciones {{positions}}",
+        "leader": "Líder de la tabla",
+        "error": "No pudimos cargar el resumen del torneo."
+      },
+      "detail": {
+        "subtitle": "{{league}} · Temporada {{season}}",
+        "notFound": "No encontramos este torneo. Puede que no exista, que sea de otra liga o que aún no haya finalizado.",
+        "backToHistory": "Volver al historial",
+        "soon": "Este apartado estará disponible pronto.",
+        "tabs": {
+          "summary": "Resumen",
+          "calendar": "Calendario",
+          "playoffs": "Liguilla",
+          "playoffsMany": "Liguillas",
+          "standings": "Estadísticas"
+        }
+      },
+      "view": "Ver detalle",
+      "viewTournament": "Ver detalle del torneo {{name}}",
+      "error": "No pudimos cargar el historial de torneos."
+    },
     "new": "Nuevo torneo",
     "search": "Buscar torneos",
     "created": "Torneo creado",
@@ -668,6 +720,11 @@
     "regenerated": "Calendario regenerado",
     "deleted": "Calendario borrado",
     "count": "{{matches}} partidos en {{matchdays}} jornadas",
+    "history": {
+      "unplayed": "Sin jugar",
+      "empty": "Este torneo no tiene partidos registrados.",
+      "error": "No pudimos cargar el calendario del torneo."
+    },
     "matchday": "Jornada {{number}}",
     "round": "Vuelta {{round}}",
     "vs": "vs",
@@ -1000,7 +1057,9 @@
         "updated": "Actualizado: {{date}}",
         "tiesNote": "Hay empates sin resolver. La clasificación puede cambiar.",
         "abbreviations": "PJ: Jugados · PG: Ganados · PE: Empatados · PP: Perdidos · GF: Goles a favor · GC: Goles en contra · DG: Diferencia de goles · Pts: Puntos",
-        "footer": "Clasificación actual del torneo"
+        "footer": "Clasificación actual del torneo",
+        "finalTable": "Tabla final",
+        "footerFinal": "Clasificación final del torneo"
       },
       "manualOrderApplied": "Orden manual aplicado",
       "qualifiesTo": "Clasifica a {{name}}",

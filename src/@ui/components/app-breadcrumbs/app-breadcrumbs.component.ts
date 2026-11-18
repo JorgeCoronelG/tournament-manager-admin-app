@@ -3,6 +3,9 @@ import { AppBreadcrumbComponent } from "./app-breadcrumb/app-breadcrumb.componen
 import { RouterLink } from "@angular/router";
 import { MatIconModule } from "@angular/material/icon";
 
+/** A crumb: plain text, or text that goes to `link` */
+export type Crumb = string | { label: string; link?: string };
+
 @Component({
   selector: "app-breadcrumbs",
   template: `
@@ -12,10 +15,14 @@ import { MatIconModule } from "@angular/material/icon";
           <mat-icon svgIcon="mat:home" class="icon-sm" />
         </a>
       </app-breadcrumb>
-      @for (crumb of crumbs(); track crumb) {
+      @for (crumb of crumbs(); track $index) {
         <div class="w-1 h-1 bg-gray-600 rounded-full"></div>
         <app-breadcrumb>
-          <a [routerLink]="[]">{{ crumb }}</a>
+          @if (isText(crumb)) {
+            <a [routerLink]="[]">{{ crumb }}</a>
+          } @else {
+            <a [routerLink]="crumb.link ?? []">{{ crumb.label }}</a>
+          }
         </app-breadcrumb>
       }
     </div>
@@ -24,7 +31,11 @@ import { MatIconModule } from "@angular/material/icon";
   imports: [AppBreadcrumbComponent, RouterLink, MatIconModule],
 })
 export class AppBreadcrumbsComponent {
-  readonly crumbs = input<string[]>([]);
+  readonly crumbs = input<Crumb[]>([]);
   /** Accessible name of the home icon link */
   readonly homeLabel = input("Home");
+
+  protected isText(crumb: Crumb): crumb is string {
+    return typeof crumb === "string";
+  }
 }

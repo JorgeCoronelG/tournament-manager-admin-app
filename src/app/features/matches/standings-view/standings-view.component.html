@@ -37,21 +37,19 @@
         mat-stroked-button
         type="button"
       >
-        <span class="inline-flex items-center gap-2">
-          @if (exporting()) {
-            <mat-spinner class="shrink-0" diameter="18" />
-          } @else {
-            <mat-icon [svgIcon]="canShare ? 'mat:share' : 'mat:image'" />
-          }
-          {{
-            (exporting()
-              ? "matches.standings.export.generating"
-              : canShare
-                ? "matches.standings.export.share"
-                : "matches.standings.export.download"
-            ) | transloco
-          }}
-        </span>
+        @if (exporting()) {
+          <mat-spinner class="!inline-block align-middle" diameter="18" />
+        } @else {
+          <mat-icon [svgIcon]="canShare ? 'mat:share' : 'mat:image'" />
+        }
+        {{
+          (exporting()
+            ? "matches.standings.export.generating"
+            : canShare
+              ? "matches.standings.export.share"
+              : "matches.standings.export.download"
+          ) | transloco
+        }}
       </button>
     }
   </div>

@@ -88,6 +88,12 @@ const NAVIGATION: NavigationItem[] = [
             route: "/dashboard/torneos/estadisticas",
             capability: "groups.manage",
           },
+          {
+            type: "link",
+            label: "nav.history",
+            route: "/dashboard/torneos/historial",
+            capability: "groups.manage",
+          },
         ],
       },
       {

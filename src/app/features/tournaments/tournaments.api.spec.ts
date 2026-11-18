@@ -7,7 +7,11 @@ import { ApplicationRef, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { PaginatedResponse } from "../../core/http/paginated-response.model";
 import { LeagueContextService } from "../../core/league-context/league-context.service";
-import { Tournament, TournamentsQuery } from "./tournament.model";
+import {
+  Tournament,
+  TournamentHistoryQuery,
+  TournamentsQuery,
+} from "./tournament.model";
 import { TournamentsApi } from "./tournaments.api";
 
 const tournament = (id: number): Tournament => ({
@@ -125,6 +129,44 @@ describe("TournamentsApi", () => {
       r.url.endsWith("/tournaments"),
     ).request;
     expect(params.keys().sort()).toEqual(["page", "per_page"]);
+  });
+
+  it("asks the history for the search and the year, leaving out the empty ones", () => {
+    const query = signal<TournamentHistoryQuery>({
+      page: 0,
+      pageSize: 5,
+      sort: "",
+      search: "copa",
+      year: 2026,
+    });
+    TestBed.runInInjectionContext(() => api.history(query));
+    TestBed.tick();
+
+    const { params } = controller.expectOne(
+      (r) => r.url === "/api/leagues/3/tournaments/history",
+    ).request;
+    expect(params.get("search")).toBe("copa");
+    expect(params.get("year")).toBe("2026");
+
+    query.set({ page: 0, pageSize: 5, sort: "", search: "", year: "" });
+    TestBed.tick();
+
+    const next = controller.expectOne(
+      (r) => r.url === "/api/leagues/3/tournaments/history",
+    ).request;
+    expect(next.params.keys().sort()).toEqual(["page", "per_page"]);
+  });
+
+  it("reads the years that have finished tournaments", async () => {
+    const years = TestBed.runInInjectionContext(() => api.historyYears());
+    TestBed.tick();
+
+    controller
+      .expectOne("/api/leagues/3/tournaments/history/years")
+      .flush({ data: [2027, 2026] });
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(years.value()?.data).toEqual([2027, 2026]);
   });
 
   it("waits without a league and requests again when it changes", () => {

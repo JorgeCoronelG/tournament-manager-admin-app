@@ -59,6 +59,8 @@ export class StandingsViewComponent {
   readonly tournamentId = input.required<number>();
   /** For the exported image */
   readonly tournamentName = input("");
+  /** The tournament is over: the exported image says "Tabla final" */
+  readonly finished = input(false);
   readonly groups = input.required<readonly StandingGroup[]>();
   /** The playoffs the table feeds: they colour the teams that qualify */
   readonly playoffs = input<readonly StandingPlayoff[]>([]);
@@ -108,6 +110,7 @@ export class StandingsViewComponent {
         groupsCount: this.groups().length,
         playoffs: this.playoffs(),
         now: new Date(),
+        final: this.finished(),
         legendLabel: (playoff) => this.legendLabel(playoff),
       });
 

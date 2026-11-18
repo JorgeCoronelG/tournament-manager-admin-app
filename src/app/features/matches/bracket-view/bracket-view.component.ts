@@ -87,6 +87,9 @@ export class BracketViewComponent {
   /** Registrations withdrawn from the tournament: their pending matches cannot get a score */
   readonly withdrawnIds = input<ReadonlySet<number>>(new Set());
 
+  /** Only to look at (the history of a finished tournament): every match is played, so the "played" chip is noise */
+  readonly readOnly = input(false);
+
   /** Hours, fields and referees can be set (the tournament is in its playoffs) */
   readonly schedulable = input(false);
 
