@@ -68,7 +68,14 @@ export class LeaguesListComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
-  readonly columns = ["name", "admin", "status", "created_at", "actions"];
+  readonly columns = [
+    "name",
+    "admin",
+    "limits",
+    "status",
+    "created_at",
+    "actions",
+  ];
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
   readonly filters = signal<LeaguesFilters>({
@@ -94,6 +101,20 @@ export class LeaguesListComponent {
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
   readonly changePage = this.list.changePage;
+
+  /** "1 torneo", "3 torneos" or "Sin límite" */
+  limitsText(league: League): string {
+    const max = league.max_active_tournaments;
+
+    return max === null
+      ? this.transloco.translate("leagues.limits.none")
+      : this.transloco.translate(
+          max === 1
+            ? "leagues.limits.tournamentsOne"
+            : "leagues.limits.tournamentsMany",
+          { count: max },
+        );
+  }
 
   readonly crumbs = computed(() => [this.transloco.translate("nav.leagues")]);
 

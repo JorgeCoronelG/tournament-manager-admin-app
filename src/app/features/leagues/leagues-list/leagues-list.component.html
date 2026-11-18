@@ -95,6 +95,19 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="limits">
+            <th
+              *matHeaderCellDef
+              [matTooltip]="'leagues.limits.columnHint' | transloco"
+              mat-header-cell
+            >
+              {{ "leagues.limits.column" | transloco }}
+            </th>
+            <td *matCellDef="let league" mat-cell class="whitespace-nowrap">
+              {{ limitsText(league) }}
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="status">
             <th *matHeaderCellDef mat-header-cell>
               {{ "leagues.fields.status" | transloco }}

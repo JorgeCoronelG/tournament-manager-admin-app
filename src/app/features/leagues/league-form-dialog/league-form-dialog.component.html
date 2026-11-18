@@ -5,7 +5,9 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+  <mat-dialog-content
+    class="flex flex-col gap-2 !pt-2 min-w-[320px] sm:min-w-[520px]"
+  >
     <mat-form-field>
       <mat-label>{{ "leagues.fields.name" | transloco }}</mat-label>
       <input [formField]="leagueForm.name" autocomplete="off" matInput />
@@ -19,6 +21,69 @@
       [label]="'leagues.fields.admin' | transloco"
       [selected]="league?.admin ?? null"
     />
+
+    <h3 class="m-0 mt-2 text-base font-medium">
+      {{ "leagues.limits.title" | transloco }}
+    </h3>
+
+    <!-- "Con límite" / "Sin límite": two chips, one is always on -->
+    <div
+      [attr.aria-label]="'leagues.limits.title' | transloco"
+      class="mb-2 flex gap-2"
+      role="radiogroup"
+    >
+      @for (option of [false, true]; track option) {
+        <button
+          (click)="setUnlimited(option)"
+          [attr.aria-checked]="
+            leagueForm.unlimited_tournaments().value() === option
+          "
+          [class]="
+            leagueForm.unlimited_tournaments().value() === option
+              ? 'bg-primary-600/10 font-medium text-primary-700 dark:text-primary-300'
+              : 'bg-transparent text-secondary hover:bg-gray-500/10'
+          "
+          class="cursor-pointer rounded-full border-0 px-4 py-1.5 text-sm transition-colors"
+          role="radio"
+          type="button"
+        >
+          {{
+            (option ? "leagues.limits.unlimited" : "leagues.limits.limited")
+              | transloco
+          }}
+        </button>
+      }
+    </div>
+
+    <mat-form-field class="w-full self-start sm:w-1/2">
+      <mat-label>{{ "leagues.limits.tournaments" | transloco }}</mat-label>
+      <input
+        [formField]="leagueForm.max_active_tournaments"
+        autocomplete="off"
+        inputmode="numeric"
+        matInput
+        type="number"
+      />
+      @if (leagueForm.max_active_tournaments().errors().length) {
+        <mat-error>{{
+          errorText(leagueForm.max_active_tournaments().errors())
+        }}</mat-error>
+      }
+    </mat-form-field>
+
+    <p class="m-0 text-xs text-secondary">
+      {{ "leagues.limits.help" | transloco }}
+    </p>
+
+    @if (overLimits()) {
+      <div
+        class="flex items-start gap-3 p-3 rounded border border-gray-400 bg-gray-100 text-gray-800 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
+        role="status"
+      >
+        <mat-icon class="shrink-0" svgIcon="mat:info" />
+        <p class="m-0 text-sm">{{ "leagues.limits.exceeded" | transloco }}</p>
+      </div>
+    }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

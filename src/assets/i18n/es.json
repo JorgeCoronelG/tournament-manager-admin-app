@@ -188,6 +188,24 @@
       "message": "¿Seguro que quieres eliminar la liga <b>{{name}}</b>?\n\nEsta acción no se puede deshacer.",
       "confirm": "Eliminar"
     },
+    "limits": {
+      "title": "Límites de uso",
+      "tournaments": "Torneos activos permitidos",
+      "limited": "Con límite",
+      "unlimited": "Sin límite",
+      "help": "Solo cuentan los torneos en curso o en liguilla. Los torneos en planeación no cuentan.",
+      "exceeded": "La liga ya supera este límite; no se quitará nada, pero no podrá iniciar torneos nuevos hasta quedar dentro.",
+      "positiveInteger": "Ingresa un número entero de 1 o más.",
+      "column": "Límites de torneos",
+      "columnHint": "Máximo de torneos simultáneos en curso o liguilla. Los torneos en planeación no cuentan.",
+      "tournamentsOne": "1 torneo",
+      "tournamentsMany": "{{count}} torneos",
+      "none": "Sin límite",
+      "error": "No pudimos cargar el uso de los límites.",
+      "usageTournaments": "Torneos activos {{used}} de {{max}}",
+      "reachedTournamentsOne": "Esta liga permite tener 1 torneo activo a la vez. Finaliza uno o solicita ampliar el límite a soporte.",
+      "reachedTournaments": "Esta liga permite tener {{limit}} torneos activos a la vez. Finaliza uno o solicita ampliar el límite a soporte."
+    },
     "form": {
       "newTitle": "Nueva liga",
       "editTitle": "Editar liga"

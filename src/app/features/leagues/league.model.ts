@@ -18,6 +18,10 @@ export interface League {
   admin: LeagueAdmin;
   status: LeagueStatus;
   is_active: boolean;
+  /** Tournaments in progress or in their playoffs at once; null for no limit */
+  max_active_tournaments: number | null;
+  /** Not used by the interface */
+  max_teams_per_tournament?: number | null;
   /** ISO 8601 date */
   created_at: string;
 }
@@ -26,6 +30,38 @@ export interface League {
 export interface NewLeague {
   name: string;
   admin_user_id: number;
+  max_active_tournaments: number | null;
+}
+
+/** `GET /leagues/{id}/limits`: the limits and what the league uses of them */
+export interface LeagueLimits {
+  max_active_tournaments: number | null;
+  usage: {
+    /** Tournaments in progress or in their playoffs (planning ones do not count) */
+    active_tournaments: number;
+    tournaments: Array<{
+      id: number;
+      name: string;
+      status: string;
+      active_registrations: number;
+    }>;
+  };
+}
+
+/** A new tournament cannot start: the league already has all the active ones it may */
+export function tournamentsReached(limits: LeagueLimits): boolean {
+  return (
+    limits.max_active_tournaments !== null &&
+    limits.usage.active_tournaments >= limits.max_active_tournaments
+  );
+}
+
+/** The usage is over the limit being set (it was lowered below what the league has) */
+export function exceedsLimit(
+  usage: LeagueLimits["usage"],
+  maxTournaments: number | null,
+): boolean {
+  return maxTournaments !== null && usage.active_tournaments > maxTournaments;
 }
 
 export type LeagueSortField = "name" | "created_at";

@@ -21,6 +21,7 @@ const league = (id: number): League => ({
   },
   status: "active",
   is_active: true,
+  max_active_tournaments: 1,
   created_at: "2026-01-01T00:00:00.000Z",
 });
 
@@ -102,7 +103,11 @@ describe("LeaguesApi", () => {
   });
 
   it("reads, creates, updates and deletes a league", () => {
-    const body = { name: "Liga Norte", admin_user_id: 7 };
+    const body = {
+      name: "Liga Norte",
+      admin_user_id: 7,
+      max_active_tournaments: 1,
+    };
 
     api.get(1).subscribe();
     let request = controller.expectOne((r) => r.url.endsWith("/leagues/1"));

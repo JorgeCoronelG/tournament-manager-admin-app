@@ -6,6 +6,7 @@ import { provideTestI18n } from "../../../../testing/i18n";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { LeagueFormDialogComponent } from "./league-form-dialog.component";
 import { League } from "../league.model";
+import { LeagueLimitsApi } from "../league-limits.api";
 import { LeaguesApi } from "../leagues.api";
 
 describe("LeagueFormDialogComponent", () => {
@@ -20,6 +21,10 @@ describe("LeagueFormDialogComponent", () => {
       providers: [
         provideTestI18n(),
         { provide: LeaguesApi, useValue: { create, update } },
+        {
+          provide: LeagueLimitsApi,
+          useValue: { ofLeague: () => ({ hasValue: () => false }) },
+        },
         { provide: MatDialogRef, useValue: { close } },
         { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: SnackbarService, useValue: { error, notifyFailure } },
@@ -83,9 +88,11 @@ describe("LeagueFormDialogComponent", () => {
 
     await component.save();
 
+    // A new league starts with one active tournament allowed
     expect(create).toHaveBeenCalledWith({
       name: "Liga Norte",
       admin_user_id: 7,
+      max_active_tournaments: 1,
     });
     expect(close).toHaveBeenCalledWith({ id: 1 });
     expect(component.leagueForm().submitting()).toBe(false);
@@ -96,15 +103,47 @@ describe("LeagueFormDialogComponent", () => {
       id: 9,
       name: "Liga Sur",
       admin: { id: 4 },
+      max_active_tournaments: 3,
     } as League);
 
     expect(component.leagueForm.admin_user_id().value()).toBe(4);
+    expect(component.leagueForm.max_active_tournaments().value()).toBe(3);
     await component.save();
 
     expect(update).toHaveBeenCalledWith(9, {
       name: "Liga Sur",
       admin_user_id: 4,
+      max_active_tournaments: 3,
     });
+  });
+
+  it("sends null for a limit set to Sin límite", async () => {
+    const component = setup();
+    component.leagueForm.name().value.set("Liga Norte");
+    component.leagueForm.admin_user_id().value.set(7);
+    component.leagueForm.unlimited_tournaments().value.set(true);
+
+    await component.save();
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ max_active_tournaments: null }),
+    );
+  });
+
+  it("asks for a valid number unless the limit is unlimited", () => {
+    const component = setup();
+    const { max_active_tournaments: tournaments } = component.leagueForm;
+
+    tournaments().value.set(0);
+    expect(tournaments().invalid()).toBe(true);
+
+    tournaments().value.set(1);
+    expect(tournaments().invalid()).toBe(false);
+
+    tournaments().value.set(null);
+    expect(tournaments().invalid()).toBe(true);
+    component.leagueForm.unlimited_tournaments().value.set(true);
+    expect(tournaments().invalid()).toBe(false);
   });
 
   it("maps 422 errors to their fields and keeps the dialog open", async () => {

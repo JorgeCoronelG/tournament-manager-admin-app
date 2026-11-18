@@ -62,6 +62,18 @@ export interface GotoOptions {
 }
 
 /** Waits for the splash screen to disappear and, for pages inside the layout, for it to be ready */
+/** What a league uses of its limits: room left for tournaments and teams */
+async function mockLeagueLimits(page: Page): Promise<void> {
+  await page.route(/\/leagues\/\d+\/limits$/, (route) =>
+    route.fulfill({
+      json: {
+        max_active_tournaments: 3,
+        usage: { active_tournaments: 1, tournaments: [] },
+      },
+    }),
+  );
+}
+
 /** The superadmin's panel cards: the backend sums them up */
 async function mockDashboardSummary(page: Page): Promise<void> {
   await page.route(/\/dashboard\/summary(\?.*)?$/, (route) =>
@@ -88,6 +100,7 @@ export async function gotoApp(
     await mockSession(page);
     await mockMyLeagues(page, leagues);
     await mockDashboardSummary(page);
+    await mockLeagueLimits(page);
   }
 
   await page.goto(path);

@@ -60,6 +60,30 @@
         </button>
       </div>
 
+      @if (limits.error()) {
+        <p class="m-0 mb-3 text-sm text-secondary">
+          {{ "leagues.limits.error" | transloco }}
+          <button
+            (click)="limits.reload()"
+            class="underline cursor-pointer bg-transparent border-0 p-0 text-primary-600"
+            type="button"
+          >
+            {{ "common.retry" | transloco }}
+          </button>
+        </p>
+      } @else if (usage(); as limits) {
+        <p class="m-0 mb-3 text-sm text-secondary">
+          {{
+            "leagues.limits.usageTournaments"
+              | transloco
+                : {
+                    used: limits.usage.active_tournaments,
+                    max: limits.max_active_tournaments ?? "∞",
+                  }
+          }}
+        </p>
+      }
+
       <div class="app-table-card bg-foreground rounded shadow">
         <mat-progress-bar
           [class.invisible]="!resource.isLoading()"
@@ -143,37 +167,40 @@
                   >
                     <mat-icon svgIcon="mat:edit" />
                   </button>
-                  <button
-                    (click)="advance(tournament)"
-                    [attr.aria-label]="
-                      (tournament.status === 'planning'
-                        ? 'tournaments.actions.start'
-                        : 'tournaments.actions.finish'
-                      ) | transloco
-                    "
-                    [matTooltip]="
-                      (tournament.status === 'planning'
-                        ? 'tournaments.actions.start'
-                        : 'tournaments.actions.finish'
-                      ) | transloco
-                    "
-                    [class.app-action-primary]="
-                      tournament.status === 'planning'
-                    "
-                    [class.app-action-success]="
-                      tournament.status !== 'planning'
-                    "
-                    mat-icon-button
-                    type="button"
+                  <!-- A disabled button gets no pointer events: the tooltip lives on its wrapper -->
+                  <span
+                    [matTooltip]="advanceTip(tournament)"
+                    class="inline-flex"
                   >
-                    <mat-icon
-                      [svgIcon]="
-                        tournament.status === 'planning'
-                          ? 'mat:play_circle'
-                          : 'mat:check_circle'
+                    <button
+                      (click)="advance(tournament)"
+                      [attr.aria-label]="
+                        (tournament.status === 'planning'
+                          ? 'tournaments.actions.start'
+                          : 'tournaments.actions.finish'
+                        ) | transloco
                       "
-                    />
-                  </button>
+                      [class.app-action-primary]="
+                        tournament.status === 'planning'
+                      "
+                      [class.app-action-success]="
+                        tournament.status !== 'planning'
+                      "
+                      [disabled]="
+                        tournament.status === 'planning' && startBlocked()
+                      "
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon
+                        [svgIcon]="
+                          tournament.status === 'planning'
+                            ? 'mat:play_circle'
+                            : 'mat:check_circle'
+                        "
+                      />
+                    </button>
+                  </span>
                 }
                 @if (tournament.status === "planning") {
                   <button

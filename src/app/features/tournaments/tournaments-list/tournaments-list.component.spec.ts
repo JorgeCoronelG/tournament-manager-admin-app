@@ -8,6 +8,7 @@ import { of, throwError } from "rxjs";
 import { appConfigs } from "@ui/config/app-configs";
 import { provideApp } from "@ui/app.provider";
 import { provideTestI18n } from "../../../../testing/i18n";
+import { LeagueLimitsApi } from "../../leagues/league-limits.api";
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { MyLeague } from "../../../core/league-context/my-league.model";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
@@ -63,6 +64,16 @@ describe("TournamentsListComponent", () => {
       providers: [
         provideTestI18n(),
         provideRouter([]),
+        {
+          provide: LeagueLimitsApi,
+          useValue: {
+            ofActiveLeague: () => ({
+              hasValue: () => false,
+              error: () => undefined,
+              reload: vi.fn(),
+            }),
+          },
+        },
         provideApp({ config: appConfigs.poseidon, availableThemes: [] }),
         { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
         {

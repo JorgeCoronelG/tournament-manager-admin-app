@@ -37,6 +37,8 @@ import {
   Tournament,
   TournamentsFilters,
 } from "../tournament.model";
+import { LeagueLimitsApi } from "../../leagues/league-limits.api";
+import { tournamentsReached } from "../../leagues/league.model";
 import { TournamentsApi } from "../tournaments.api";
 
 const START_DATE_FORMAT = new Intl.DateTimeFormat("es-MX", {
@@ -73,6 +75,7 @@ const START_DATE_FORMAT = new Intl.DateTimeFormat("es-MX", {
 })
 export class TournamentsListComponent {
   private readonly api = inject(TournamentsApi);
+  private readonly limitsApi = inject(LeagueLimitsApi);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(SnackbarService);
@@ -121,6 +124,38 @@ export class TournamentsListComponent {
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
   readonly changePage = this.list.changePage;
+
+  /** What the league uses of its limits; the summary and the start button read it */
+  readonly limits = this.limitsApi.ofActiveLeague();
+  readonly usage = computed(() =>
+    this.limits.hasValue() ? this.limits.value() : undefined,
+  );
+  /** No new tournament can start: the league already has all the active ones it may */
+  readonly startBlocked = computed(() => {
+    const limits = this.usage();
+
+    return !!limits && tournamentsReached(limits);
+  });
+
+  /** Text of the start/finish button; at the limit, why the tournament cannot start */
+  advanceTip(tournament: Tournament): string {
+    if (tournament.status === "planning" && this.startBlocked()) {
+      const limit = this.usage()?.max_active_tournaments;
+
+      return this.transloco.translate(
+        limit === 1
+          ? "leagues.limits.reachedTournamentsOne"
+          : "leagues.limits.reachedTournaments",
+        { limit },
+      );
+    }
+
+    return this.transloco.translate(
+      tournament.status === "planning"
+        ? "tournaments.actions.start"
+        : "tournaments.actions.finish",
+    );
+  }
 
   readonly crumbs = computed(() => [
     this.transloco.translate("nav.tournaments"),
@@ -212,6 +247,7 @@ export class TournamentsListComponent {
     request.subscribe({
       next: () => {
         this.resource.reload();
+        this.limits.reload();
         this.snackbar.notifySuccess(successKey);
       },
       error: (error: unknown) => this.snackbar.notifyFailure(error),
