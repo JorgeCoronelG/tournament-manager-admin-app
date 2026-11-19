@@ -450,6 +450,7 @@ test.describe("matches", () => {
     await dialog.getByRole("combobox", { name: /Canchas/ }).click();
     await page.getByRole("option", { name: "Cancha 02" }).click();
     await page.keyboard.press("Escape");
+    await expect(page.getByRole("listbox")).toBeHidden();
 
     await expect(panel("Cancha 02")).toHaveClass(/mat-expanded/);
     await expect(panel("Cancha 01")).not.toHaveClass(/mat-expanded/);
@@ -457,6 +458,7 @@ test.describe("matches", () => {
     await dialog.getByRole("combobox", { name: /Canchas/ }).click();
     await page.getByRole("option", { name: "Cancha 02" }).click();
     await page.keyboard.press("Escape");
+    await expect(page.getByRole("listbox")).toBeHidden();
 
     await expect(panel("Cancha 01")).toHaveClass(/mat-expanded/);
   });
