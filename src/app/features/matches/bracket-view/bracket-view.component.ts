@@ -11,11 +11,15 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatDividerModule } from "@angular/material/divider";
 import { MatIconModule } from "@angular/material/icon";
+import { MatMenuModule } from "@angular/material/menu";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSelectModule } from "@angular/material/select";
 import { form, FormField } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
 import { parseDate } from "../../tournaments/tournament.model";
@@ -35,6 +39,16 @@ import {
   ProgramMatchDialogData,
 } from "../program-match-dialog/program-match-dialog.component";
 import { slotLabel } from "../schedule.model";
+import {
+  buildPlayoffResultsData,
+  buildPlayoffScheduleData,
+  LegChoice,
+  playoffFileName,
+  roundResults,
+} from "../playoff-image/playoff-image.model";
+import { PlayoffResultsImageComponent } from "../playoff-image/playoff-results-image.component";
+import { PlayoffScheduleImageComponent } from "../playoff-image/playoff-schedule-image.component";
+import { StandingsExportService } from "../standings-export/standings-export.service";
 import {
   PlayoffResultDialogComponent,
   PlayoffResultDialogData,
@@ -59,8 +73,11 @@ import {
     FormField,
     LogoImageComponent,
     MatButtonModule,
+    MatDividerModule,
     MatFormFieldModule,
     MatIconModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
     TranslocoPipe,
@@ -68,6 +85,8 @@ import {
 })
 export class BracketViewComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly exporter = inject(StandingsExportService);
+  private readonly league = inject(LeagueContextService);
   private readonly matchesApi = inject(MatchesApi);
   private readonly snackbar = inject(SnackbarService);
   private readonly tournamentsApi = inject(TournamentsApi);
@@ -116,6 +135,83 @@ export class BracketViewComponent {
         ),
       ),
   );
+
+  protected readonly roundResults = roundResults;
+
+  /** Index of the round whose image is being generated */
+  protected readonly exportingImage = signal<number | null>(null);
+
+  /** Generates the schedule or results image of a round (or one of its legs) and downloads it */
+  async download(
+    playoff: BracketPlayoff,
+    round: BracketRound,
+    kind: "schedule" | "results",
+    choice: LegChoice,
+  ): Promise<void> {
+    if (this.exportingImage() !== null) {
+      return;
+    }
+
+    this.exportingImage.set(round.index);
+
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.transloco.translate(`matches.${key}`, params);
+
+    try {
+      const tournamentName = this.tournamentName();
+      const input = {
+        leagueName: this.league.activeLeague()?.name ?? "",
+        tournamentName,
+        playoffsCount: this.playoffs().length,
+        playoff,
+        round,
+        choice,
+        texts: {
+          liguilla: t("playoffImage.liguilla"),
+          first: t("playoffImage.first"),
+          second: t("playoffImage.second"),
+          both: t("playoffImage.bothSubtitle"),
+          tbd: t("bracket.tbd"),
+          winnerOf: (name: string, n: number) =>
+            t("bracket.winnerOf", { round: name, n }),
+        },
+      };
+      const fileName = (prefix: "horarios" | "resultados") =>
+        playoffFileName(
+          prefix,
+          round.name,
+          this.playoffs().length > 1 ? playoff.name : null,
+          round.legs === 2 ? choice : null,
+          tournamentName,
+        );
+
+      if (kind === "results") {
+        await this.exporter.exportComponent(
+          PlayoffResultsImageComponent,
+          buildPlayoffResultsData({
+            ...input,
+            title: t("jornadaImage.results"),
+          }),
+          fileName("resultados"),
+          tournamentName,
+        );
+      } else {
+        await this.exporter.exportComponent(
+          PlayoffScheduleImageComponent,
+          buildPlayoffScheduleData({
+            ...input,
+            weekdayName: (weekday) => t(`config.weekdays.${weekday}`),
+          }),
+          fileName("horarios"),
+          tournamentName,
+        );
+      }
+    } catch {
+      this.snackbar.error(t("standings.export.error"));
+    } finally {
+      this.exportingImage.set(null);
+    }
+  }
 
   /** "Sáb 07/11 · 8:00 p.m. · Cancha 1" of a match that has an hour */
   slotText(match: BracketMatch): string {

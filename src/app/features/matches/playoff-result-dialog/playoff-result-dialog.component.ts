@@ -145,6 +145,17 @@ export class PlayoffResultDialogComponent {
       : globalWith(this.data.tie, this.data.match, home_goals, away_goals);
   });
 
+  /** Name of the side ahead on the global score (a second leg), when it is not level */
+  readonly globalWinner = computed(() => {
+    const score = this.global();
+
+    return score === null || score.home === score.away
+      ? null
+      : score.home > score.away
+        ? this.homeName
+        : this.awayName;
+  });
+
   readonly resultForm = form(this.model, (result) => {
     validate(result.home_goals, ({ value }) =>
       validScore(value()) ? undefined : { kind: "score" },

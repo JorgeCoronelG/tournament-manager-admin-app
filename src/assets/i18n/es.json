@@ -789,6 +789,33 @@
       "empty": "Este torneo no tiene partidos registrados.",
       "error": "No pudimos cargar el calendario del torneo."
     },
+    "playoffImage": {
+      "schedule": "Horarios",
+      "results": "Resultados",
+      "first": "Ida",
+      "second": "Vuelta",
+      "both": "Ambas",
+      "bothSubtitle": "Ida y vuelta",
+      "liguilla": "Liguilla",
+      "champion": "campeón",
+      "noResultsYet": "Aún no hay resultados en esta fase"
+    },
+    "jornadaImage": {
+      "downloadImage": "Descargar imagen",
+      "phase": "Fase regular",
+      "match": "Partido",
+      "dateTime": "Fecha y hora",
+      "toBeDefined": "Por definir",
+      "noReferee": "Sin asignar",
+      "cancelled": "Cancelado",
+      "footer": "Calendario del torneo",
+      "optionSchedule": "Horarios",
+      "optionResults": "Resultados",
+      "noResultsYet": "Aún no hay resultados en esta jornada",
+      "results": "Resultados",
+      "noResult": "Sin resultado",
+      "resultsFooter": "Resultados del torneo"
+    },
     "matchday": "Jornada {{number}}",
     "round": "Vuelta {{round}}",
     "vs": "vs",

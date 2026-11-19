@@ -4,6 +4,7 @@ import {
   EnvironmentInjector,
   inject,
   Service,
+  Type,
 } from "@angular/core";
 import { toBlob } from "html-to-image";
 import {
@@ -43,14 +44,28 @@ export class StandingsExportService {
     tournamentName: string,
     groupName: string | null,
   ): Promise<ExportOutcome> {
-    const blob = await this.render(data);
-    const fileName = exportFileName(tournamentName, groupName, new Date());
+    return this.exportComponent(
+      StandingsImageComponent,
+      data,
+      exportFileName(tournamentName, groupName, new Date()),
+      tournamentName,
+    );
+  }
+
+  /** Draws any picture component (it takes a `data` input) and shares or downloads it as a PNG */
+  async exportComponent<T extends { data: unknown }>(
+    component: Type<T>,
+    data: unknown,
+    fileName: string,
+    title: string,
+  ): Promise<ExportOutcome> {
+    const blob = await this.render(component, data);
 
     if (this.canShareFiles) {
       const file = new File([blob], fileName, { type: "image/png" });
 
       try {
-        await navigator.share({ files: [file], title: tournamentName });
+        await navigator.share({ files: [file], title });
 
         return "shared";
       } catch (error) {
@@ -67,7 +82,7 @@ export class StandingsExportService {
   }
 
   /** Mounts the picture out of view, waits for fonts and shields, and takes it as a PNG */
-  private async render(data: StandingsImageData): Promise<Blob> {
+  private async render(component: Type<unknown>, data: unknown): Promise<Blob> {
     const wrapper = document.createElement("div");
     wrapper.setAttribute("aria-hidden", "true");
     wrapper.style.cssText =
@@ -77,7 +92,7 @@ export class StandingsExportService {
     const host = document.createElement("div");
     wrapper.append(host);
 
-    const ref = createComponent(StandingsImageComponent, {
+    const ref = createComponent(component, {
       environmentInjector: this.injector,
       hostElement: host,
     });

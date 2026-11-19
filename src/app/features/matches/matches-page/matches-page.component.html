@@ -356,6 +356,52 @@
                 }}</span>
               }
             </mat-panel-title>
+            <button
+              (click)="$event.stopPropagation()"
+              (keydown)="$event.stopPropagation()"
+              [attr.aria-label]="
+                'matches.jornadaImage.downloadImage' | transloco
+              "
+              [matMenuTriggerFor]="downloadMenu"
+              [matTooltip]="'matches.jornadaImage.downloadImage' | transloco"
+              class="mr-2 [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
+              mat-icon-button
+              type="button"
+            >
+              @if (exportingImage() === dayKey(group, day)) {
+                <mat-spinner class="!inline-block align-middle" diameter="20" />
+              } @else {
+                <mat-icon svgIcon="mat:download" />
+              }
+            </button>
+            <mat-menu #downloadMenu="matMenu">
+              <button
+                (click)="downloadJornada(group, day, 'schedule')"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:calendar_month" />
+                {{ "matches.jornadaImage.optionSchedule" | transloco }}
+              </button>
+              <button
+                (click)="downloadJornada(group, day, 'results')"
+                [disabled]="!hasResults(day.matches)"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:bar_chart" />
+                <span class="flex flex-col leading-tight">
+                  <span>{{
+                    "matches.jornadaImage.optionResults" | transloco
+                  }}</span>
+                  @if (!hasResults(day.matches)) {
+                    <span class="text-xs text-secondary">{{
+                      "matches.jornadaImage.noResultsYet" | transloco
+                    }}</span>
+                  }
+                </span>
+              </button>
+            </mat-menu>
           </mat-expansion-panel-header>
 
           <ul class="m-0 p-0 list-none">

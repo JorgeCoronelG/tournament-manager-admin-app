@@ -14,6 +14,8 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTabsModule } from "@angular/material/tabs";
@@ -62,6 +64,7 @@ import {
   GroupSchedule,
   hasPlayedMatches,
   Match,
+  Matchday,
   matchCount,
   MatchSide,
   playedCount,
@@ -80,6 +83,16 @@ import {
   WalkoverDialogData,
 } from "../walkover-dialog/walkover-dialog.component";
 import { GroupsApi } from "../../groups/groups.api";
+import { JornadaImageComponent } from "../jornada-image/jornada-image.component";
+import {
+  buildJornadaImageData,
+  buildResultsImageData,
+  hasResults,
+  jornadaFileName,
+  resultsFileName,
+} from "../jornada-image/jornada-image.model";
+import { ResultsImageComponent } from "../results-image/results-image.component";
+import { StandingsExportService } from "../standings-export/standings-export.service";
 
 /** Up to this many matchdays every section starts open; with more, only the first */
 const OPEN_ALL_UP_TO = 4;
@@ -103,7 +116,9 @@ const OPEN_ALL_UP_TO = 4;
     MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     MatTabsModule,
     MatTooltipModule,
@@ -124,6 +139,7 @@ export class MatchesPageComponent {
   private readonly router = inject(Router);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
+  private readonly exporter = inject(StandingsExportService);
 
   protected readonly leagueContext = inject(LeagueContextService);
 
@@ -456,6 +472,74 @@ export class MatchesPageComponent {
       group.matchdays.length <= OPEN_ALL_UP_TO ||
       matchday === group.matchdays[0]?.matchday
     );
+  }
+
+  /** A matchday's image is being generated */
+  protected readonly exportingImage = signal<string | null>(null);
+
+  /** Identifies a matchday of a group, to show the spinner only on its button */
+  protected dayKey(group: GroupSchedule, day: Matchday): string {
+    return `${group.group_id}-${day.round_number}-${day.matchday}`;
+  }
+
+  protected readonly hasResults = hasResults;
+
+  /** Generates the schedule or the results image of a matchday and downloads it */
+  async downloadJornada(
+    group: GroupSchedule,
+    day: Matchday,
+    kind: "schedule" | "results",
+  ): Promise<void> {
+    if (this.exportingImage() !== null) {
+      return;
+    }
+
+    this.exportingImage.set(this.dayKey(group, day));
+
+    try {
+      const tournamentName = this.tournament()?.name ?? "";
+      const groupName = this.groups().length > 1 ? group.group_name : null;
+      const common = {
+        leagueName: this.leagueContext.activeLeague()?.name ?? "",
+        tournamentName,
+        day,
+        groupName,
+        phase: this.transloco.translate("matches.jornadaImage.phase"),
+        matchdayLabel: (number: number) =>
+          this.transloco.translate("matches.matchday", { number }),
+      };
+
+      if (kind === "results") {
+        await this.exporter.exportComponent(
+          ResultsImageComponent,
+          buildResultsImageData({
+            ...common,
+            title: this.transloco.translate("matches.jornadaImage.results"),
+          }),
+          resultsFileName(day.matchday, groupName, tournamentName),
+          tournamentName,
+        );
+      } else {
+        const data = buildJornadaImageData({
+          ...common,
+          weekdayName: (weekday) =>
+            this.transloco.translate(`matches.config.weekdays.${weekday}`),
+        });
+
+        await this.exporter.exportComponent(
+          JornadaImageComponent,
+          data,
+          jornadaFileName(day.matchday, groupName, tournamentName),
+          data.title,
+        );
+      }
+    } catch {
+      this.snackbar.error(
+        this.transloco.translate("matches.standings.export.error"),
+      );
+    } finally {
+      this.exportingImage.set(null);
+    }
   }
 
   /** "Sáb 07/11 · 8:00 a.m. · Cancha 1" */
