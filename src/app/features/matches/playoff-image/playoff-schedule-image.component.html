@@ -1,0 +1,168 @@
+<header
+  class="flex items-center gap-6 rounded-b-3xl bg-gradient-to-r from-indigo-950 via-indigo-900 to-indigo-700 px-14 py-8 text-white"
+>
+  <span
+    class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white/15"
+  >
+    <mat-icon class="!size-12 text-white" svgIcon="mat:emoji_events" />
+  </span>
+  <span class="h-16 w-px bg-white/40"></span>
+  <div class="min-w-0">
+    <p class="m-0 text-4xl font-bold">{{ data().leagueName }}</p>
+    <p class="m-0 mt-1 text-2xl text-indigo-100">{{ data().tournamentName }}</p>
+  </div>
+</header>
+
+<section class="px-14 pb-10 pt-8">
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <h2 class="m-0 text-4xl font-bold">{{ data().title }}</h2>
+      <p class="m-0 mt-1 text-xl text-gray-500">{{ data().subtitle }}</p>
+    </div>
+    @if (data().dates) {
+      <p class="m-0 mt-2 flex items-center gap-2 text-lg text-gray-500">
+        <mat-icon class="!size-6" svgIcon="mat:calendar_month" />
+        {{ data().dates }}
+      </p>
+    }
+  </div>
+
+  <table
+    class="mt-6 w-full border-separate border-spacing-0 overflow-hidden rounded-xl border border-gray-300 text-left text-xl"
+  >
+    <thead>
+      <tr class="bg-gray-100 text-lg">
+        <th class="px-5 py-3 font-medium">
+          {{ "matches.jornadaImage.match" | transloco }}
+        </th>
+        <th class="border-l border-gray-200 px-5 py-3 font-medium">
+          {{ "matches.jornadaImage.dateTime" | transloco }}
+        </th>
+      </tr>
+    </thead>
+    @for (entry of data().entries; track $index) {
+      <tbody>
+        @if (entry.lines.length > 1) {
+          <tr>
+            <td
+              class="border-t border-gray-200 bg-gray-50 px-5 py-3"
+              colspan="2"
+            >
+              <ng-container
+                *ngTemplateOutlet="teams; context: { $implicit: entry }"
+              />
+            </td>
+          </tr>
+        }
+        @for (line of entry.lines; track $index) {
+          <tr>
+            <td class="border-t border-gray-200 px-5 py-4">
+              @if (entry.lines.length === 1) {
+                <ng-container
+                  *ngTemplateOutlet="teams; context: { $implicit: entry }"
+                />
+              }
+              @if (line.leg) {
+                <p class="m-0 font-semibold">{{ line.leg }}</p>
+              }
+              @if (line.tag; as tag) {
+                <span
+                  [class]="
+                    tag === 'cancelled'
+                      ? 'bg-gray-100 text-gray-700'
+                      : 'bg-blue-100 text-blue-800'
+                  "
+                  class="mr-2 inline-block rounded-full px-3 py-0.5 text-base font-medium"
+                  >{{
+                    (tag === "cancelled"
+                      ? "matches.jornadaImage.cancelled"
+                      : "matches.rescheduled"
+                    ) | transloco
+                  }}</span
+                >
+              }
+              <p class="m-0 mt-1 inline text-lg text-gray-500">
+                {{
+                  "matches.referee"
+                    | transloco
+                      : {
+                          name:
+                            line.referee ??
+                            ("matches.jornadaImage.noReferee" | transloco),
+                        }
+                }}
+              </p>
+            </td>
+            <td
+              class="w-80 border-l border-t border-gray-200 px-5 py-4 text-lg"
+            >
+              <p class="m-0 flex items-center gap-2">
+                <mat-icon
+                  class="!size-5 text-gray-500"
+                  svgIcon="mat:calendar_month"
+                />
+                {{
+                  line.day ?? ("matches.jornadaImage.toBeDefined" | transloco)
+                }}
+              </p>
+              <p class="m-0 mt-1 flex items-center gap-2">
+                <mat-icon
+                  class="!size-5 text-gray-500"
+                  svgIcon="mat:schedule"
+                />
+                {{
+                  line.time ?? ("matches.jornadaImage.toBeDefined" | transloco)
+                }}
+              </p>
+              <p class="m-0 mt-1 flex items-center gap-2">
+                <mat-icon class="!size-5 text-gray-500" svgIcon="mat:place" />
+                {{
+                  line.field ?? ("matches.jornadaImage.toBeDefined" | transloco)
+                }}
+              </p>
+            </td>
+          </tr>
+        }
+      </tbody>
+    }
+  </table>
+
+  <div
+    class="mt-6 flex items-center justify-between border-t border-gray-300 pt-5 text-xl"
+  >
+    <span class="text-gray-600">{{
+      "matches.jornadaImage.footer" | transloco
+    }}</span>
+    <span class="font-bold text-indigo-900">{{ data().leagueName }}</span>
+  </div>
+</section>
+
+<ng-template #teams let-entry>
+  <div class="flex items-center gap-4">
+    <img
+      [alt]="entry.home.name"
+      [src]="entry.home.logo_url || shield"
+      class="size-9 shrink-0 rounded-full object-cover"
+      crossorigin="anonymous"
+    />
+    <span>
+      @if (entry.home.seed) {
+        <span class="text-gray-500">{{ entry.home.seed }}°</span>
+      }
+      {{ entry.home.name }}
+    </span>
+    <span class="text-gray-500">{{ "matches.vs" | transloco }}</span>
+    <img
+      [alt]="entry.away.name"
+      [src]="entry.away.logo_url || shield"
+      class="size-9 shrink-0 rounded-full object-cover"
+      crossorigin="anonymous"
+    />
+    <span>
+      @if (entry.away.seed) {
+        <span class="text-gray-500">{{ entry.away.seed }}°</span>
+      }
+      {{ entry.away.name }}
+    </span>
+  </div>
+</ng-template>

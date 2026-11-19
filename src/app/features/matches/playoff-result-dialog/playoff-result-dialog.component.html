@@ -112,6 +112,16 @@
           }}
         </p>
       }
+    } @else if (globalWinner(); as winner) {
+      <p
+        class="m-0 flex items-center gap-2 text-sm text-green-800 dark:text-green-400"
+        role="status"
+      >
+        <mat-icon class="!size-5 !text-xl" svgIcon="mat:emoji_events" />
+        {{
+          "matches.playoffResult.penaltiesWinner" | transloco: { team: winner }
+        }}
+      </p>
     }
   </mat-dialog-content>
 

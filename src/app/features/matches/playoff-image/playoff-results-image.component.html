@@ -1,0 +1,324 @@
+<header
+  class="flex items-center gap-6 rounded-b-3xl bg-gradient-to-r from-indigo-950 via-indigo-900 to-indigo-700 px-14 py-8 text-white"
+>
+  <span
+    class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white/15"
+  >
+    <mat-icon class="!size-12 text-white" svgIcon="mat:emoji_events" />
+  </span>
+  <span class="h-16 w-px bg-white/40"></span>
+  <div class="min-w-0">
+    <p class="m-0 text-4xl font-bold">{{ data().leagueName }}</p>
+    <p class="m-0 mt-1 text-2xl text-indigo-100">{{ data().tournamentName }}</p>
+  </div>
+</header>
+
+<section class="px-14 pb-10 pt-8">
+  <h2 class="m-0 text-4xl font-bold">
+    {{ data().title }} ·
+    <span class="text-indigo-700">{{ data().phase }}</span>
+  </h2>
+  <p class="m-0 mt-1 text-xl text-gray-500">{{ data().subtitle }}</p>
+
+  <table
+    class="mt-6 w-full table-fixed border-separate border-spacing-0 overflow-hidden rounded-xl border border-gray-300 text-left text-xl"
+  >
+    <thead>
+      <tr class="bg-gray-100 text-lg">
+        <th class="px-5 py-3 font-medium" colspan="3">
+          {{ "matches.jornadaImage.match" | transloco }}
+        </th>
+      </tr>
+    </thead>
+    @for (entry of data().entries; track $index) {
+      <tbody>
+        @for (row of entry.rows; track $index) {
+          <tr>
+            <td class="border-t border-gray-200 px-5 py-4 align-top">
+              <div class="flex items-center gap-4">
+                <img
+                  [alt]="row.home.name"
+                  [src]="row.home.logo_url || shield"
+                  class="size-9 shrink-0 rounded-full object-cover"
+                  crossorigin="anonymous"
+                />
+                <span
+                  [class]="row.winner === 'home' ? winnerClass : ''"
+                  class="px-3 py-1 font-semibold"
+                >
+                  @if (row.home.seed) {
+                    <span class="font-normal opacity-60"
+                      >{{ row.home.seed }}°</span
+                    >
+                  }
+                  {{ row.home.name }}
+                </span>
+              </div>
+              <p class="m-0 mt-1 text-lg text-gray-500">
+                @if (row.leg) {
+                  <span class="font-semibold">{{ row.leg }}</span> ·
+                }
+                {{
+                  "matches.referee"
+                    | transloco
+                      : {
+                          name:
+                            row.referee ??
+                            ("matches.jornadaImage.noReferee" | transloco),
+                        }
+                }}
+              </p>
+            </td>
+            <td class="w-64 border-t border-gray-200 px-2 py-4 text-center">
+              @switch (row.outcome.kind) {
+                @case ("score") {
+                  <span
+                    class="inline-flex items-center justify-center gap-3 font-bold"
+                  >
+                    <span
+                      [class]="
+                        !data().byAdvance && row.winner === 'home'
+                          ? winnerClass
+                          : ''
+                      "
+                      class="min-w-10 px-2 py-1"
+                      >{{ row.outcome.home }}</span
+                    >
+                    -
+                    <span
+                      [class]="
+                        !data().byAdvance && row.winner === 'away'
+                          ? winnerClass
+                          : ''
+                      "
+                      class="min-w-10 px-2 py-1"
+                      >{{ row.outcome.away }}</span
+                    >
+                  </span>
+                  @if (row.outcome.pen; as pen) {
+                    <p class="m-0 mt-1 text-base text-gray-500">
+                      ({{ pen.home }}-{{ pen.away }}
+                      {{ "matches.bracket.pen" | transloco }})
+                    </p>
+                  }
+                }
+                @case ("tag") {
+                  <span
+                    [class]="
+                      row.outcome.tag === 'cancelled'
+                        ? 'bg-gray-100 text-gray-700'
+                        : 'bg-blue-100 text-blue-800'
+                    "
+                    class="rounded-full px-4 py-1 text-lg font-medium"
+                    >{{
+                      (row.outcome.tag === "cancelled"
+                        ? "matches.jornadaImage.cancelled"
+                        : "matches.rescheduled"
+                      ) | transloco
+                    }}</span
+                  >
+                }
+                @default {
+                  <span
+                    class="rounded-full bg-amber-100 px-4 py-1 text-lg font-medium text-amber-800"
+                    >{{ "matches.jornadaImage.noResult" | transloco }}</span
+                  >
+                }
+              }
+            </td>
+            <td class="border-t border-gray-200 px-5 py-4 align-top">
+              <div class="flex items-center gap-4">
+                <img
+                  [alt]="row.away.name"
+                  [src]="row.away.logo_url || shield"
+                  class="size-9 shrink-0 rounded-full object-cover"
+                  crossorigin="anonymous"
+                />
+                <span
+                  [class]="row.winner === 'away' ? winnerClass : ''"
+                  class="px-3 py-1 font-semibold"
+                >
+                  @if (row.away.seed) {
+                    <span class="font-normal opacity-60"
+                      >{{ row.away.seed }}°</span
+                    >
+                  }
+                  {{ row.away.name }}
+                </span>
+              </div>
+            </td>
+          </tr>
+        }
+        @if (entry.global || entry.penaltiesWin || entry.walkoverWin) {
+          <tr>
+            <td
+              class="border-t border-gray-200 bg-gray-50 px-5 py-3 text-lg text-gray-600"
+              colspan="3"
+            >
+              @if (entry.global; as global) {
+                <span class="font-semibold">{{
+                  "matches.bracket.global"
+                    | transloco: { a: global.home, b: global.away }
+                }}</span>
+              }
+              @if (entry.penaltiesWin) {
+                · {{ "matches.bracket.penaltiesWin" | transloco }}
+              }
+              @if (entry.walkoverWin) {
+                · {{ "matches.bracket.walkoverWin" | transloco }}
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    }
+  </table>
+
+  @if (data().champion; as champion) {
+    <div
+      class="mt-6 flex items-center justify-center gap-6 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 px-8 py-6"
+    >
+      <ng-container *ngTemplateOutlet="laurel" />
+      <mat-icon class="!size-14 text-amber-500" svgIcon="mat:emoji_events" />
+      <span class="h-12 w-px bg-amber-300"></span>
+      <p class="m-0 text-5xl font-bold">
+        <span class="text-indigo-900">{{ champion }}</span>
+        {{ "matches.playoffImage.champion" | transloco }}
+      </p>
+      <span class="-scale-x-100">
+        <ng-container *ngTemplateOutlet="laurel" />
+      </span>
+    </div>
+  }
+
+  <div
+    class="mt-6 flex items-center justify-between border-t border-gray-300 pt-5 text-xl"
+  >
+    <span class="text-gray-600">{{
+      "matches.jornadaImage.resultsFooter" | transloco
+    }}</span>
+    <span class="font-bold text-indigo-900">{{ data().leagueName }}</span>
+  </div>
+</section>
+
+<ng-template #laurel>
+  <svg
+    aria-hidden="true"
+    class="h-24 w-14 shrink-0 text-amber-500"
+    fill="currentColor"
+    viewBox="0 0 60 100"
+  >
+    <path
+      d="M46 96 C14 74 10 36 34 6"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-width="2.2"
+    />
+    <ellipse
+      cx="28.3"
+      cy="88.3"
+      rx="8.5"
+      ry="3.4"
+      transform="rotate(-185 28.3 88.3)"
+    />
+    <ellipse
+      cx="36.5"
+      cy="80.1"
+      rx="8.5"
+      ry="3.4"
+      transform="rotate(-85 36.5 80.1)"
+    />
+    <ellipse
+      cx="21.0"
+      cy="77.3"
+      rx="8.0"
+      ry="3.2"
+      transform="rotate(-174 21.0 77.3)"
+    />
+    <ellipse
+      cx="30.1"
+      cy="71.3"
+      rx="8.0"
+      ry="3.2"
+      transform="rotate(-74 30.1 71.3)"
+    />
+    <ellipse
+      cx="16.2"
+      cy="65.7"
+      rx="7.6"
+      ry="3.0"
+      transform="rotate(-162 16.2 65.7)"
+    />
+    <ellipse
+      cx="25.7"
+      cy="61.8"
+      rx="7.6"
+      ry="3.0"
+      transform="rotate(-62 25.7 61.8)"
+    />
+    <ellipse
+      cx="14.0"
+      cy="53.7"
+      rx="7.1"
+      ry="2.8"
+      transform="rotate(-150 14.0 53.7)"
+    />
+    <ellipse
+      cx="23.5"
+      cy="52.0"
+      rx="7.1"
+      ry="2.8"
+      transform="rotate(-50 23.5 52.0)"
+    />
+    <ellipse
+      cx="14.2"
+      cy="41.5"
+      rx="6.6"
+      ry="2.6"
+      transform="rotate(-138 14.2 41.5)"
+    />
+    <ellipse
+      cx="23.2"
+      cy="41.8"
+      rx="6.6"
+      ry="2.6"
+      transform="rotate(-38 23.2 41.8)"
+    />
+    <ellipse
+      cx="16.8"
+      cy="29.6"
+      rx="6.1"
+      ry="2.5"
+      transform="rotate(-127 16.8 29.6)"
+    />
+    <ellipse
+      cx="25.0"
+      cy="31.5"
+      rx="6.1"
+      ry="2.5"
+      transform="rotate(-27 25.0 31.5)"
+    />
+    <ellipse
+      cx="21.7"
+      cy="18.0"
+      rx="5.7"
+      ry="2.3"
+      transform="rotate(-116 21.7 18.0)"
+    />
+    <ellipse
+      cx="28.7"
+      cy="21.1"
+      rx="5.7"
+      ry="2.3"
+      transform="rotate(-16 28.7 21.1)"
+    />
+    <ellipse
+      cx="34.0"
+      cy="6.0"
+      rx="7"
+      ry="3"
+      transform="rotate(-51 34.0 6.0)"
+    />
+  </svg>
+</ng-template>

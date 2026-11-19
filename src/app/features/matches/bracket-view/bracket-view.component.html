@@ -36,7 +36,154 @@
   <div class="flex items-stretch gap-6 overflow-x-auto pb-2">
     @for (round of playoff.rounds; track round.index) {
       <section class="shrink-0 w-96 flex flex-col gap-3">
-        <h2 class="m-0 text-lg font-medium">{{ round.name }}</h2>
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="m-0 text-lg font-medium">{{ round.name }}</h2>
+          @if (!readOnly()) {
+            @let results = roundResults(round);
+            <button
+              (click)="$event.stopPropagation()"
+              (keydown)="$event.stopPropagation()"
+              [attr.aria-label]="
+                'matches.jornadaImage.downloadImage' | transloco
+              "
+              [matMenuTriggerFor]="downloadMenu"
+              [matTooltip]="'matches.jornadaImage.downloadImage' | transloco"
+              class="[&_.mat-mdc-button-touch-target]:hidden app-action-primary"
+              mat-icon-button
+              type="button"
+            >
+              @if (exportingImage() === round.index) {
+                <mat-spinner class="!inline-block align-middle" diameter="20" />
+              } @else {
+                <mat-icon svgIcon="mat:download" />
+              }
+            </button>
+            <mat-menu #downloadMenu="matMenu">
+              @if (round.legs === 1) {
+                <button
+                  (click)="download(playoff, round, 'schedule', 'both')"
+                  mat-menu-item
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:calendar_month" />
+                  {{ "matches.playoffImage.schedule" | transloco }}
+                </button>
+                <button
+                  (click)="download(playoff, round, 'results', 'both')"
+                  [disabled]="!results.any"
+                  mat-menu-item
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:bar_chart" />
+                  <span class="flex flex-col leading-tight">
+                    <span>{{
+                      "matches.playoffImage.results" | transloco
+                    }}</span>
+                    @if (!results.any) {
+                      <span class="text-xs text-secondary">{{
+                        "matches.playoffImage.noResultsYet" | transloco
+                      }}</span>
+                    }
+                  </span>
+                </button>
+              } @else {
+                <button
+                  [matMenuTriggerFor]="scheduleLegs"
+                  mat-menu-item
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:calendar_month" />
+                  {{ "matches.playoffImage.schedule" | transloco }}
+                </button>
+                <button
+                  [disabled]="!results.any"
+                  [matMenuTriggerFor]="resultsLegs"
+                  mat-menu-item
+                  type="button"
+                >
+                  <mat-icon svgIcon="mat:bar_chart" />
+                  <span class="flex flex-col leading-tight">
+                    <span>{{
+                      "matches.playoffImage.results" | transloco
+                    }}</span>
+                    @if (!results.any) {
+                      <span class="text-xs text-secondary">{{
+                        "matches.playoffImage.noResultsYet" | transloco
+                      }}</span>
+                    }
+                  </span>
+                </button>
+              }
+            </mat-menu>
+            <mat-menu #scheduleLegs="matMenu">
+              <button
+                (click)="download(playoff, round, 'schedule', 'first')"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:arrow_forward" />
+                {{ "matches.playoffImage.first" | transloco }}
+              </button>
+              <button
+                (click)="download(playoff, round, 'schedule', 'second')"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:arrow_back" />
+                {{ "matches.playoffImage.second" | transloco }}
+              </button>
+              <mat-divider />
+              <button
+                (click)="download(playoff, round, 'schedule', 'both')"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:layers" />
+                <span class="flex flex-col leading-tight">
+                  <span>{{ "matches.playoffImage.both" | transloco }}</span>
+                  <span class="text-xs text-secondary">{{
+                    "matches.playoffImage.bothSubtitle" | transloco
+                  }}</span>
+                </span>
+              </button>
+            </mat-menu>
+            <mat-menu #resultsLegs="matMenu">
+              <button
+                (click)="download(playoff, round, 'results', 'first')"
+                [disabled]="!results.first"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:arrow_forward" />
+                {{ "matches.playoffImage.first" | transloco }}
+              </button>
+              <button
+                (click)="download(playoff, round, 'results', 'second')"
+                [disabled]="!results.second"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:arrow_back" />
+                {{ "matches.playoffImage.second" | transloco }}
+              </button>
+              <mat-divider />
+              <button
+                (click)="download(playoff, round, 'results', 'both')"
+                [disabled]="!results.any"
+                mat-menu-item
+                type="button"
+              >
+                <mat-icon svgIcon="mat:layers" />
+                <span class="flex flex-col leading-tight">
+                  <span>{{ "matches.playoffImage.both" | transloco }}</span>
+                  <span class="text-xs text-secondary">{{
+                    "matches.playoffImage.bothSubtitle" | transloco
+                  }}</span>
+                </span>
+              </button>
+            </mat-menu>
+          }
+        </div>
         <div class="flex flex-1 flex-col justify-around gap-3">
           @let current = isCurrent(playoff, round);
           @for (tie of round.ties; track tie.id; let tieIndex = $index) {
