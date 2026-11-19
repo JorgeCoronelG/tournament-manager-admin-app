@@ -63,17 +63,6 @@ export function isWithdrawn(registration: Pick<Registration, "status">) {
   return registration.status === "withdrawn";
 }
 
-/** A pending match of a team about to be withdrawn */
-export interface WithdrawMatch {
-  match_id: number;
-  /** "Jornada 3", "Semifinal (ida)" */
-  round_label: string;
-  group: string | null;
-  rival: string | null;
-  /** Y-m-d; null while it has no date */
-  date: string | null;
-}
-
 /** What withdrawing a team would do (GET .../withdraw/preview) */
 export interface WithdrawPreview {
   kept_played: number;

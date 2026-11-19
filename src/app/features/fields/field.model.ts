@@ -23,8 +23,6 @@ export interface NewField {
 /** Body of PUT /fields/{id} */
 export type FieldChanges = Pick<NewField, "name">;
 
-export type FieldSortField = "name" | "created_at";
-
 export interface FieldsFilters {
   search: string;
   status: FieldStatus | "";

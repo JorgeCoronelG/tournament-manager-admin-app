@@ -91,8 +91,6 @@ export interface ManagerLookup {
   photo_url: string | null;
 }
 
-export type TeamSortField = "name" | "created_at";
-
 export interface TeamsFilters {
   /** Matches the team's name or its delegate's */
   search: string;

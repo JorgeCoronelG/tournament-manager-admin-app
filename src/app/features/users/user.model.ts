@@ -37,8 +37,6 @@ export interface NewUser {
 
 export type UpdatedUser = NewUser & { is_active: boolean };
 
-export type UserSortField = "first_name" | "last_name" | "created_at";
-
 export interface UsersFilters {
   search: string;
   roleId: number | "";

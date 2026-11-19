@@ -43,8 +43,6 @@ export interface RefereeLookup {
   already_in_league: boolean;
 }
 
-export type RefereeSortField = "first_name" | "last_name" | "created_at";
-
 export interface RefereesFilters {
   search: string;
   status: RefereeLeagueStatus | "";

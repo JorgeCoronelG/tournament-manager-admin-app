@@ -101,8 +101,6 @@ export interface NewTournament {
   tiebreakers: Tiebreaker[];
 }
 
-export type TournamentSortField = "name" | "start_date" | "created_at";
-
 export interface TournamentsFilters {
   search: string;
   gender: TournamentGender | "";

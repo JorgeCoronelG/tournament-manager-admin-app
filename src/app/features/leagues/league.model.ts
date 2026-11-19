@@ -64,8 +64,6 @@ export function exceedsLimit(
   return maxTournaments !== null && usage.active_tournaments > maxTournaments;
 }
 
-export type LeagueSortField = "name" | "created_at";
-
 export interface LeaguesFilters {
   search: string;
   adminUserId: number | "";
