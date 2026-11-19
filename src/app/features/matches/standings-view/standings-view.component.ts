@@ -162,7 +162,7 @@ export class StandingsViewComponent {
   criteria(group: StandingGroup): string {
     return group.criteria
       .map((criterion) =>
-        this.transloco.translate(`tournaments.tiebreaker.${criterion}`),
+        this.transloco.translate(`matches.tiebreaker.${criterion}`),
       )
       .join(" · ");
   }

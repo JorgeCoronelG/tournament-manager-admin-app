@@ -393,7 +393,7 @@ export class BracketViewComponent {
           .subscribe({
             next: () => {
               this.finished.emit();
-              this.snackbar.notifySuccess("tournaments.finished");
+              this.snackbar.notifySuccess("matches.finished");
             },
             error: (error: unknown) => this.snackbar.notifyFailure(error),
           });

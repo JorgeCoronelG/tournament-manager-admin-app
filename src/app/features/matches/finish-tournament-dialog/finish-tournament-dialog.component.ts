@@ -28,15 +28,15 @@ export class FinishTournamentDialogComponent {
 
   /** The generic message: its first paragraph is the question, the rest the warning */
   private readonly paragraphs = this.transloco
-    .translate("tournaments.finish.message", { name: this.name })
+    .translate("matches.finish.message", { name: this.name })
     .split("\n\n");
 
   /** Asks to review the champions (one or several) or, with none, the plain question */
   protected readonly question = this.data.champions.length
     ? this.transloco.translate(
         this.data.champions.length === 1
-          ? "tournaments.finish.reviewOne"
-          : "tournaments.finish.reviewMany",
+          ? "matches.finish.reviewOne"
+          : "matches.finish.reviewMany",
         { name: this.name },
       )
     : this.paragraphs[0];

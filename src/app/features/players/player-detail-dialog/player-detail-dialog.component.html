@@ -107,7 +107,7 @@
                 @if (roster.status === "removed") {
                   <div class="text-secondary text-sm">
                     {{
-                      "rosters.removedBy"
+                      "players.removedBy"
                         | transloco
                           : {
                               name: roster.removed_by?.name ?? "—",
@@ -116,7 +116,7 @@
                     }}
                     @if (roster.removal_reason) {
                       <br />{{
-                        "rosters.removalReason"
+                        "players.removalReason"
                           | transloco: { reason: roster.removal_reason }
                       }}
                     }
@@ -176,7 +176,7 @@
               </div>
               <div class="text-secondary text-sm">
                 {{
-                  "rosters.removalReason" | transloco: { reason: ban.reason }
+                  "players.removalReason" | transloco: { reason: ban.reason }
                 }}
               </div>
               @if (ban.lifted_at) {

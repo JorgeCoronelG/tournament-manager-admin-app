@@ -65,7 +65,6 @@ export const appConfig: ApplicationConfig = {
     { provide: MatDatepickerIntl, useClass: AppDatepickerIntl },
     provideRouter(
       appRoutes,
-      // TODO: Add preloading withPreloading(),
       withComponentInputBinding(),
       withInMemoryScrolling({
         anchorScrolling: "enabled",

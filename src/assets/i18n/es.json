@@ -200,11 +200,7 @@
       "columnHint": "Máximo de torneos simultáneos en curso o liguilla. Los torneos en planeación no cuentan.",
       "tournamentsOne": "1 torneo",
       "tournamentsMany": "{{count}} torneos",
-      "none": "Sin límite",
-      "error": "No pudimos cargar el uso de los límites.",
-      "usageTournaments": "Torneos activos {{used}} de {{max}}",
-      "reachedTournamentsOne": "Esta liga permite tener 1 torneo activo a la vez. Finaliza uno o solicita ampliar el límite a soporte.",
-      "reachedTournaments": "Esta liga permite tener {{limit}} torneos activos a la vez. Finaliza uno o solicita ampliar el límite a soporte."
+      "none": "Sin límite"
     },
     "form": {
       "newTitle": "Nueva liga",
@@ -431,11 +427,7 @@
     "finish": {
       "title": "¿Finalizar torneo?",
       "message": "¿Estás seguro de que deseas finalizar <b>{{name}}</b>?\n\nUna vez finalizado, no podrás modificar sus partidos, resultados ni configuraciones. Esta acción no se puede deshacer.",
-      "confirm": "Finalizar",
-      "champions": "Campeones del torneo",
-      "championOne": "Campeón del torneo",
-      "reviewOne": "Revisa el campeón antes de finalizar <b>{{name}}</b>.",
-      "reviewMany": "Revisa los campeones antes de finalizar <b>{{name}}</b>."
+      "confirm": "Finalizar"
     },
     "delete": {
       "title": "¿Eliminar torneo?",
@@ -467,6 +459,12 @@
       "removeTiebreaker": "Quitar {{name}}",
       "inProgressNotice": "El torneo está en curso: solo se puede editar su nombre.",
       "playoffsNotice": "El torneo está en liguilla: solo se puede editar su nombre."
+    },
+    "limits": {
+      "error": "No pudimos cargar el uso de los límites.",
+      "usageTournaments": "Torneos activos {{used}} de {{max}}",
+      "reachedTournamentsOne": "Esta liga permite tener 1 torneo activo a la vez. Finaliza uno o solicita ampliar el límite a soporte.",
+      "reachedTournaments": "Esta liga permite tener {{limit}} torneos activos a la vez. Finaliza uno o solicita ampliar el límite a soporte."
     }
   },
   "datepicker": {
@@ -640,7 +638,10 @@
       "title": "Corregir rama",
       "hint": "Cambia la rama solo si el jugador se registró incorrectamente. Si participa en un torneo que no admite la nueva rama, primero deberás retirarlo de ese torneo."
     },
-    "status": { "active": "Activo", "banned": "Vetado" },
+    "status": {
+      "active": "Activo",
+      "banned": "Vetado"
+    },
     "filters": {
       "allGenders": "Todas",
       "allStatuses": "Todos",
@@ -688,7 +689,9 @@
       "noBans": "Nunca ha sido vetado en esta liga.",
       "bannedBy": "Vetado por {{name}} · {{date}}",
       "liftedBy": "Reactivado por {{name}} · {{date}}"
-    }
+    },
+    "removedBy": "Removido por {{name}} · {{date}}",
+    "removalReason": "Motivo: {{reason}}"
   },
   "rosters": {
     "title": "Plantillas",
@@ -1301,6 +1304,34 @@
       "refereesOne": "1 asignación de árbitro",
       "refereesMany": "{{count}} asignaciones de árbitro",
       "confirm": "Borrar"
+    },
+    "tieOrder": {
+      "moveUp": "Subir {{name}}",
+      "moveDown": "Bajar {{name}}"
+    },
+    "finish": {
+      "title": "¿Finalizar torneo?",
+      "message": "¿Estás seguro de que deseas finalizar <b>{{name}}</b>?\n\nUna vez finalizado, no podrás modificar sus partidos, resultados ni configuraciones. Esta acción no se puede deshacer.",
+      "confirm": "Finalizar",
+      "champions": "Campeones del torneo",
+      "championOne": "Campeón del torneo",
+      "reviewOne": "Revisa el campeón antes de finalizar <b>{{name}}</b>.",
+      "reviewMany": "Revisa los campeones antes de finalizar <b>{{name}}</b>."
+    },
+    "finished": "Torneo finalizado",
+    "tiebreaker": {
+      "points": "Puntos",
+      "goal_difference": "Diferencia de goles",
+      "goals_for": "Goles a favor",
+      "goals_against": "Goles en contra",
+      "head_to_head": "Resultado directo",
+      "wins": "Partidos ganados"
+    },
+    "closePhase": {
+      "legFirst": "{{name}} (ida)",
+      "legSecond": "{{name}} (vuelta)",
+      "twoLegs": "{{name}} (ida y vuelta)",
+      "roundsOrder": "Las fechas de las rondas deben ir en orden."
     }
   },
   "groups": {
@@ -1338,7 +1369,9 @@
       "one": "{{count}} equipo",
       "other": "{{count}} equipos"
     },
-    "regular": { "title": "Fase regular" },
+    "regular": {
+      "title": "Fase regular"
+    },
     "unassigned": {
       "titleOne": "1 equipo sin grupo",
       "title": "{{count}} equipos sin grupo",
@@ -1551,7 +1584,15 @@
       "error": "No pudimos cargar los equipos.",
       "failed": "{{team}}: {{message}}",
       "confirm": "Inscribir"
-    }
+    },
+    "removalReason": "Motivo: {{reason}}",
+    "accountStatus": {
+      "pending": "Pendiente",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "withManager": "{{name}} (delegado: {{manager}})",
+    "withoutManager": "{{name}} (sin delegado)"
   },
   "teams": {
     "title": "Equipos",

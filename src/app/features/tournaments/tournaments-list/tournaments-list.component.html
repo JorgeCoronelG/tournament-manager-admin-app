@@ -62,7 +62,7 @@
 
       @if (limits.error()) {
         <p class="m-0 mb-3 text-sm text-secondary">
-          {{ "leagues.limits.error" | transloco }}
+          {{ "tournaments.limits.error" | transloco }}
           <button
             (click)="limits.reload()"
             class="underline cursor-pointer bg-transparent border-0 p-0 text-primary-600"
@@ -74,7 +74,7 @@
       } @else if (usage(); as limits) {
         <p class="m-0 mb-3 text-sm text-secondary">
           {{
-            "leagues.limits.usageTournaments"
+            "tournaments.limits.usageTournaments"
               | transloco
                 : {
                     used: limits.usage.active_tournaments,

@@ -175,10 +175,12 @@ export class RegistrationDialogComponent {
 
   protected label(team: AvailableTeam): string {
     return team.manager
-      ? this.transloco.translate("teams.withManager", {
+      ? this.transloco.translate("registrations.withManager", {
           name: team.name,
           manager: team.manager.name,
         })
-      : this.transloco.translate("teams.withoutManager", { name: team.name });
+      : this.transloco.translate("registrations.withoutManager", {
+          name: team.name,
+        });
   }
 }

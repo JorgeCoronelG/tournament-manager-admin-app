@@ -7,8 +7,7 @@ Base para dashboards con **Angular 22**, **Angular Material 3** y **Tailwind CSS
 - i18n (inglés/español) con Transloco, entornos y configuración en runtime, capa HTTP con manejo de errores.
 - Feature de ejemplo (usuarios) con carga lazy: lista con filtros, orden y paginación, y formulario.
 - Docker (nginx sin privilegios, cabeceras de seguridad, healthcheck), ESLint, Prettier, Vitest, Playwright (e2e, regresión visual y accesibilidad), CI y Dependabot.
-
-> Aún no incluye **autenticación**: `CurrentUserService` es el punto donde conectarla.
+- Autenticación con token Bearer: login, recuperación y activación de cuenta, guards por sesión y por rol/capacidad (`core/auth/`).
 
 ## Requisitos
 
@@ -143,4 +142,4 @@ La imagen de producción (`nginxinc/nginx-unprivileged`, puerto **8080**, imáge
 node scripts/init.mjs mi-app "Mi App"   # nombre técnico y nombre visible
 ```
 
-Renombra `package.json`, `angular.json`, `Dockerfile`, CI, README, título, sidenav y footer. Después reemplaza el logo,quita lo que no uses del ejemplo y agrega la autenticación.
+Renombra `package.json`, `angular.json`, `Dockerfile`, CI, README, título, sidenav y footer. Después reemplaza el logo,quita lo que no uses del ejemplo.

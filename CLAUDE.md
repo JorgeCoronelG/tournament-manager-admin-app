@@ -84,6 +84,13 @@ Toda tabla nueva sigue la estructura de `features/users/users-list`: la página 
 - La imagen `prod` es `nginx-unprivileged` en el puerto 8080. Al arrancar genera `/config.json` (`apiUrl`) y la CSP (`connect-src`) desde la variable `API_URL` (`nginx/40-runtime-config.sh`); la plantilla de cabeceras es `nginx/security-headers.inc.template`. `nginx/` está excluido de Prettier a propósito.
 - El build de producción tiene `inlineCritical: false` a propósito: el CSS crítico inline necesita un `onload` inline que la CSP bloquea.
 
-## Fuera de alcance (por ahora)
+## Autenticación
 
-Aún no hay autenticación (hay entornos, capa HTTP y una feature de ejemplo). No la agregues sin que se pida, y no subas Angular a una mayor nueva sin una migración planificada (Dependabot ignora las mayores).
+Ya existe, con token Bearer contra el backend (`core/auth/`):
+
+- `AuthTokenService` guarda el token (`localStorage`) y `auth-token.interceptor.ts` lo envía en `Authorization`. `AuthSessionService.isAuthenticated()` lo valida con `/user` y carga el usuario en `CurrentUserService`.
+- `session-expired.interceptor.ts` cierra la sesión ante un 401; una petición donde el 401 es una respuesta normal usa `KEEP_SESSION_ON_401`.
+- Guards: `guestGuard` (login, recuperar contraseña, activar cuenta), `authGuard` (rutas de `dashboard`) y `capabilityGuard(...)` por permiso.
+- Roles y permisos: `role.model.ts` y `role-capabilities.ts`. El menú y las rutas usan `capability`; el backend igual autoriza.
+- Liga activa: `LeagueContextService` (`core/league-context/`) decide la liga según el usuario y la capacidad `leagues.select`.
+- No subas Angular a una mayor nueva sin una migración planificada (Dependabot ignora las mayores).

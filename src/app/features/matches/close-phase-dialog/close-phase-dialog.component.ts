@@ -450,10 +450,10 @@ export class ClosePhaseDialogComponent {
     return proposal.rounds.flatMap((round) =>
       round.legs === 2
         ? [
-            this.transloco.translate("groups.playoff.legFirst", {
+            this.transloco.translate("matches.closePhase.legFirst", {
               name: round.name,
             }),
-            this.transloco.translate("groups.playoff.legSecond", {
+            this.transloco.translate("matches.closePhase.legSecond", {
               name: round.name,
             }),
           ]
@@ -465,7 +465,7 @@ export class ClosePhaseDialogComponent {
   laterRounds(proposal: PlayoffProposal): string[] {
     return proposal.rounds.slice(1).map((round) =>
       round.legs === 2
-        ? this.transloco.translate("groups.playoff.twoLegs", {
+        ? this.transloco.translate("matches.closePhase.twoLegs", {
             name: round.name,
           })
         : round.name,

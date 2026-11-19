@@ -68,7 +68,7 @@
                   <button
                     (click)="move(s, i, -1)"
                     [attr.aria-label]="
-                      'tournaments.form.moveUp'
+                      'matches.tieOrder.moveUp'
                         | transloco: { name: row.team_name }
                     "
                     [disabled]="i === 0"
@@ -80,7 +80,7 @@
                   <button
                     (click)="move(s, i, 1)"
                     [attr.aria-label]="
-                      'tournaments.form.moveDown'
+                      'matches.tieOrder.moveDown'
                         | transloco: { name: row.team_name }
                     "
                     [disabled]="last"

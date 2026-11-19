@@ -42,7 +42,10 @@
             }}
           </span>
           <span class="text-sm mt-2">
-            {{ "rosters.removalReason" | transloco: { reason: change.reason } }}
+            {{
+              "registrations.removalReason"
+                | transloco: { reason: change.reason }
+            }}
           </span>
         </li>
       }

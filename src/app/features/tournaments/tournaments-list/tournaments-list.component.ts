@@ -144,8 +144,8 @@ export class TournamentsListComponent {
 
       return this.transloco.translate(
         limit === 1
-          ? "leagues.limits.reachedTournamentsOne"
-          : "leagues.limits.reachedTournaments",
+          ? "tournaments.limits.reachedTournamentsOne"
+          : "tournaments.limits.reachedTournaments",
         { limit },
       );
     }
