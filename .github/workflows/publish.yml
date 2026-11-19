@@ -1,11 +1,12 @@
 name: Publish image
 
 # Builds the production image for amd64 and arm64 and pushes it to GHCR:
-#   - every push to main   -> :main and :sha-<commit>
+#   - every push to main    -> :main and :sha-<commit>
+#   - every push to staging -> :staging and :sha-<commit>
 #   - every v* tag         -> :<version>, :<major>.<minor> and :latest
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     tags: ["v*"]
 
 permissions:
