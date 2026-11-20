@@ -695,6 +695,9 @@ test.describe("playoffs", () => {
     await page.getByRole("tab", { name: "Liguilla" }).click();
     await page.getByRole("combobox", { name: "Liguilla" }).click();
     await page.getByRole("option", { name: "Plata" }).click();
+    // Wait for the Plata bracket to render: until then the previous one is still on screen
+    // and "Editar resultado" matches several buttons (strict mode violation)
+    await expect(page.getByText("Campeón: Águilas")).toBeVisible();
 
     await page.getByRole("button", { name: "Editar resultado" }).click();
     const dialog = page.getByRole("dialog");
