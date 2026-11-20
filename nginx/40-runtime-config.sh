@@ -30,7 +30,8 @@ for url in "$API_URL" "$AUTH_API_URL"; do
 done
 
 printf '{"apiUrl":"%s","authApiUrl":"%s"}\n' "$API_URL" "$AUTH_API_URL" > /tmp/config.json
-sed "s|__CONNECT_SRC__|$connect_src|" \
+img_src="${connect_src} data: blob:"
+sed -e "s|__CONNECT_SRC__|$connect_src|" -e "s|__IMG_SRC__|$img_src|" \
   /etc/nginx/security-headers.inc.template > /tmp/security-headers.inc
 
-echo "40-runtime-config: apiUrl=$API_URL authApiUrl=$AUTH_API_URL connect-src=$connect_src"
+echo "40-runtime-config: apiUrl=$API_URL authApiUrl=$AUTH_API_URL connect-src=$connect_src img-src=$img_src"
