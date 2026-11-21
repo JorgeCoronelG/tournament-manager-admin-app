@@ -60,3 +60,17 @@
     height: 1rem !important;
   }
 }
+
+// A destructive item inside a row-actions menu (`mat-menu-item`)
+.app-action-danger-item {
+  --mat-menu-item-label-text-color: var(--mat-sys-error);
+  --mat-menu-item-icon-color: var(--mat-sys-error);
+}
+
+// Touch target of at least 44px for icon buttons on phones
+@media (max-width: 599.98px) {
+  .app-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

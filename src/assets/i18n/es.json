@@ -107,10 +107,14 @@
       "pending": "Este usuario aún no ha activado su cuenta."
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allRoles": "Todos los roles",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "activate": "Activar",
       "deactivate": "Desactivar",

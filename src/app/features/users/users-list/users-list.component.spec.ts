@@ -1,3 +1,4 @@
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { signal, WritableSignal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
@@ -46,10 +47,18 @@ describe("UsersListComponent", () => {
   let failure: WritableSignal<unknown>;
   let query: () => UsersQuery;
 
-  function setup() {
+  function setup(mobile = false) {
     TestBed.configureTestingModule({
       providers: [
         provideTestI18n(),
+        {
+          provide: BreakpointObserver,
+          useValue: {
+            observe: (query: string) =>
+              of({ matches: mobile && query.includes("599"), breakpoints: {} }),
+            isMatched: (query: string) => mobile && query.includes("599"),
+          },
+        },
         provideRouter([]),
         provideApp({ config: appConfigs.poseidon, availableThemes: [] }),
         { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
@@ -275,5 +284,80 @@ describe("UsersListComponent", () => {
 
     expect(reload).toHaveBeenCalled();
     expect(notifySuccess).toHaveBeenCalledWith("users.created");
+  });
+
+  describe("on phones", () => {
+    const text = (el: HTMLElement) => el.textContent?.replace(/\s+/g, " ");
+    const button = (root: ParentNode, label: string) =>
+      root.querySelector<HTMLButtonElement>(`button[aria-label^="${label}"]`);
+
+    it("shows the search, the filters button and the full add button", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+
+      expect(el.querySelector("input[type=search]")).toBeTruthy();
+      expect(button(el, "Filtros")).toBeTruthy();
+      const add = Array.from(el.querySelectorAll("button")).find((b) =>
+        text(b)?.includes("Nuevo usuario"),
+      );
+      expect(add).toBeTruthy();
+      // The selects wait for the panel
+      expect(el.querySelector("mat-select")).toBeNull();
+    });
+
+    it("unfolds the filters, counts the active ones and clears them", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+      const list = fixture.componentInstance;
+
+      button(el, "Filtros")?.click();
+      fixture.detectChanges();
+      expect(el.querySelectorAll("mat-select")).toHaveLength(2);
+      const clear = Array.from(el.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Limpiar",
+      ) as HTMLButtonElement;
+      expect(clear.disabled).toBe(true);
+
+      list.filters.update((f) => ({ ...f, roleId: 2, status: "active" }));
+      fixture.detectChanges();
+      expect(list.activeFilters()).toBe(2);
+      expect(button(el, "Filtros")?.getAttribute("aria-label")).toBe(
+        "Filtros, 2 activos",
+      );
+      expect(el.querySelector(".mat-badge-content")?.textContent).toBe("2");
+
+      clear.click();
+      fixture.detectChanges();
+      expect(list.filters()).toMatchObject({ roleId: "", status: "" });
+      expect(list.activeFilters()).toBe(0);
+    });
+
+    it("puts the actions menu first and drops the sticky actions column", () => {
+      const fixture = setup(true);
+
+      expect(fixture.componentInstance.columns()[0]).toBe("actionsMenu");
+      expect(fixture.componentInstance.columns()).not.toContain("actions");
+    });
+
+    it.each([
+      ["active", ["Editar", "Desactivar", "Eliminar"]],
+      ["inactive", ["Editar", "Activar", "Eliminar"]],
+      ["pending", ["Editar", "Reenviar invitación", "Eliminar"]],
+    ] as const)(
+      "offers the right actions to a %s user",
+      async (status, items) => {
+        rows.set([user(1, status)]);
+        const fixture = setup(true);
+
+        button(fixture.nativeElement, "Acciones")?.click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        const labels = Array.from(
+          document.querySelectorAll(".mat-mdc-menu-panel [mat-menu-item]"),
+        ).map((item) => item.textContent?.trim());
+        expect(labels).toEqual(items);
+      },
+    );
   });
 });

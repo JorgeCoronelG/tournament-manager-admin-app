@@ -4,19 +4,8 @@
 
 <app-page-layout>
   <app-page-layout-content>
-    <div class="flex flex-wrap items-start gap-4 mb-4">
-      <mat-form-field class="w-72">
-        <mat-label>{{ "users.search" | transloco }}</mat-label>
-        <mat-icon matPrefix svgIcon="mat:search" />
-        <input
-          [formField]="filtersForm.search"
-          autocomplete="off"
-          matInput
-          type="search"
-        />
-      </mat-form-field>
-
-      <mat-form-field class="w-48">
+    <ng-template #roleField let-width>
+      <mat-form-field [class]="width">
         <mat-label>{{ "users.fields.roles" | transloco }}</mat-label>
         <mat-select [formField]="filtersForm.roleId">
           <mat-option value="">{{
@@ -27,8 +16,10 @@
           }
         </mat-select>
       </mat-form-field>
+    </ng-template>
 
-      <mat-form-field class="w-48">
+    <ng-template #statusField let-width>
+      <mat-form-field [class]="width">
         <mat-label>{{ "users.fields.status" | transloco }}</mat-label>
         <mat-select [formField]="filtersForm.status">
           <mat-option value="">{{
@@ -45,11 +36,74 @@
           }}</mat-option>
         </mat-select>
       </mat-form-field>
+    </ng-template>
 
-      <span class="flex-1"></span>
+    <div
+      [class]="
+        isMobile()
+          ? 'flex items-start gap-2 mb-2'
+          : 'flex flex-wrap items-start gap-4 mb-4'
+      "
+    >
+      <mat-form-field [class]="isMobile() ? 'flex-1 min-w-0' : 'w-72'">
+        <mat-label>{{ "users.search" | transloco }}</mat-label>
+        <mat-icon matPrefix svgIcon="mat:search" />
+        <input
+          [formField]="filtersForm.search"
+          autocomplete="off"
+          matInput
+          type="search"
+        />
+      </mat-form-field>
 
+      @if (isMobile()) {
+        <app-filters-toggle
+          [(open)]="filtersOpen"
+          [count]="activeFilters()"
+          activeKey="users.filters.active"
+          titleKey="users.filters.title"
+        />
+      } @else {
+        <ng-container
+          *ngTemplateOutlet="roleField; context: { $implicit: 'w-48' }"
+        />
+        <ng-container
+          *ngTemplateOutlet="statusField; context: { $implicit: 'w-48' }"
+        />
+
+        <span class="flex-1"></span>
+
+        <button
+          (click)="openForm()"
+          color="primary"
+          mat-flat-button
+          type="button"
+        >
+          <mat-icon svgIcon="mat:add" />
+          {{ "users.new" | transloco }}
+        </button>
+      }
+    </div>
+
+    @if (isMobile() && filtersOpen()) {
+      <app-filters-panel
+        (cleared)="clearFilters()"
+        [canClear]="activeFilters() > 0"
+        clearKey="users.filters.clear"
+      >
+        <ng-container
+          *ngTemplateOutlet="roleField; context: { $implicit: 'w-full' }"
+        />
+        <ng-container
+          *ngTemplateOutlet="statusField; context: { $implicit: 'w-full' }"
+        />
+      </app-filters-panel>
+    }
+
+    @if (isMobile()) {
       <button
         (click)="openForm()"
+        class="w-full mb-4"
         color="primary"
         mat-flat-button
         type="button"
@@ -57,9 +111,9 @@
         <mat-icon svgIcon="mat:add" />
         {{ "users.new" | transloco }}
       </button>
-    </div>
+    }
 
-    <div class="app-table-card bg-foreground rounded shadow">
+    <div #tableCard class="app-table-card bg-foreground rounded shadow">
       <mat-progress-bar
         [class.invisible]="!resource.isLoading()"
         mode="indeterminate"
@@ -165,6 +219,20 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="actionsMenu">
+            <th *matHeaderCellDef mat-header-cell>
+              <span class="sr-only">{{
+                "users.fields.actions" | transloco
+              }}</span>
+            </th>
+            <td *matCellDef="let user" class="w-14" mat-cell>
+              <app-row-actions
+                [actions]="rowActions(user)"
+                labelKey="users.actions.menu"
+              />
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="actions" stickyEnd>
             <th *matHeaderCellDef mat-header-cell>
               <span class="sr-only">{{
@@ -235,8 +303,11 @@
             </td>
           </ng-container>
 
-          <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-          <tr *matRowDef="let row; columns: columns" mat-row></tr>
+          <tr
+            *matHeaderRowDef="columns(); sticky: !isMobile()"
+            mat-header-row
+          ></tr>
+          <tr *matRowDef="let row; columns: columns()" mat-row></tr>
         </table>
       </div>
 
@@ -261,7 +332,8 @@
         [pageIndex]="paging().page"
         [pageSizeOptions]="[5, 10, 25]"
         [pageSize]="paging().pageSize"
-        showFirstLastButtons
+        [hidePageSize]="isMobile()"
+        [showFirstLastButtons]="!isMobile()"
       />
     </div>
   </app-page-layout-content>

@@ -176,3 +176,33 @@
     overflow: auto;
   }
 }
+
+// Phones: no page-fill. The table has no max height or inner vertical scroll;
+// it takes what it needs and the whole page scrolls. Only wide tables scroll
+// sideways.
+@media (max-width: 599.98px) {
+  .app-layout-sidenav-content:has(.app-page-fill) .app-layout-content {
+    flex: 1 0 auto;
+    min-height: 0;
+  }
+
+  .app-page-fill {
+    flex: 1 0 auto;
+
+    .app-page-layout,
+    .app-page-layout-content {
+      flex: 1 0 auto;
+    }
+
+    .app-page-layout-content > .app-table-card {
+      flex-shrink: 0;
+    }
+  }
+
+  .app-table-card > .app-table-scroll {
+    flex-shrink: 0;
+    min-height: auto;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+}
