@@ -5,6 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatRippleModule } from "@angular/material/core";
+import { AppLayoutService } from "@ui/services/app-layout.service";
 import { AppAvatarComponent } from "@ui/components/app-avatar/app-avatar.component";
 import { AppPopoverRef } from "@ui/components/app-popover/app-popover-ref";
 import { AuthApi } from "../../../core/auth/auth.api";
@@ -29,15 +30,18 @@ export class UserMenuComponent {
   private readonly authToken = inject(AuthTokenService);
   private readonly currentUser = inject(CurrentUserService);
   private readonly dialog = inject(MatDialog);
+  private readonly layout = inject(AppLayoutService);
 
   readonly user = this.currentUser.user;
 
   openChangePassword(): void {
+    this.layout.closeSidenav();
     this.dialog.open(ChangePasswordDialogComponent);
     this.popoverRef.close();
   }
 
   async logout(): Promise<void> {
+    this.layout.closeSidenav();
     this.popoverRef.close();
 
     try {

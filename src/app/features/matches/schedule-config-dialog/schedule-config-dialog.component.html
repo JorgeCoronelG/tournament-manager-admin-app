@@ -6,7 +6,7 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-5 !pt-2 min-w-[320px]">
+  <mat-dialog-content class="flex flex-col gap-5 !pt-2">
     <mat-progress-bar [class.invisible]="!loading()" mode="indeterminate" />
 
     @if (configResource.error()) {

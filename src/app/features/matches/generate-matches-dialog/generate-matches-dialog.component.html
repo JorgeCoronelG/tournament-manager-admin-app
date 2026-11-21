@@ -6,7 +6,7 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-3 !pt-2 min-w-[320px]">
+  <mat-dialog-content class="flex flex-col gap-3 !pt-2">
     @if (data.regenerate) {
       <div
         class="flex items-start gap-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"

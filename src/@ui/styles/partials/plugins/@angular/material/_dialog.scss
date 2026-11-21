@@ -13,3 +13,32 @@
     height: auto;
   }
 }
+
+/** Phones: dialogs fill the width (16px margins) and never overflow it */
+.cdk-overlay-pane.mat-mdc-dialog-panel {
+  @media (max-width: 599px) {
+    width: calc(100vw - 32px) !important;
+  }
+
+  .mat-mdc-dialog-content {
+    @apply min-w-0;
+    overflow-x: hidden;
+  }
+
+  .mat-mdc-dialog-content .mat-mdc-form-field {
+    @apply w-full;
+  }
+
+  /* Room for a two-line error so it does not overlap the next field */
+  .mat-mdc-dialog-content .mat-mdc-form-field-subscript-wrapper {
+    @media (max-width: 599px) {
+      min-height: 2.5rem;
+    }
+  }
+
+  .mat-mdc-dialog-actions .mat-mdc-button-base {
+    @media (max-width: 599px) {
+      min-height: 44px;
+    }
+  }
+}

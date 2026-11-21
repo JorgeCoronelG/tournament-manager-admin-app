@@ -6,7 +6,7 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="!pt-2 min-w-[320px]">
+  <mat-dialog-content class="!pt-2">
     @if (serverError(); as message) {
       <div
         class="flex items-start gap-3 mb-3 p-3 rounded border border-red-500 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"

@@ -106,7 +106,7 @@ export async function gotoApp(
   await page.goto(path);
   await page.locator("#app-splash-screen").waitFor({ state: "detached" });
   if (path.startsWith("/dashboard")) {
-    await page.locator("app-sidenav").waitFor();
+    await page.locator("app-sidenav").waitFor({ state: "attached" });
   }
 }
 

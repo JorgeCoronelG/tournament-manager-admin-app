@@ -6,7 +6,7 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-2 !pt-2 min-w-[320px]">
+  <mat-dialog-content class="flex flex-col gap-2 !pt-2">
     @if (
       tournament?.status === "in_progress" || tournament?.status === "playoffs"
     ) {
