@@ -162,10 +162,14 @@
       "actions": "Acciones"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "admin": "Filtrar por encargado",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "activate": "Activar liga",
       "deactivate": "Desactivar liga",

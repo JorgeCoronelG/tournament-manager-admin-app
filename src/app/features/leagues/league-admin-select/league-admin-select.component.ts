@@ -128,6 +128,8 @@ export class LeagueAdminSelectComponent implements FormValueControl<
   private readonly autocomplete = viewChild(MatAutocomplete);
 
   private timer: ReturnType<typeof setTimeout> | undefined;
+  /** The text is the name of a manager picked from the options (not free typing) */
+  private chosen = false;
 
   constructor() {
     // Without an `NgControl` the input never re-reads the matcher by itself
@@ -136,12 +138,21 @@ export class LeagueAdminSelectComponent implements FormValueControl<
       this.input()?.updateErrorState();
     });
 
+    // The value goes back to "" from outside (e.g. a "Clear filters" button):
+    // the name of the manager that was picked must go too
+    effect(() => {
+      if (this.value() === "" && this.chosen) {
+        this.forgetChoice();
+      }
+    });
+
     this.destroyRef.onDestroy(() => clearTimeout(this.timer));
   }
 
   type(event: Event): void {
     const text = (event.target as HTMLInputElement).value;
 
+    this.chosen = false;
     this.text.set(text);
 
     // Editing the text drops the choice: only picking an option sets a manager
@@ -158,19 +169,25 @@ export class LeagueAdminSelectComponent implements FormValueControl<
 
   choose(user: User): void {
     clearTimeout(this.timer);
+    this.chosen = true;
     this.text.set(fullName(user));
     this.search.set("");
     this.value.set(user.id);
   }
 
   clear(): void {
+    this.forgetChoice();
+    this.value.set("");
+    this.input()?.focus();
+  }
+
+  private forgetChoice(): void {
     clearTimeout(this.timer);
+    this.chosen = false;
     this.text.set("");
     this.search.set("");
-    this.value.set("");
     // The autocomplete remembers the picked option and would keep it checked
     this.autocomplete()?.options.forEach((option) => option.deselect());
-    this.input()?.focus();
   }
 
   retry(): void {
