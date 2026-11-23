@@ -517,9 +517,13 @@
       "inactive": "Inactivo"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "copyCode": "Copiar clave {{code}}",
       "edit": "Editar",
       "resendInvitation": "Reenviar invitación",
