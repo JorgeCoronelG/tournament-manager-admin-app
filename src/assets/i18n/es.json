@@ -585,9 +585,13 @@
       "inactive": "Inactiva"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "activate": "Activar",
       "deactivate": "Desactivar",
