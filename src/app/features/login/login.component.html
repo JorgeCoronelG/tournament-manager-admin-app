@@ -65,7 +65,10 @@
         }
       </mat-form-field>
 
-      <div class="flex items-center justify-between">
+      <!-- Phones: the checkbox and the link each on their own line, with the same space as between fields before the button -->
+      <div
+        class="flex flex-col items-start gap-1 max-sm:mb-5 sm:flex-row sm:items-center sm:justify-between"
+      >
         <mat-checkbox [formField]="loginForm.rememberMe" color="primary">{{
           "login.rememberMe" | transloco
         }}</mat-checkbox>
