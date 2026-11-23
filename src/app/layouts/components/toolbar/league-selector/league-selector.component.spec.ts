@@ -94,6 +94,35 @@ describe("LeagueSelectorComponent", () => {
     );
   });
 
+  it("cuts a long league name at 15 characters with an ellipsis, keeping the full one in the title", () => {
+    const long = "Liga West Jazmyneview"; // 21 characters
+    active.set({ id: 2, name: long });
+    const fixture = setup("league_admin");
+    const label = fixture.nativeElement.querySelector(
+      `${MENU_BUTTON} span[title]`,
+    );
+
+    expect(label.textContent.trim()).toBe("Liga West Jazmy…");
+    expect(label.getAttribute("title")).toBe(long);
+    expect(
+      fixture.nativeElement
+        .querySelector(MENU_BUTTON)
+        .getAttribute("aria-label"),
+    ).toContain(long);
+  });
+
+  it("does not cut a name of up to 15 characters", () => {
+    active.set({ id: 2, name: "Liga 123456789A" }); // exactly 15
+    const fixture = setup("league_admin");
+
+    expect(
+      fixture.nativeElement.querySelector(MENU_BUTTON).textContent,
+    ).toContain("Liga 123456789A");
+    expect(
+      fixture.nativeElement.querySelector(MENU_BUTTON).textContent,
+    ).not.toContain("…");
+  });
+
   it("asks to choose when there are several leagues and none is active", () => {
     active.set(null);
     const fixture = setup("league_admin");
