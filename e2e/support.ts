@@ -2224,3 +2224,147 @@ export async function mockLeaguesApi(
 
   return api;
 }
+
+export interface MockPlayer {
+  id: number;
+  first_name: string;
+  last_name: string;
+  photo_url: string | null;
+  user_code: string;
+  gender: "male" | "female";
+  birth_date: string;
+  age: number;
+  phone: string | null;
+  is_banned: boolean;
+  active_teams: { team: string | null; tournament: string | null }[];
+}
+
+/** Deterministic players of league 1: every fifth one is banned, genders alternate */
+export function makePlayers(count: number): MockPlayer[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    first_name: FIRST_NAMES[i % FIRST_NAMES.length],
+    last_name: LAST_NAMES[i % LAST_NAMES.length],
+    photo_url: null,
+    user_code: `JUG${String(i + 1).padStart(4, "0")}`,
+    gender: i % 2 === 0 ? "male" : "female",
+    birth_date: "2000-05-15",
+    age: 26,
+    phone: i % 2 === 0 ? "5512345678" : null,
+    is_banned: i % 5 === 4,
+    active_teams:
+      i % 3 === 0 ? [{ team: "Halcones", tournament: "Torneo Apertura" }] : [],
+  }));
+}
+
+export interface PlayersApi {
+  /** Query strings of every `GET /players` so far */
+  queries: URLSearchParams[];
+  /** Ids of the players banned so far */
+  banned: number[];
+  /** Ids of the players reactivated so far */
+  unbanned: number[];
+}
+
+/** Stubs `/leagues/1/players` (list, detail, ban and unban); search, filters, sort and pagination work like the real list */
+export async function mockPlayersApi(
+  page: Page,
+  { players = [] }: { players?: MockPlayer[] } = {},
+): Promise<PlayersApi> {
+  const state = players.map((player) => ({ ...player }));
+  const api: PlayersApi = { queries: [], banned: [], unbanned: [] };
+  const idOf = (url: string, fromEnd: number) =>
+    Number(new URL(url).pathname.split("/").at(-fromEnd));
+
+  await page.route(/\/players\/\d+\/ban$/, (route) => {
+    const id = idOf(route.request().url(), 2);
+    api.banned.push(id);
+    const player = state.find((item) => item.id === id);
+
+    if (player) {
+      player.is_banned = true;
+    }
+
+    return route.fulfill({
+      json: { player, removed_rosters: 0, cancelled_requests: 0 },
+    });
+  });
+
+  await page.route(/\/players\/\d+\/unban$/, (route) => {
+    const id = idOf(route.request().url(), 2);
+    api.unbanned.push(id);
+    const player = state.find((item) => item.id === id);
+
+    if (player) {
+      player.is_banned = false;
+    }
+
+    return route.fulfill({ json: player ?? {} });
+  });
+
+  await page.route(/\/players\/\d+$/, (route) => {
+    const player = state.find(
+      (item) => item.id === idOf(route.request().url(), 1),
+    );
+
+    return route.fulfill({
+      json: {
+        ...player,
+        rosters: [
+          {
+            id: 1,
+            tournament: "Torneo Apertura con un nombre bastante largo",
+            team: "Halcones del Norte de la Ciudad",
+            jersey_number: 10,
+            status: "approved",
+            requested_at: FIXED_NOW.toISOString(),
+            removed_by: null,
+            removed_at: null,
+            removal_reason: null,
+          },
+        ],
+        bans: [],
+      },
+    });
+  });
+
+  await page.route(/\/players(\?.*)?$/, (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const gender = query.get("gender");
+    const banned = query.get("banned");
+    const sort = query.get("sort") ?? "name";
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+    const nameOf = (item: MockPlayer) => `${item.first_name} ${item.last_name}`;
+
+    const matching = state
+      .filter((item) =>
+        `${nameOf(item)} ${item.user_code}`.toLowerCase().includes(search),
+      )
+      .filter((item) => !gender || item.gender === gender)
+      .filter((item) => banned === null || String(item.is_banned) === banned)
+      .sort((a, b) => nameOf(a).localeCompare(nameOf(b)) * direction);
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}

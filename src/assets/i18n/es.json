@@ -659,12 +659,16 @@
       "banned": "Vetado"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allGenders": "Todas",
       "allStatuses": "Todos",
       "banned": "Vetado",
       "notBanned": "Activo"
     },
     "actions": {
+      "menu": "Acciones",
       "detail": "Ver detalle",
       "gender": "Corregir rama",
       "ban": "Vetar",
