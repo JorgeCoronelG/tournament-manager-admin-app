@@ -1666,10 +1666,14 @@
       "banned": "Vetado"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allStatuses": "Todos los estados",
       "allManagers": "Todos los delegados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "assignManager": "Asignar delegado",
       "changeManager": "Cambiar delegado",

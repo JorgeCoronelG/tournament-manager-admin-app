@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatDividerModule } from "@angular/material/divider";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { TranslocoPipe } from "@jsverse/transloco";
@@ -12,13 +13,21 @@ export interface RowAction {
   run: () => void;
   /** Destructive actions (delete) are painted with the error color */
   danger?: boolean;
+  /** Draws a divider before this action, to set a group of actions apart */
+  divider?: boolean;
 }
 
 /** The "⋮" button of a table row on phones: a menu with the row's actions */
 @Component({
   selector: "app-row-actions",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButtonModule, MatIconModule, MatMenuModule, TranslocoPipe],
+  imports: [
+    MatButtonModule,
+    MatDividerModule,
+    MatIconModule,
+    MatMenuModule,
+    TranslocoPipe,
+  ],
   template: `
     <button
       [attr.aria-label]="labelKey() | transloco"
@@ -32,6 +41,9 @@ export interface RowAction {
 
     <mat-menu #menu="matMenu">
       @for (action of actions(); track action.labelKey) {
+        @if (action.divider && !$first) {
+          <mat-divider />
+        }
         <button
           (click)="action.run()"
           [class.app-action-danger-item]="action.danger"

@@ -7,19 +7,8 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "teams.search" | transloco }}</mat-label>
-          <mat-icon matPrefix svgIcon="mat:search" />
-          <input
-            [formField]="filtersForm.search"
-            autocomplete="off"
-            matInput
-            type="search"
-          />
-        </mat-form-field>
-
-        <mat-form-field class="w-48">
+      <ng-template #statusField let-width>
+        <mat-form-field [class]="width">
           <mat-label>{{ "teams.fields.status" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.status">
             <mat-option value="">{{
@@ -32,8 +21,10 @@
             }
           </mat-select>
         </mat-form-field>
+      </ng-template>
 
-        <mat-form-field class="w-56">
+      <ng-template #managerField let-width>
+        <mat-form-field [class]="width">
           <mat-label>{{ "teams.fields.manager" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.manager">
             <mat-option value="">{{
@@ -49,11 +40,74 @@
             }
           </mat-select>
         </mat-form-field>
+      </ng-template>
 
-        <span class="flex-1"></span>
+      <div
+        [class]="
+          isMobile()
+            ? 'flex items-start gap-2 mb-2'
+            : 'flex flex-wrap items-start gap-4 mb-4'
+        "
+      >
+        <mat-form-field [class]="isMobile() ? 'flex-1 min-w-0' : 'w-72'">
+          <mat-label>{{ "teams.search" | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="mat:search" />
+          <input
+            [formField]="filtersForm.search"
+            autocomplete="off"
+            matInput
+            type="search"
+          />
+        </mat-form-field>
 
+        @if (isMobile()) {
+          <app-filters-toggle
+            [(open)]="filtersOpen"
+            [count]="activeFilters()"
+            activeKey="teams.filters.active"
+            titleKey="teams.filters.title"
+          />
+        } @else {
+          <ng-container
+            *ngTemplateOutlet="statusField; context: { $implicit: 'w-48' }"
+          />
+          <ng-container
+            *ngTemplateOutlet="managerField; context: { $implicit: 'w-56' }"
+          />
+
+          <span class="flex-1"></span>
+
+          <button
+            (click)="openForm()"
+            color="primary"
+            mat-flat-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+            {{ "teams.add" | transloco }}
+          </button>
+        }
+      </div>
+
+      @if (isMobile() && filtersOpen()) {
+        <app-filters-panel
+          (cleared)="clearFilters()"
+          [canClear]="activeFilters() > 0"
+          clearKey="teams.filters.clear"
+        >
+          <ng-container
+            *ngTemplateOutlet="statusField; context: { $implicit: 'w-full' }"
+          />
+          <ng-container
+            *ngTemplateOutlet="managerField; context: { $implicit: 'w-full' }"
+          />
+        </app-filters-panel>
+      }
+
+      @if (isMobile()) {
         <button
           (click)="openForm()"
+          class="w-full mb-4"
           color="primary"
           mat-flat-button
           type="button"
@@ -61,9 +115,9 @@
           <mat-icon svgIcon="mat:add" />
           {{ "teams.add" | transloco }}
         </button>
-      </div>
+      }
 
-      <div class="app-table-card bg-foreground rounded shadow">
+      <div #tableCard class="app-table-card bg-foreground rounded shadow">
         <mat-progress-bar
           [class.invisible]="!resource.isLoading()"
           mode="indeterminate"
@@ -145,6 +199,20 @@
               </th>
               <td *matCellDef="let team" mat-cell class="whitespace-nowrap">
                 {{ team.created_at | appDateFormatRelative }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actionsMenu">
+              <th *matHeaderCellDef mat-header-cell>
+                <span class="sr-only">{{
+                  "teams.fields.actions" | transloco
+                }}</span>
+              </th>
+              <td *matCellDef="let team" class="w-14" mat-cell>
+                <app-row-actions
+                  [actions]="rowActions(team)"
+                  labelKey="teams.actions.menu"
+                />
               </td>
             </ng-container>
 
@@ -267,8 +335,11 @@
               </td>
             </ng-container>
 
-            <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-            <tr *matRowDef="let row; columns: columns" mat-row></tr>
+            <tr
+              *matHeaderRowDef="columns(); sticky: !isMobile()"
+              mat-header-row
+            ></tr>
+            <tr *matRowDef="let row; columns: columns()" mat-row></tr>
           </table>
         </div>
 
@@ -299,7 +370,8 @@
           [pageIndex]="paging().page"
           [pageSizeOptions]="[5, 10, 25]"
           [pageSize]="paging().pageSize"
-          showFirstLastButtons
+          [hidePageSize]="isMobile()"
+          [showFirstLastButtons]="!isMobile()"
         />
       </div>
     }
@@ -310,7 +382,7 @@
 <ng-template #managerInfo let-team>
   @if (team.manager; as manager) {
     <div class="flex flex-wrap items-center gap-2">
-      <span class="whitespace-nowrap"
+      <span class="md:whitespace-nowrap"
         >{{ manager.first_name }} {{ manager.last_name }}</span
       >
       <app-user-status-chip
