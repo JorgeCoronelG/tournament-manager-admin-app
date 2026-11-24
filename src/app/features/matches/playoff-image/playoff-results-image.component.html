@@ -1,5 +1,5 @@
 <header
-  class="flex items-center gap-6 rounded-b-3xl bg-gradient-to-r from-indigo-950 via-indigo-900 to-indigo-700 px-14 py-8 text-white"
+  class="flex items-center gap-6 rounded-b-3xl bg-gradient-to-r from-primary-900 via-primary-800 to-primary-700 px-14 py-8 text-white"
 >
   <span
     class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white/15"
@@ -9,14 +9,16 @@
   <span class="h-16 w-px bg-white/40"></span>
   <div class="min-w-0">
     <p class="m-0 text-4xl font-bold">{{ data().leagueName }}</p>
-    <p class="m-0 mt-1 text-2xl text-indigo-100">{{ data().tournamentName }}</p>
+    <p class="m-0 mt-1 text-2xl text-primary-100">
+      {{ data().tournamentName }}
+    </p>
   </div>
 </header>
 
 <section class="px-14 pb-10 pt-8">
   <h2 class="m-0 text-4xl font-bold">
     {{ data().title }} ·
-    <span class="text-indigo-700">{{ data().phase }}</span>
+    <span class="text-primary-700">{{ data().phase }}</span>
   </h2>
   <p class="m-0 mt-1 text-xl text-gray-500">{{ data().subtitle }}</p>
 
@@ -181,8 +183,8 @@
       <ng-container *ngTemplateOutlet="laurel" />
       <mat-icon class="!size-14 text-amber-500" svgIcon="mat:emoji_events" />
       <span class="h-12 w-px bg-amber-300"></span>
-      <p class="m-0 text-5xl font-bold">
-        <span class="text-indigo-900">{{ champion }}</span>
+      <p class="m-0 text-5xl font-medium">
+        <span class="font-extrabold text-primary-900">{{ champion }}</span>
         {{ "matches.playoffImage.champion" | transloco }}
       </p>
       <span class="-scale-x-100">
@@ -197,7 +199,7 @@
     <span class="text-gray-600">{{
       "matches.jornadaImage.resultsFooter" | transloco
     }}</span>
-    <span class="font-bold text-indigo-900">{{ data().leagueName }}</span>
+    <span class="font-bold text-primary-900">{{ data().leagueName }}</span>
   </div>
 </section>
 

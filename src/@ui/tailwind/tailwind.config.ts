@@ -1,10 +1,33 @@
 import type { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
 import colors from "tailwindcss/colors";
-import addThemesPlugin, { AppThemes } from "./plugins/themes";
+import addThemesPlugin, {
+  AppThemeColorPalette,
+  AppThemes,
+} from "./plugins/themes";
 import addIconsPlugin from "./plugins/icons";
 import chroma from "chroma-js";
 import addTypographyPlugin from "@tailwindcss/typography";
+
+/** Builds a 50-900 palette whose 600 shade is exactly `base`. */
+function createPalette(base: string): AppThemeColorPalette {
+  const lighten = (amount: number) =>
+    chroma.mix(base, "#ffffff", amount, "lab").hex();
+  const darken = (amount: number) =>
+    chroma.mix(base, "#000000", amount, "lab").hex();
+  return {
+    50: lighten(0.93),
+    100: lighten(0.85),
+    200: lighten(0.7),
+    300: lighten(0.5),
+    400: lighten(0.25),
+    500: lighten(0.1),
+    600: chroma(base).hex(),
+    700: darken(0.2),
+    800: darken(0.4),
+    900: darken(0.6),
+  };
+}
 
 export const themes: AppThemes = {
   default: {
@@ -16,7 +39,7 @@ export const themes: AppThemes = {
           darker: "700",
         },
         palette: {
-          ...colors.indigo,
+          ...createPalette("#0E7A3D"),
         },
       },
       "on-primary": {

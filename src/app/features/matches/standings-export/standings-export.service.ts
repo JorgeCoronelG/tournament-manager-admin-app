@@ -7,6 +7,7 @@ import {
   Type,
 } from "@angular/core";
 import { toBlob } from "html-to-image";
+import { nextPaint } from "../../../shared/next-paint";
 import {
   SHIELD_IMAGE,
   StandingsImageComponent,
@@ -59,6 +60,9 @@ export class StandingsExportService {
     fileName: string,
     title: string,
   ): Promise<ExportOutcome> {
+    // Let the browser paint the spinner before the (synchronous, heavy) render freezes the thread
+    await nextPaint();
+
     const blob = await this.render(component, data);
 
     if (this.canShareFiles) {

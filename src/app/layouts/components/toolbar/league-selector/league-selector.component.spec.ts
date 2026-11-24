@@ -177,7 +177,7 @@ describe("LeagueSelectorComponent", () => {
     loading.set(true);
     const fixture = setup("league_admin");
 
-    expect(fixture.nativeElement.querySelector("mat-spinner")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector("app-spinner")).not.toBeNull();
   });
 
   it("shows the error and retries", () => {
