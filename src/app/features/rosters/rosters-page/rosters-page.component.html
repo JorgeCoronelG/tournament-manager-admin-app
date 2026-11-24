@@ -7,9 +7,29 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
+      <ng-template #statusField let-width>
+        <mat-form-field [class]="width">
+          <mat-label>{{ "rosters.fields.status" | transloco }}</mat-label>
+          <mat-select [formField]="filtersForm.status">
+            <mat-option value="">{{
+              "rosters.allStatuses" | transloco
+            }}</mat-option>
+            @for (status of statuses; track status) {
+              <mat-option [value]="status">{{
+                "rosters.status." + status | transloco
+              }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ng-template>
+
+      <div
+        [class]="
+          isMobile() ? 'flex flex-col' : 'flex flex-wrap items-start gap-4 mb-4'
+        "
+      >
         @if (!tournamentsResource.hasValue() || tournaments().length > 0) {
-          <mat-form-field class="w-72">
+          <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
             <mat-label>{{ "rosters.tournament" | transloco }}</mat-label>
             <mat-select [formField]="pickerForm.tournament">
               @for (item of tournaments(); track item.id) {
@@ -20,20 +40,25 @@
         }
 
         @if (tournament()) {
-          <mat-form-field class="w-72">
+          <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
             <mat-label>{{ "rosters.team" | transloco }}</mat-label>
-            <mat-select [formField]="teamPickerForm.team" [panelWidth]="null">
+            <mat-select
+              [formField]="teamPickerForm.team"
+              [panelWidth]="isMobile() ? 'auto' : null"
+            >
               @if (registration(); as selected) {
                 <mat-select-trigger>
                   <span
-                    class="inline-flex h-6 items-center gap-2 align-top [&_.mat-icon]:!m-0 [&_.mat-icon]:!size-4"
+                    class="inline-flex h-6 max-w-full items-center gap-2 align-top [&_.mat-icon]:!m-0 [&_.mat-icon]:!size-4"
                   >
                     <app-logo-image
                       [alt]="selected.team.name"
                       [src]="selected.team.logo_url"
                       class="w-6 h-6 rounded-full shrink-0"
                     />
-                    <span class="truncate">{{ selected.team.name }}</span>
+                    <span class="truncate min-w-0">{{
+                      selected.team.name
+                    }}</span>
                     @if (isWithdrawn(selected)) {
                       <span
                         class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
@@ -45,15 +70,15 @@
               }
               @for (item of teams(); track item.id) {
                 <mat-option [value]="item.id">
-                  <span class="flex items-center gap-3 [&_.mat-icon]:!m-0">
+                  <span class="flex items-center gap-3 py-1 [&_.mat-icon]:!m-0">
                     <app-logo-image
                       [alt]="item.team.name"
                       [src]="item.team.logo_url"
                       class="w-8 h-8 rounded-full shrink-0"
                     />
-                    <span class="flex flex-col leading-tight">
-                      <span class="flex items-center gap-2">
-                        <span class="whitespace-nowrap">{{
+                    <span class="flex min-w-0 flex-col leading-tight">
+                      <span class="flex flex-wrap items-center gap-x-2">
+                        <span class="sm:whitespace-nowrap">{{
                           item.team.name
                         }}</span>
                         @if (isWithdrawn(item)) {
@@ -63,7 +88,7 @@
                           >
                         }
                       </span>
-                      <span class="whitespace-nowrap text-xs text-secondary">
+                      <span class="text-xs text-secondary sm:whitespace-nowrap">
                         @if (item.team.manager; as manager) {
                           {{
                             "rosters.manager"
@@ -80,7 +105,7 @@
             </mat-select>
           </mat-form-field>
 
-          @if (registration()) {
+          @if (registration() && !isMobile()) {
             <mat-form-field class="w-72">
               <mat-label>{{ "rosters.search" | transloco }}</mat-label>
               <mat-icon matPrefix svgIcon="mat:search" />
@@ -92,25 +117,51 @@
               />
             </mat-form-field>
 
-            <mat-form-field class="w-48">
-              <mat-label>{{ "rosters.fields.status" | transloco }}</mat-label>
-              <mat-select [formField]="filtersForm.status">
-                <mat-option value="">{{
-                  "rosters.allStatuses" | transloco
-                }}</mat-option>
-                @for (status of statuses; track status) {
-                  <mat-option [value]="status">{{
-                    "rosters.status." + status | transloco
-                  }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+            <ng-container
+              *ngTemplateOutlet="statusField; context: { $implicit: 'w-48' }"
+            />
           }
         }
       </div>
 
+      @if (registration() && isMobile()) {
+        <div class="flex items-start gap-2 mb-2">
+          <mat-form-field class="flex-1 min-w-0">
+            <mat-label>{{ "rosters.search" | transloco }}</mat-label>
+            <mat-icon matPrefix svgIcon="mat:search" />
+            <input
+              [formField]="filtersForm.search"
+              autocomplete="off"
+              matInput
+              type="search"
+            />
+          </mat-form-field>
+
+          <app-filters-toggle
+            [(open)]="filtersOpen"
+            [count]="activeFilters()"
+            activeKey="rosters.filters.active"
+            titleKey="rosters.filters.title"
+          />
+        </div>
+
+        @if (filtersOpen()) {
+          <app-filters-panel
+            (cleared)="clearFilters()"
+            [canClear]="activeFilters() > 0"
+            clearKey="rosters.filters.clear"
+          >
+            <ng-container
+              *ngTemplateOutlet="statusField; context: { $implicit: 'w-full' }"
+            />
+          </app-filters-panel>
+        }
+      }
+
       @if (!registration()) {
-        <p class="py-10 px-6 text-center text-secondary">
+        <p
+          class="py-10 px-6 max-sm:py-6 max-sm:px-4 text-center text-secondary"
+        >
           {{
             (tournament()
               ? teamsResource.hasValue() && teams().length === 0
@@ -123,7 +174,7 @@
           }}
         </p>
       } @else {
-        <div class="flex flex-wrap items-center gap-4 mb-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
           <app-tournament-status-chip [status]="tournament()!.status" />
           @if (counter(); as counter) {
             <span class="font-medium">
@@ -161,7 +212,14 @@
           }
         </div>
 
-        <div class="app-table-card bg-foreground rounded shadow">
+        <!-- No tooltips on touch screens: the hint is written out -->
+        @if (banned() && isMobile()) {
+          <p class="m-0 mb-4 text-xs text-secondary">
+            {{ "rosters.bannedHint" | transloco }}
+          </p>
+        }
+
+        <div #tableCard class="app-table-card bg-foreground rounded shadow">
           <mat-progress-bar
             [class.invisible]="!rosterResource.isLoading()"
             mode="indeterminate"
@@ -179,7 +237,7 @@
                   <app-logo-image
                     [alt]="playerName(row.player)"
                     [src]="row.player.photo_url"
-                    class="w-10 h-10 rounded-full my-1"
+                    class="w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-full my-1"
                   />
                 </td>
               </ng-container>
@@ -247,12 +305,29 @@
                   {{ "rosters.fields.request" | transloco }}
                 </th>
                 <td *matCellDef="let row" mat-cell>
-                  <div class="py-1 whitespace-nowrap">
+                  <div class="py-1 sm:whitespace-nowrap">
                     <div>{{ row.requested_at | appDateFormatRelative }}</div>
                     @if (row.requested_by; as by) {
                       <div class="text-secondary text-sm">{{ by.name }}</div>
                     }
                   </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actionsMenu">
+                <th *matHeaderCellDef mat-header-cell>
+                  <span class="sr-only">{{
+                    "rosters.fields.actions" | transloco
+                  }}</span>
+                </th>
+                <td *matCellDef="let row" class="w-14" mat-cell>
+                  @let actions = rowActions(row);
+                  @if (actions.length) {
+                    <app-row-actions
+                      [actions]="actions"
+                      labelKey="rosters.actions.menu"
+                    />
+                  }
                 </td>
               </ng-container>
 
@@ -314,8 +389,11 @@
                 </td>
               </ng-container>
 
-              <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-              <tr *matRowDef="let row; columns: columns" mat-row></tr>
+              <tr
+                *matHeaderRowDef="columns(); sticky: !isMobile()"
+                mat-header-row
+              ></tr>
+              <tr *matRowDef="let row; columns: columns()" mat-row></tr>
             </table>
           </div>
 
@@ -345,9 +423,10 @@
             (page)="changePage($event)"
             [length]="total()"
             [pageIndex]="paging().page"
+            [hidePageSize]="isMobile()"
             [pageSizeOptions]="[5, 10, 25]"
             [pageSize]="paging().pageSize"
-            showFirstLastButtons
+            [showFirstLastButtons]="!isMobile()"
           />
         </div>
       }

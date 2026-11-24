@@ -2518,7 +2518,9 @@ export async function mockRegistrationsApi(
 
     const query = new URL(route.request().url()).searchParams;
     const search = (query.get("search") ?? "").toLowerCase();
-    const perPage = Number(query.get("per_page") ?? 5);
+    const perPage = query.has("skip_paging")
+      ? 1000
+      : Number(query.get("per_page") ?? 5);
     const current = Number(query.get("page") ?? 1);
     const matching = state.filter((r) =>
       r.team.name.toLowerCase().includes(search),
@@ -2540,6 +2542,136 @@ export async function mockRegistrationsApi(
           withdrawn_count: state.filter((r) => r.status === "withdrawn").length,
         },
         summary: { registered: state.length, banned: 0 },
+      },
+    });
+  });
+
+  return api;
+}
+
+export interface MockRosterEntry {
+  id: number;
+  player: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    photo_url: null;
+    user_code: string;
+  };
+  jersey_number: number;
+  status:
+    "pending" | "active" | "rejected" | "cancelled" | "removed" | "released";
+  requested_at: string;
+  requested_by: { id: number; name: string } | null;
+  removed_by: { id: number; name: string } | null;
+  removed_at: string | null;
+  removal_reason: string | null;
+  rejoin_authorized_at: string | null;
+}
+
+/** Deterministic roster: active players, and every fourth one removed (the second of those with rejoin authorized) */
+export function makeRosterEntries(count: number): MockRosterEntry[] {
+  return Array.from({ length: count }, (_, i) => {
+    const removed = i % 4 === 3;
+
+    return {
+      id: i + 1,
+      player: {
+        id: i + 1,
+        first_name: `Jugador${i + 1}`,
+        last_name: "Apellido Largo Compuesto",
+        photo_url: null,
+        user_code: `JUG${String(i + 1).padStart(4, "0")}`,
+      },
+      jersey_number: i + 1,
+      status: removed ? "removed" : "active",
+      requested_at: new Date(
+        FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+      ).toISOString(),
+      requested_by: { id: 9, name: "Delegado Muy Responsable" },
+      removed_by: removed ? { id: 1, name: "Administrador" } : null,
+      removed_at: removed
+        ? new Date(FIXED_NOW.getTime() - 3_600_000).toISOString()
+        : null,
+      removal_reason: removed ? "Indisciplina reiterada en los partidos" : null,
+      rejoin_authorized_at:
+        removed && i % 8 === 7 ? "2026-09-18T10:00:00.000Z" : null,
+    };
+  });
+}
+
+/** Stubs `/registrations/{id}/roster` (filters and paging) and its remove and rejoin writes */
+export async function mockRostersApi(
+  page: Page,
+  { entries = [] }: { entries?: MockRosterEntry[] } = {},
+): Promise<{
+  queries: URLSearchParams[];
+  removed: number[];
+  rejoin: string[];
+}> {
+  const state = [...entries];
+  const api = {
+    queries: [] as URLSearchParams[],
+    removed: [] as number[],
+    rejoin: [] as string[],
+  };
+
+  await page.route(/\/roster\/\d+\/remove$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    api.removed.push(id);
+    const found = state.find((e) => e.id === id);
+
+    if (found) {
+      found.status = "removed";
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/roster\/\d+\/rejoin$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    api.rejoin.push(`${route.request().method()} ${id}`);
+    const found = state.find((e) => e.id === id);
+
+    if (found) {
+      found.rejoin_authorized_at =
+        route.request().method() === "POST" ? "2026-09-19T10:00:00.000Z" : null;
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/roster(\?.*)?$/, (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    api.queries.push(query);
+    const search = (query.get("search") ?? "").toLowerCase();
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+    const matching = state.filter(
+      (e) =>
+        `${e.player.first_name} ${e.player.last_name} ${e.player.user_code}`
+          .toLowerCase()
+          .includes(search) &&
+        (!query.get("status") || e.status === query.get("status")),
+    );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+        summary: {
+          active: state.filter((e) => e.status === "active").length,
+          max_roster_size: 20,
+        },
       },
     });
   });

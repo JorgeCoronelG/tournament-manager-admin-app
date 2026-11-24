@@ -723,6 +723,11 @@
     "tournament": "Torneo",
     "team": "Equipo",
     "search": "Buscar por nombre o clave",
+    "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos"
+    },
     "allStatuses": "Todos los estados",
     "withdrawn": "Baja",
     "pickTournament": "Elige un torneo para ver sus plantillas.",
@@ -768,6 +773,7 @@
     "finishedHint": "El torneo terminó: ya no se puede quitar jugadores.",
     "playoffsHint": "La liguilla ya inició; ya no se puede quitar jugadores.",
     "actions": {
+      "menu": "Acciones",
       "remove": "Quitar jugador",
       "authorize": "Autorizar reingreso",
       "revoke": "Revocar reingreso"
