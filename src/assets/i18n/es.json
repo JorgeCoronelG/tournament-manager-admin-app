@@ -1437,6 +1437,7 @@
       "hint": "Asigna estos equipos a un grupo antes de iniciar el torneo."
     },
     "actions": {
+      "menu": "Acciones",
       "rename": "Renombrar {{name}}",
       "edit": "Editar {{name}}",
       "delete": "Eliminar {{name}}"

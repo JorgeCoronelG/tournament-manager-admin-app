@@ -10,6 +10,8 @@ export interface RowAction {
   icon: string;
   /** i18n key of the label */
   labelKey: string;
+  /** Values for the label's translation (e.g. `{ name }`) */
+  labelParams?: Record<string, unknown>;
   run: () => void;
   /** Destructive actions (delete) are painted with the error color */
   danger?: boolean;
@@ -58,13 +60,13 @@ export interface RowAction {
           <mat-icon [svgIcon]="action.icon" />
           @if (action.hint) {
             <span class="flex flex-col leading-tight">
-              <span>{{ action.labelKey | transloco }}</span>
+              <span>{{ action.labelKey | transloco: action.labelParams }}</span>
               <span class="text-xs text-secondary whitespace-normal">{{
                 action.hint
               }}</span>
             </span>
           } @else {
-            <span>{{ action.labelKey | transloco }}</span>
+            <span>{{ action.labelKey | transloco: action.labelParams }}</span>
           }
         </button>
       }

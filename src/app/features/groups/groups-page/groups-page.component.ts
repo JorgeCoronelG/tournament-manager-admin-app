@@ -24,6 +24,11 @@ import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolb
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
 import { TournamentStatusChipComponent } from "../../tournaments/tournament-status-chip/tournament-status-chip.component";
@@ -66,6 +71,7 @@ const GROUP_NAME_SHOWN = 25;
     MatSelectModule,
     MatTooltipModule,
     NgTemplateOutlet,
+    RowActionsComponent,
     ScrollFadeComponent,
     TournamentStatusChipComponent,
     TranslocoPipe,
@@ -79,6 +85,7 @@ export class GroupsPageComponent {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly leagueContext = inject(LeagueContextService);
+  readonly isMobile = injectIsMobile();
   protected readonly parseDate = parseDate;
 
   protected readonly tournamentsResource =
@@ -199,6 +206,73 @@ export class GroupsPageComponent {
       group.teams_count === 0 &&
       !this.inPlayoff(group)
     );
+  }
+
+  /** Cards: one column on phones, a horizontal strip elsewhere */
+  readonly cardsClass = computed(() =>
+    this.isMobile()
+      ? "flex flex-col gap-3"
+      : "app-scroll-thin flex items-stretch gap-4 overflow-x-auto pb-2",
+  );
+  readonly cardBasis = computed(() =>
+    this.isMobile() ? null : "max(18rem, calc((100% - 3rem) / 3.5))",
+  );
+
+  /** The "⋮" menu of a regular group on phones; without it the group cannot change */
+  groupActions(group: RegularGroup): RowAction[] {
+    if (!this.editable()) {
+      return [];
+    }
+
+    const deletable = this.canDelete(group);
+
+    return [
+      {
+        icon: "mat:edit",
+        labelKey: "groups.actions.rename",
+        labelParams: { name: group.name },
+        run: () => this.rename(group),
+      },
+      {
+        icon: "mat:delete",
+        labelKey: "groups.actions.delete",
+        labelParams: { name: group.name },
+        run: () => this.remove(group),
+        danger: true,
+        divider: true,
+        disabled: !deletable,
+        // No tooltips on touch screens: the reason is written in the menu
+        hint: deletable
+          ? undefined
+          : this.transloco.translate(this.deleteTooltipKey(group), {
+              name: group.name,
+            }),
+      },
+    ];
+  }
+
+  /** The "⋮" menu of a playoff on phones; empty once it can no longer change */
+  playoffActions(playoff: Group): RowAction[] {
+    if (!this.playoffEditable(playoff)) {
+      return [];
+    }
+
+    return [
+      {
+        icon: "mat:edit",
+        labelKey: "groups.actions.edit",
+        labelParams: { name: playoff.name },
+        run: () => this.editPlayoff(playoff),
+      },
+      {
+        icon: "mat:delete",
+        labelKey: "groups.actions.delete",
+        labelParams: { name: playoff.name },
+        run: () => this.remove(playoff),
+        danger: true,
+        divider: true,
+      },
+    ];
   }
 
   /** A long group name is cut to its first characters, with "..." at the end */
