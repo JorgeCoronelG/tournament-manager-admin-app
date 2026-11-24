@@ -1425,6 +1425,8 @@ export interface MatchesApiOptions {
   refuse?: string;
   /** Tiebreakers the standings report, in order */
   criteria?: string[];
+  /** Extra fields (referee, walkover, rescheduled...) merged into each match by id */
+  extras?: Record<number, Record<string, unknown>>;
 }
 
 export interface MatchesApi {
@@ -1467,6 +1469,7 @@ export async function mockMatchesApi(
     regularComplete = false,
     refuse,
     criteria = ["points", "goal_difference", "goals_for"],
+    extras = {},
   }: MatchesApiOptions = {},
 ): Promise<MatchesApi> {
   const api: MatchesApi = { writes: [] };
@@ -1537,7 +1540,7 @@ export async function mockMatchesApi(
     void home_id;
     void away_id;
 
-    return match;
+    return { ...match, ...extras[match.id] };
   };
 
   if (generated) {

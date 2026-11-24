@@ -92,6 +92,11 @@ import {
 } from "../jornada-image/jornada-image.model";
 import { ResultsImageComponent } from "../results-image/results-image.component";
 import { StandingsExportService } from "../standings-export/standings-export.service";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
 
 /** Up to this many matchdays every section starts open; with more, only the first */
@@ -123,6 +128,7 @@ const OPEN_ALL_UP_TO = 4;
     MatTabsModule,
     MatTooltipModule,
     NgTemplateOutlet,
+    RowActionsComponent,
     TranslocoPipe,
   ],
 })
@@ -142,6 +148,7 @@ export class MatchesPageComponent {
   private readonly exporter = inject(StandingsExportService);
 
   protected readonly leagueContext = inject(LeagueContextService);
+  readonly isMobile = injectIsMobile();
 
   protected readonly tournamentsResource = inject(TournamentsApi).options([
     "in_progress",
@@ -540,6 +547,87 @@ export class MatchesPageComponent {
     } finally {
       this.exportingImage.set(null);
     }
+  }
+
+  /** The "⋮" menu of the whole calendar on phones: the same as the three desktop icons */
+  readonly calendarActions = computed<RowAction[]>(() => {
+    if (!this.editable()) {
+      return [];
+    }
+
+    const blocked = this.locked();
+    // No tooltips on touch screens: the reason is written in the menu
+    const hint = blocked
+      ? this.transloco.translate("matches.lockedHint")
+      : undefined;
+
+    return [
+      {
+        icon: "mat:autorenew",
+        labelKey: "matches.regenerate.action",
+        run: () => this.regenerate(),
+        disabled: blocked,
+        hint,
+      },
+      ...(this.canClose()
+        ? [
+            {
+              icon: "mat:flag",
+              labelKey: "matches.close.action",
+              run: () => this.closePhase(),
+            },
+          ]
+        : []),
+      {
+        icon: "mat:delete_sweep",
+        labelKey: "matches.delete.action",
+        run: () => this.remove(),
+        danger: true,
+        divider: true,
+        disabled: blocked,
+        hint,
+      },
+    ];
+  });
+
+  /** The "⋮" menu of a match on phones: the same as the desktop icons */
+  matchActions(match: Match): RowAction[] {
+    if (!this.editable()) {
+      return [];
+    }
+
+    const scheduled = match.status === "scheduled";
+    const withdrawn = this.hasWithdrawn(match);
+
+    return [
+      ...(scheduled
+        ? [
+            {
+              icon: "mat:calendar_month",
+              labelKey: "matches.program.action",
+              run: () => this.programMatch(match),
+            },
+          ]
+        : []),
+      ...(scheduled && match.home && match.away
+        ? [
+            {
+              icon: "mat:flag",
+              labelKey: "matches.walkover.action",
+              run: () => this.walkover(match),
+            },
+          ]
+        : []),
+      {
+        icon: "mat:scoreboard",
+        labelKey: "matches.result.editTooltip",
+        run: () => this.editResult(match),
+        disabled: withdrawn,
+        hint: withdrawn
+          ? this.transloco.translate("matches.result.withdrawnTooltip")
+          : undefined,
+      },
+    ];
   }
 
   /** "Sáb 07/11 · 8:00 a.m. · Cancha 1" */

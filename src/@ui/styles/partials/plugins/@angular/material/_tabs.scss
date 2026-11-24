@@ -1,0 +1,7 @@
+/** Phones: tabs take only the room their text needs and scroll sideways when they do not fit */
+@media (max-width: 599px) {
+  .mat-mdc-tab-header .mdc-tab {
+    min-width: 0;
+    padding-inline: 12px;
+  }
+}

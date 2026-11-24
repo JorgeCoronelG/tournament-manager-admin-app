@@ -803,6 +803,14 @@
   },
   "matches": {
     "title": "Calendario",
+    "actions": {
+      "menu": "Acciones del calendario"
+    },
+    "match": {
+      "actions": {
+        "menu": "Acciones del partido"
+      }
+    },
     "tournament": "Torneo",
     "pickTournament": "Selecciona un torneo para consultar su calendario.",
     "onlyInProgress": "Solo se muestran torneos activos.",
