@@ -30,8 +30,8 @@ const baseConfig: AppConfig = {
   layout: "horizontal",
   boxed: false,
   sidenav: {
-    title: "Dashboard",
-    imageUrl: "assets/img/logo/logo.svg",
+    title: "Velto",
+    imageUrl: "assets/img/logo/logo.png",
     showCollapsePin: true,
     user: {
       visible: true,

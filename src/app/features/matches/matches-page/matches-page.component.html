@@ -359,6 +359,7 @@
             <button
               (click)="$event.stopPropagation()"
               (keydown)="$event.stopPropagation()"
+              [attr.aria-busy]="exportingImage() === dayKey(group, day)"
               [attr.aria-label]="
                 'matches.jornadaImage.downloadImage' | transloco
               "
@@ -369,7 +370,7 @@
               type="button"
             >
               @if (exportingImage() === dayKey(group, day)) {
-                <mat-spinner class="!inline-block align-middle" diameter="20" />
+                <app-spinner [size]="20" />
               } @else {
                 <mat-icon svgIcon="mat:download" />
               }

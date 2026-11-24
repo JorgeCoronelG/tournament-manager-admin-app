@@ -87,8 +87,8 @@ describe("buildImageData", () => {
       { label: "Principal (1-2)", bar: "bg-indigo-600", chip: "bg-indigo-100" },
       {
         label: "Consolación (3-4)",
-        bar: "bg-emerald-600",
-        chip: "bg-emerald-100",
+        bar: "bg-taupe-600",
+        chip: "bg-taupe-100",
       },
     ]);
   });
@@ -97,7 +97,7 @@ describe("buildImageData", () => {
     expect(build().rows.map((item) => item.bar)).toEqual([
       "bg-indigo-600",
       "bg-indigo-600",
-      "bg-emerald-600",
+      "bg-taupe-600",
       null, // qualification still to be defined
       null, // does not qualify
     ]);

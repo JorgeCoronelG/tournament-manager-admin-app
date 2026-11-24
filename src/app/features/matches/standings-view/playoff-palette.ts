@@ -13,16 +13,10 @@ export const PLAYOFF_PALETTE = [
     chipLight: "bg-indigo-100",
   },
   {
-    bar: "bg-emerald-600 dark:bg-emerald-700",
-    chip: "bg-emerald-600/10 dark:bg-emerald-700/25",
-    barLight: "bg-emerald-600",
-    chipLight: "bg-emerald-100",
-  },
-  {
-    bar: "bg-fuchsia-600 dark:bg-fuchsia-700",
-    chip: "bg-fuchsia-600/10 dark:bg-fuchsia-700/25",
-    barLight: "bg-fuchsia-600",
-    chipLight: "bg-fuchsia-100",
+    bar: "bg-taupe-600 dark:bg-taupe-700",
+    chip: "bg-taupe-600/10 dark:bg-taupe-700/25",
+    barLight: "bg-taupe-600",
+    chipLight: "bg-taupe-100",
   },
   {
     bar: "bg-orange-600 dark:bg-orange-700",
@@ -53,6 +47,12 @@ export const PLAYOFF_PALETTE = [
     chip: "bg-lime-600/10 dark:bg-lime-700/25",
     barLight: "bg-lime-600",
     chipLight: "bg-lime-100",
+  },
+  {
+    bar: "bg-fuchsia-600 dark:bg-fuchsia-700",
+    chip: "bg-fuchsia-600/10 dark:bg-fuchsia-700/25",
+    barLight: "bg-fuchsia-600",
+    chipLight: "bg-fuchsia-100",
   },
 ] as const;
 

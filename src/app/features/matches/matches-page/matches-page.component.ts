@@ -14,7 +14,6 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSelectModule } from "@angular/material/select";
@@ -93,6 +92,7 @@ import {
 } from "../jornada-image/jornada-image.model";
 import { ResultsImageComponent } from "../results-image/results-image.component";
 import { StandingsExportService } from "../standings-export/standings-export.service";
+import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
 
 /** Up to this many matchdays every section starts open; with more, only the first */
 const OPEN_ALL_UP_TO = 4;
@@ -103,6 +103,7 @@ const OPEN_ALL_UP_TO = 4;
   templateUrl: "./matches-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    SpinnerComponent,
     AgendaViewComponent,
     AppBreadcrumbsComponent,
     AppPageLayoutComponent,
@@ -118,7 +119,6 @@ const OPEN_ALL_UP_TO = 4;
     MatIconModule,
     MatMenuModule,
     MatProgressBarModule,
-    MatProgressSpinnerModule,
     MatSelectModule,
     MatTabsModule,
     MatTooltipModule,

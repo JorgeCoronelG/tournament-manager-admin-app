@@ -23,7 +23,7 @@
             "index": "src/index.html",
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/favicon.svg",
+              "src/favicon.png",
               "src/assets",
               {
                 "glob": "**/*.svg",
@@ -70,7 +70,7 @@
             },
             "testing": {
               "aot": false,
-              "assets": ["src/favicon.svg", "src/assets"],
+              "assets": ["src/favicon.png", "src/assets"],
               "styles": ["src/styles.scss"],
               "fileReplacements": [
                 {
