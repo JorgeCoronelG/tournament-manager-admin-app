@@ -1570,6 +1570,7 @@
     "replaced": "Equipo reemplazado.",
     "replacedRoster": "El equipo nuevo debe registrar su plantilla.",
     "actions": {
+      "menu": "Acciones",
       "remove": "Quitar inscripción",
       "withdraw": "Dar de baja",
       "replace": "Reemplazar equipo",

@@ -7,9 +7,15 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
+      <div
+        [class]="
+          isMobile()
+            ? 'flex flex-col mb-2'
+            : 'flex flex-wrap items-start gap-4 mb-4'
+        "
+      >
         @if (!tournamentsResource.hasValue() || tournaments().length > 0) {
-          <mat-form-field class="w-72">
+          <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
             <mat-label>{{ "registrations.tournament" | transloco }}</mat-label>
             <mat-select [formField]="pickerForm.tournament">
               @for (item of tournaments(); track item.id) {
@@ -20,7 +26,7 @@
         }
 
         @if (tournament()) {
-          <mat-form-field class="w-72">
+          <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
             <mat-label>{{ "registrations.search" | transloco }}</mat-label>
             <mat-icon matPrefix svgIcon="mat:search" />
             <input
@@ -32,11 +38,15 @@
           </mat-form-field>
         }
 
-        <span class="flex-1"></span>
+        @if (!isMobile()) {
+          <span class="flex-1"></span>
+        }
 
         @if (editable()) {
           <button
             (click)="register()"
+            [class.w-full]="isMobile()"
+            [class.mb-2]="isMobile()"
             color="primary"
             mat-flat-button
             type="button"
@@ -57,7 +67,7 @@
           }}
         </p>
       } @else {
-        <div class="flex flex-wrap items-center gap-4 mb-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
           <app-tournament-status-chip [status]="tournament()!.status" />
           <span class="font-medium">
             {{
@@ -91,7 +101,7 @@
 
         @if (!editable()) {
           <div
-            class="flex items-center gap-3 mb-4 p-3 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
+            class="flex items-center gap-3 mb-4 p-3 max-sm:px-3 max-sm:py-2 rounded border border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200"
             role="status"
           >
             <mat-icon class="shrink-0" svgIcon="mat:info" />
@@ -101,7 +111,7 @@
           </div>
         }
 
-        <div class="app-table-card bg-foreground rounded shadow">
+        <div #tableCard class="app-table-card bg-foreground rounded shadow">
           <mat-progress-bar
             [class.invisible]="!resource.isLoading()"
             mode="indeterminate"
@@ -171,7 +181,7 @@
                   mat-cell
                 >
                   @if (groupName(row); as name) {
-                    <span class="whitespace-nowrap">{{ name }}</span>
+                    <span class="sm:whitespace-nowrap">{{ name }}</span>
                   } @else {
                     <span
                       class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/15 text-amber-900 dark:text-amber-300"
@@ -192,7 +202,9 @@
                 >
                   @if (row.team.manager; as manager) {
                     <div class="flex flex-wrap items-center gap-2 py-1">
-                      <span class="whitespace-nowrap">{{ manager.name }}</span>
+                      <span class="sm:whitespace-nowrap">{{
+                        manager.name
+                      }}</span>
                       <app-user-status-chip
                         [status]="manager.pending ? 'pending' : 'active'"
                         labelPrefix="registrations.accountStatus"
@@ -218,6 +230,28 @@
                   class="whitespace-nowrap"
                 >
                   {{ row.created_at | appDateFormatRelative }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actionsMenu">
+                <th *matHeaderCellDef mat-header-cell>
+                  <span class="sr-only">{{
+                    "registrations.fields.actions" | transloco
+                  }}</span>
+                </th>
+                <td
+                  *matCellDef="let row"
+                  [class.opacity-60]="isWithdrawn(row)"
+                  class="w-14"
+                  mat-cell
+                >
+                  @let actions = rowActions(row);
+                  @if (actions.length) {
+                    <app-row-actions
+                      [actions]="actions"
+                      labelKey="registrations.actions.menu"
+                    />
+                  }
                 </td>
               </ng-container>
 
@@ -292,7 +326,7 @@
               </ng-container>
 
               <tr
-                *matHeaderRowDef="columns(); sticky: true"
+                *matHeaderRowDef="columns(); sticky: !isMobile()"
                 mat-header-row
               ></tr>
               <tr *matRowDef="let row; columns: columns()" mat-row></tr>
@@ -327,9 +361,10 @@
             (page)="changePage($event)"
             [length]="total()"
             [pageIndex]="paging().page"
+            [hidePageSize]="isMobile()"
             [pageSizeOptions]="[5, 10, 25]"
             [pageSize]="paging().pageSize"
-            showFirstLastButtons
+            [showFirstLastButtons]="!isMobile()"
           />
         </div>
       }

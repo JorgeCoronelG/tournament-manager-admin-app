@@ -42,3 +42,12 @@
     }
   }
 }
+
+/**
+ * A form that wraps the content and the actions of a dialog stays a column
+ * that can shrink: with little height (keyboard open) the content scrolls and
+ * the title and buttons stay in view.
+ */
+.mat-mdc-dialog-container form:has(> .mat-mdc-dialog-content) {
+  @apply flex flex-col min-h-0;
+}

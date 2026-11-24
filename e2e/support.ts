@@ -2368,3 +2368,181 @@ export async function mockPlayersApi(
 
   return api;
 }
+
+export interface MockRegistration {
+  id: number;
+  status: "active" | "withdrawn";
+  created_at: string;
+  withdrawn_reason?: string | null;
+  team: {
+    id: number;
+    name: string;
+    logo_url: null;
+    manager: { name: string; pending: boolean } | null;
+  };
+}
+
+/** Deterministic registrations, newest first by id; every fifth team is withdrawn */
+export function makeRegistrations(
+  count: number,
+  { withdrawn = false }: { withdrawn?: boolean } = {},
+): MockRegistration[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    status: withdrawn && i % 5 === 4 ? "withdrawn" : "active",
+    created_at: new Date(
+      FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+    ).toISOString(),
+    withdrawn_reason: withdrawn && i % 5 === 4 ? "Sin jugadores" : null,
+    team: {
+      id: i + 1,
+      name: `Equipo ${String(i + 1).padStart(2, "0")} de los Halcones`,
+      logo_url: null,
+      manager:
+        i % 7 === 6
+          ? null
+          : { name: `Delegado ${i + 1}`, pending: i % 2 === 1 },
+    },
+  }));
+}
+
+export interface RegistrationsApi {
+  /** Ids removed by `DELETE .../registrations/{id}` so far */
+  removed: number[];
+  /** Registrations withdrawn so far, with their reason */
+  withdrawn: { id: number; reason: string }[];
+}
+
+/**
+ * Stubs the registrations of any tournament (list with search and paging,
+ * delete, withdraw, replace, preview, history and available teams) and an
+ * empty groups overview, so the page needs nothing else.
+ */
+export async function mockRegistrationsApi(
+  page: Page,
+  { registrations = [] }: { registrations?: MockRegistration[] } = {},
+): Promise<RegistrationsApi> {
+  const state = [...registrations];
+  const api: RegistrationsApi = { removed: [], withdrawn: [] };
+  const available = Array.from({ length: 12 }, (_, i) => ({
+    id: 100 + i,
+    name: `Disponible ${i + 1}`,
+    logo_url: null,
+    status: i === 3 ? "banned" : "active",
+    manager: i % 2 ? { name: `Responsable ${i + 1}`, pending: false } : null,
+  }));
+  const paged = (data: unknown[], total = data.length) => ({
+    data,
+    links: { first: null, last: "x", prev: null, next: null },
+    meta: {
+      currentPage: 1,
+      from: 1,
+      lastPage: 1,
+      perPage: 50,
+      to: data.length,
+      total,
+    },
+  });
+
+  await page.route(/\/tournaments\/\d+\/groups(\/.*)?(\?.*)?$/, (route) =>
+    route.fulfill({ json: { groups: [], teams: [] } }),
+  );
+
+  await page.route(/\/registrations\/available-teams(\?.*)?$/, (route) =>
+    route.fulfill({ json: paged(available) }),
+  );
+
+  await page.route(/\/registrations\/\d+\/withdraw\/preview$/, (route) =>
+    route.fulfill({
+      json: {
+        kept_played: 1,
+        pending_matches: 3,
+        players_released: 12,
+        warnings: [],
+      },
+    }),
+  );
+
+  await page.route(/\/registrations\/\d+\/withdraw$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    const { reason } = route.request().postDataJSON() as { reason: string };
+    api.withdrawn.push({ id, reason });
+    const found = state.find((r) => r.id === id);
+
+    if (found) {
+      found.status = "withdrawn";
+    }
+
+    return route.fulfill({
+      json: {
+        kept_played: 1,
+        pending_matches: 3,
+        players_released: 12,
+        registration: found,
+      },
+    });
+  });
+
+  await page.route(/\/registrations\/\d+\/replace$/, (route) =>
+    route.fulfill({ json: { registration: state[0], warnings: [] } }),
+  );
+
+  await page.route(/\/registrations\/\d+\/team-changes$/, (route) =>
+    route.fulfill({
+      json: {
+        data: Array.from({ length: 4 }, (_, i) => ({
+          id: i + 1,
+          old_team: { id: 1, name: `Equipo anterior número ${i + 1}` },
+          new_team: { id: 2, name: `Equipo nuevo número ${i + 1}` },
+          reason:
+            "El equipo anterior abandonó el torneo por falta de jugadores",
+          changed_by: { id: 1, name: "Administrador de la liga" },
+          created_at: "2026-09-01T10:00:00.000Z",
+        })),
+      },
+    }),
+  );
+
+  await page.route(/\/registrations\/\d+$/, (route) => {
+    const id = Number(route.request().url().split("/").pop());
+    api.removed.push(id);
+    state.splice(0, state.length, ...state.filter((r) => r.id !== id));
+
+    return route.fulfill({ status: 204 });
+  });
+
+  await page.route(/\/tournaments\/\d+\/registrations(\?.*)?$/, (route) => {
+    if (route.request().method() === "POST") {
+      return route.fulfill({ status: 201, json: {} });
+    }
+
+    const query = new URL(route.request().url()).searchParams;
+    const search = (query.get("search") ?? "").toLowerCase();
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+    const matching = state.filter((r) =>
+      r.team.name.toLowerCase().includes(search),
+    );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+          active_count: state.filter((r) => r.status === "active").length,
+          withdrawn_count: state.filter((r) => r.status === "withdrawn").length,
+        },
+        summary: { registered: state.length, banned: 0 },
+      },
+    });
+  });
+
+  return api;
+}
