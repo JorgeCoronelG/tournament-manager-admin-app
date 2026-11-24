@@ -8,13 +8,13 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterLink } from "@angular/router";
 import { TranslocoPipe } from "@jsverse/transloco";
 import { LeagueContextService } from "../../../../core/league-context/league-context.service";
 import { CurrentUserService } from "../../../../core/user/current-user.service";
 import { ScrollFadeComponent } from "../../../../shared/scroll-fade/scroll-fade.component";
+import { SpinnerComponent } from "../../../../shared/spinner/spinner.component";
 
 /** From this many leagues on, the list gets a search box */
 const SEARCH_FROM = 8;
@@ -32,10 +32,10 @@ const MAX_NAME_LENGTH = 15;
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block min-w-0" },
   imports: [
+    SpinnerComponent,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     RouterLink,
     ScrollFadeComponent,

@@ -155,7 +155,7 @@ tailwind.config.ts (themes) ──plugin──▶ variables CSS (--app-color-*, 
 Cambiar de tema o de esquema en runtime solo intercambia variables CSS.
 
 - **Agregar un tema:** entrada en `themes` y en `availableThemes` de `src/app/app.config.ts`.
-- **Marca:** título en `src/@ui/config/app-configs.ts`, logo/favicon en `src/assets/img/logo/logo.svg` y `src/favicon.svg`, título en `src/index.html`.
+- **Marca:** título en `src/@ui/config/app-configs.ts`, logo/favicon en `src/assets/img/logo/logo.png` y `src/favicon.png`, título en `src/index.html`.
 - **Tailwind 4 con config JS:** se carga con `@config` desde `src/@ui/styles/tailwind.css`, que importa todo **sin `layer()`** a propósito: las utilidades sin capa (junto con `important: ":root"`) son las que ganan a Angular Material. Los SCSS que usan `@apply` o `theme()` llevan `@reference` a ese archivo.
 - **Material 3:** solo `primary` viene de serie; `color="accent"`/`"warn"` se mantienen para botones e iconos (`_button.scss`, `_icon.scss`). Los overrides de tokens (`mat.*-overrides`) van en `body`, no en `:root`.
 
