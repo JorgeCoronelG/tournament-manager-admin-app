@@ -31,6 +31,7 @@
           : "matches.standings.export.downloadTip";
       <button
         (click)="exportImage(group)"
+        [attr.aria-busy]="exporting()"
         [attr.aria-label]="exportKey | transloco"
         [disabled]="exporting()"
         [matTooltip]="exportKey | transloco"
@@ -38,7 +39,7 @@
         type="button"
       >
         @if (exporting()) {
-          <mat-spinner class="!inline-block align-middle" diameter="18" />
+          <app-spinner [size]="18" />
         } @else {
           <mat-icon [svgIcon]="canShare ? 'mat:share' : 'mat:image'" />
         }

@@ -13,7 +13,6 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTableModule } from "@angular/material/table";
 import { MatTabsModule } from "@angular/material/tabs";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
@@ -29,6 +28,7 @@ import {
 import { StandingsApi } from "../standings.api";
 import { StandingsExportService } from "../standings-export/standings-export.service";
 import { buildImageData } from "../standings-export/standings-image.model";
+import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
 
 /** The tables of the regular phase, a tab per group; tied teams can be ordered by hand while it is open */
 @Component({
@@ -36,11 +36,11 @@ import { buildImageData } from "../standings-export/standings-image.model";
   templateUrl: "./standings-view.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    SpinnerComponent,
     LogoImageComponent,
     MatButtonModule,
     MatIconModule,
     MatTableModule,
-    MatProgressSpinnerModule,
     MatTabsModule,
     MatTooltipModule,
     NgTemplateOutlet,

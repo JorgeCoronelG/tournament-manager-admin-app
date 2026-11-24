@@ -21,5 +21,5 @@ export class ResultsImageComponent {
   protected readonly shield = SHIELD_IMAGE;
 
   /** Soft accent background for the winner */
-  protected readonly winnerClass = "rounded-lg bg-indigo-100 text-indigo-900";
+  protected readonly winnerClass = "rounded-lg bg-primary-100 text-primary-900";
 }

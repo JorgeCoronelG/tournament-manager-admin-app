@@ -14,7 +14,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSelectModule } from "@angular/material/select";
 import { form, FormField } from "@angular/forms/signals";
@@ -62,6 +61,7 @@ import {
   BracketTie,
   scoreText,
 } from "../playoff.model";
+import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
 
 /** The playoff bracket: a column per round, a card per tie, with the results the admin can capture while it is open */
 @Component({
@@ -69,6 +69,7 @@ import {
   templateUrl: "./bracket-view.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    SpinnerComponent,
     DatePipe,
     FormField,
     LogoImageComponent,
@@ -77,7 +78,6 @@ import {
     MatFormFieldModule,
     MatIconModule,
     MatMenuModule,
-    MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
     TranslocoPipe,

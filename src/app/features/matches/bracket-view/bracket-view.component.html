@@ -43,6 +43,7 @@
             <button
               (click)="$event.stopPropagation()"
               (keydown)="$event.stopPropagation()"
+              [attr.aria-busy]="exportingImage() === round.index"
               [attr.aria-label]="
                 'matches.jornadaImage.downloadImage' | transloco
               "
@@ -53,7 +54,7 @@
               type="button"
             >
               @if (exportingImage() === round.index) {
-                <mat-spinner class="!inline-block align-middle" diameter="20" />
+                <app-spinner [size]="20" />
               } @else {
                 <mat-icon svgIcon="mat:download" />
               }
