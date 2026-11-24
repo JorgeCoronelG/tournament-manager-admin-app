@@ -5,7 +5,11 @@
   }}
 </h2>
 
-<form (submit)="$event.preventDefault(); save()" novalidate>
+<form
+  (submit)="$event.preventDefault(); save()"
+  class="flex flex-col min-h-0"
+  novalidate
+>
   <mat-dialog-content class="flex flex-col gap-2 !pt-2">
     @if (
       tournament?.status === "in_progress" || tournament?.status === "playoffs"
@@ -151,8 +155,8 @@
       </mat-tab>
       <mat-tab [label]="'tournaments.form.tabSettings' | transloco">
         <div class="flex flex-col gap-2 pt-4">
-          <div class="flex gap-4">
-            <mat-form-field class="flex-1">
+          <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+            <mat-form-field class="sm:flex-1">
               <mat-label>{{
                 "tournaments.fields.minAge" | transloco
               }}</mat-label>
@@ -174,7 +178,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="flex-1">
+            <mat-form-field class="sm:flex-1">
               <mat-label>{{
                 "tournaments.fields.maxAge" | transloco
               }}</mat-label>

@@ -15,6 +15,10 @@ export interface RowAction {
   danger?: boolean;
   /** Draws a divider before this action, to set a group of actions apart */
   divider?: boolean;
+  /** The action shows but does not run (and is announced as disabled) */
+  disabled?: boolean;
+  /** Already translated text under the label, e.g. why the action is disabled */
+  hint?: string;
 }
 
 /** The "⋮" button of a table row on phones: a menu with the row's actions */
@@ -47,11 +51,21 @@ export interface RowAction {
         <button
           (click)="action.run()"
           [class.app-action-danger-item]="action.danger"
+          [disabled]="!!action.disabled"
           mat-menu-item
           type="button"
         >
           <mat-icon [svgIcon]="action.icon" />
-          <span>{{ action.labelKey | transloco }}</span>
+          @if (action.hint) {
+            <span class="flex flex-col leading-tight">
+              <span>{{ action.labelKey | transloco }}</span>
+              <span class="text-xs text-secondary whitespace-normal">{{
+                action.hint
+              }}</span>
+            </span>
+          } @else {
+            <span>{{ action.labelKey | transloco }}</span>
+          }
         </button>
       }
     </mat-menu>

@@ -418,10 +418,14 @@
       "none": "Sin límite"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allGenders": "Todos los géneros",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "start": "Iniciar torneo",
       "finish": "Finalizar torneo",
@@ -471,6 +475,7 @@
     "limits": {
       "error": "No pudimos cargar el uso de los límites.",
       "usageTournaments": "Torneos activos {{used}} de {{max}}",
+      "unlimitedTournaments": "Sin límite de torneos activos",
       "reachedTournamentsOne": "Esta liga permite tener 1 torneo activo a la vez. Finaliza uno o solicita ampliar el límite a soporte.",
       "reachedTournaments": "Esta liga permite tener {{limit}} torneos activos a la vez. Finaliza uno o solicita ampliar el límite a soporte."
     }

@@ -80,4 +80,28 @@ describe("RowActionsComponent", () => {
 
     expect(run).toHaveBeenCalledTimes(1);
   });
+
+  it("does not disable nor add a hint to an action that sets neither", async () => {
+    const panel = await open([action("users.actions.edit")]);
+    const item = panel.querySelector("[mat-menu-item]") as HTMLButtonElement;
+
+    expect(item.disabled).toBe(false);
+    expect(item.getAttribute("aria-disabled")).not.toBe("true");
+    expect(item.querySelector(".text-xs")).toBeNull();
+  });
+
+  it("shows the hint under the label and does not run a disabled action", async () => {
+    const run = vi.fn();
+    const panel = await open([
+      action("users.actions.edit", { disabled: true, hint: "Sin cupo", run }),
+    ]);
+    const item = panel.querySelector("[mat-menu-item]") as HTMLButtonElement;
+
+    expect(item.getAttribute("aria-disabled")).toBe("true");
+    expect(item.querySelector(".text-xs")?.textContent?.trim()).toBe(
+      "Sin cupo",
+    );
+    item.click();
+    expect(run).not.toHaveBeenCalled();
+  });
 });
