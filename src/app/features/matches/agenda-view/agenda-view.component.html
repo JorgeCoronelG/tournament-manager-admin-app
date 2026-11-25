@@ -1,4 +1,4 @@
-<div class="flex flex-wrap items-center gap-2 mb-4">
+<div class="flex flex-wrap items-center gap-2 mb-4 max-sm:gap-1">
   <button
     (click)="step(-1)"
     [attr.aria-label]="
@@ -21,10 +21,21 @@
   >
     <mat-icon svgIcon="mat:chevron_right" />
   </button>
-  <button (click)="today()" mat-stroked-button type="button">
+  <button
+    (click)="today()"
+    [class]="isMobile() ? '!min-w-0 !px-3' : ''"
+    mat-stroked-button
+    type="button"
+  >
     {{ "matches.agenda.today" | transloco }}
   </button>
-  <mat-form-field class="w-44 [&_.mat-mdc-form-field-subscript-wrapper]:hidden">
+  <mat-form-field
+    [class]="
+      isMobile()
+        ? 'order-last basis-full w-full [&_.mat-mdc-form-field-subscript-wrapper]:hidden'
+        : 'w-44 [&_.mat-mdc-form-field-subscript-wrapper]:hidden'
+    "
+  >
     <mat-label>{{ "matches.agenda.date" | transloco }}</mat-label>
     <input
       (dateChange)="setAnchor($event.value)"
@@ -37,13 +48,14 @@
       class="[&_.mat-mdc-button-touch-target]:hidden"
       matIconSuffix
     />
-    <mat-datepicker #picker />
+    <mat-datepicker #picker [touchUi]="isMobile()" />
   </mat-form-field>
   <mat-button-toggle-group
     (change)="view.set($event.value)"
     [aria-label]="'matches.agenda.view' | transloco"
+    [hideSingleSelectionIndicator]="isMobile()"
     [value]="view()"
-    class="ml-auto"
+    class="ml-auto [&_.mat-button-toggle-label-content]:max-sm:!px-3"
   >
     <mat-button-toggle value="day">{{
       "matches.agenda.day" | transloco
@@ -54,63 +66,85 @@
   </mat-button-toggle-group>
 </div>
 
-<p class="m-0 mb-4 font-medium">{{ rangeLabel() }}</p>
+@if (isMobile()) {
+  <div class="flex items-center gap-2 mb-2">
+    <p class="m-0 flex-1 min-w-0 font-medium">{{ rangeLabel() }}</p>
+    <app-filters-toggle
+      [(open)]="filtersOpen"
+      [count]="activeFilters()"
+      activeKey="matches.agenda.filters.active"
+      class="!mt-0 mr-0.5"
+      titleKey="matches.agenda.filters.title"
+    />
+  </div>
 
-<div class="flex flex-wrap items-start gap-3">
-  <mat-form-field class="w-56">
-    <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
-    <mat-select
-      (selectionChange)="tournament.set($event.value)"
-      [value]="tournament()"
+  @if (filtersOpen()) {
+    <app-filters-panel
+      (cleared)="clearFilters()"
+      [canClear]="activeFilters() > 0"
+      clearKey="matches.agenda.filters.clear"
     >
-      <mat-option value="">{{
-        "matches.agenda.allTournaments" | transloco
-      }}</mat-option>
-      @for (item of tournaments(); track item.id) {
-        <mat-option [value]="item.id">{{ item.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field class="w-56">
-    <mat-label>{{ "matches.agenda.referee" | transloco }}</mat-label>
-    <mat-select
-      (selectionChange)="referee.set($event.value)"
-      [value]="referee()"
+      <ng-container
+        *ngTemplateOutlet="tournamentField; context: { $implicit: 'w-full' }"
+      />
+      <ng-container
+        *ngTemplateOutlet="refereeField; context: { $implicit: 'w-full' }"
+      />
+      <ng-container
+        *ngTemplateOutlet="fieldField; context: { $implicit: 'w-full' }"
+      />
+      <mat-checkbox
+        (change)="noReferee.set($event.checked)"
+        [checked]="noReferee()"
+        class="mb-2"
+      >
+        {{ "matches.agenda.noReferee" | transloco }}
+      </mat-checkbox>
+    </app-filters-panel>
+  }
+} @else {
+  <p class="m-0 mb-4 font-medium">{{ rangeLabel() }}</p>
+
+  <div class="flex flex-wrap items-start gap-3">
+    <ng-container
+      *ngTemplateOutlet="tournamentField; context: { $implicit: 'w-56' }"
+    />
+    <ng-container
+      *ngTemplateOutlet="refereeField; context: { $implicit: 'w-56' }"
+    />
+    <ng-container
+      *ngTemplateOutlet="fieldField; context: { $implicit: 'w-48' }"
+    />
+    <mat-checkbox
+      (change)="noReferee.set($event.checked)"
+      [checked]="noReferee()"
+      class="mt-2"
     >
-      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
-      @for (item of referees(); track item.id) {
-        <mat-option [value]="item.id"
-          >{{ item.first_name }} {{ item.last_name }}</mat-option
-        >
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field class="w-48">
-    <mat-label>{{ "matches.agenda.field" | transloco }}</mat-label>
-    <mat-select (selectionChange)="field.set($event.value)" [value]="field()">
-      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
-      @for (item of resource.value()?.fields ?? []; track item.id) {
-        <mat-option [value]="item.id">{{ item.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-checkbox
-    (change)="noReferee.set($event.checked)"
-    [checked]="noReferee()"
-    class="mt-2"
-  >
-    {{ "matches.agenda.noReferee" | transloco }}
-  </mat-checkbox>
-</div>
+      {{ "matches.agenda.noReferee" | transloco }}
+    </mat-checkbox>
+  </div>
+}
 
 @if (unscheduled().length) {
   <section class="mb-4 rounded border">
-    <h3 class="m-0 flex items-center gap-2 px-4 py-3 text-sm font-medium">
+    <h3
+      [class]="
+        isMobile()
+          ? 'm-0 flex items-center gap-2 px-3 py-3 text-sm font-medium'
+          : 'm-0 flex items-center gap-2 px-4 py-3 text-sm font-medium'
+      "
+    >
       <mat-icon class="!size-5 !text-xl" svgIcon="mat:pending_actions" />
       {{ "matches.agenda.pendingTitle" | transloco }}
     </h3>
     @for (item of unscheduled(); track item.id) {
-      <div class="flex items-center justify-between gap-3 border-t px-4 py-3">
+      <div
+        [class]="
+          isMobile()
+            ? 'flex flex-col items-stretch gap-2 border-t px-3 py-3'
+            : 'flex items-center justify-between gap-3 border-t px-4 py-3'
+        "
+      >
         <div class="min-w-0">
           <p class="m-0 truncate font-medium">{{ item.name }}</p>
           <p class="m-0 text-sm text-secondary">
@@ -124,7 +158,7 @@
         </div>
         <button
           (click)="openCalendar.emit(item.id)"
-          class="shrink-0"
+          [class]="isMobile() ? 'w-full' : 'shrink-0'"
           mat-button
           type="button"
         >
@@ -153,6 +187,141 @@
   <p class="py-10 px-6 text-center text-secondary">
     {{ "matches.agenda.empty" | transloco }}
   </p>
+} @else if (isMobile()) {
+  @for (day of mobileDays(); track day.date) {
+    <section class="mb-4">
+      <h3 class="m-0 mb-2 text-sm font-medium">
+        {{ weekdayName(day.date) }}
+        {{ parseDate(day.date) | date: "dd/MM/yyyy" }}
+      </h3>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0">
+        @for (match of day.matches; track match.id) {
+          <li>
+            <button
+              (click)="program(match)"
+              [attr.aria-label]="
+                'matches.agenda.open'
+                  | transloco
+                    : {
+                        match:
+                          (match.home_team ?? '—') +
+                          ' vs ' +
+                          (match.away_team ?? '—'),
+                      }
+              "
+              [class]="
+                match.status === 'played'
+                  ? 'border-gray-300 dark:border-gray-600'
+                  : 'border-primary-600/40'
+              "
+              [disabled]="!canProgram(match)"
+              class="flex w-full flex-col gap-3 rounded border bg-transparent p-3 text-left text-sm text-inherit enabled:cursor-pointer enabled:active:bg-primary-600/10 disabled:cursor-default disabled:[&:not([data-played])]:opacity-60"
+              [attr.data-played]="match.status === 'played' ? '' : null"
+              type="button"
+            >
+              <span class="flex items-center justify-between gap-2">
+                <span class="flex items-center gap-1 font-bold">
+                  {{ time(match) }}
+                  @if (match.schedule_locked) {
+                    <mat-icon class="!w-3 !h-3" svgIcon="mat:lock" />
+                  }
+                </span>
+                @if (match.status === "played") {
+                  <span
+                    class="flex size-5 items-center justify-center rounded-full bg-green-600 text-white"
+                  >
+                    <mat-icon class="!size-3.5" svgIcon="mat:check" />
+                  </span>
+                } @else if (canProgram(match)) {
+                  <mat-icon
+                    class="!size-5 text-primary-600"
+                    svgIcon="mat:calendar_month"
+                  />
+                }
+              </span>
+
+              <span class="flex flex-col gap-1">
+                <span class="flex flex-col gap-0.5">
+                  <span class="flex items-start gap-2">
+                    <span
+                      [class]="resultClass(match, 'home')"
+                      class="min-w-0 flex-1 line-clamp-2"
+                      >{{ match.home_team ?? "—" }}</span
+                    >
+                    @if (hasScore(match)) {
+                      <span
+                        [class]="scoreClass(match, 'home')"
+                        class="min-w-8 text-right tabular-nums"
+                        >{{ match.home_score }}</span
+                      >
+                    }
+                  </span>
+                  @if (!hasScore(match)) {
+                    <span class="text-xs text-secondary">{{
+                      "matches.vs" | transloco
+                    }}</span>
+                  }
+                  <span class="flex items-start gap-2">
+                    <span
+                      [class]="resultClass(match, 'away')"
+                      class="min-w-0 flex-1 line-clamp-2"
+                      >{{ match.away_team ?? "—" }}</span
+                    >
+                    @if (hasScore(match)) {
+                      <span
+                        [class]="scoreClass(match, 'away')"
+                        class="min-w-8 text-right tabular-nums"
+                        >{{ match.away_score }}</span
+                      >
+                    }
+                  </span>
+                </span>
+
+                @if (hasScore(match) && hasGlobal(match)) {
+                  <span class="text-xs text-secondary">{{
+                    "matches.agenda.global"
+                      | transloco
+                        : { home: match.global_home, away: match.global_away }
+                  }}</span>
+                }
+                @if (hasScore(match) && hasShootout(match)) {
+                  <span class="text-xs text-secondary">{{
+                    "matches.agenda.penalties"
+                      | transloco
+                        : {
+                            home: match.home_penalties,
+                            away: match.away_penalties,
+                          }
+                  }}</span>
+                }
+              </span>
+
+              <span class="flex flex-col gap-1">
+                <span class="text-secondary">
+                  {{ match.tournament.name }} · {{ match.round_label }}
+                </span>
+                <span
+                  class="flex flex-wrap items-baseline justify-between gap-x-3"
+                >
+                  <span>{{
+                    match.field?.name ?? ("matches.agenda.noField" | transloco)
+                  }}</span>
+                  <span [class.opacity-60]="!match.referee" class="text-xs">
+                    {{
+                      match.referee
+                        ? ("matches.referee"
+                          | transloco: { name: match.referee.name ?? "—" })
+                        : ("matches.noReferee" | transloco)
+                    }}
+                  </span>
+                </span>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
 } @else if (view() === "day") {
   <div class="overflow-x-auto">
     <div class="flex min-w-fit">
@@ -449,4 +618,50 @@
       </span>
     }
   </div>
+</ng-template>
+
+<ng-template #tournamentField let-width>
+  <mat-form-field [class]="width">
+    <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
+    <mat-select
+      (selectionChange)="tournament.set($event.value)"
+      [value]="tournament()"
+    >
+      <mat-option value="">{{
+        "matches.agenda.allTournaments" | transloco
+      }}</mat-option>
+      @for (item of tournaments(); track item.id) {
+        <mat-option [value]="item.id">{{ item.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</ng-template>
+
+<ng-template #refereeField let-width>
+  <mat-form-field [class]="width">
+    <mat-label>{{ "matches.agenda.referee" | transloco }}</mat-label>
+    <mat-select
+      (selectionChange)="referee.set($event.value)"
+      [value]="referee()"
+    >
+      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
+      @for (item of referees(); track item.id) {
+        <mat-option [value]="item.id"
+          >{{ item.first_name }} {{ item.last_name }}</mat-option
+        >
+      }
+    </mat-select>
+  </mat-form-field>
+</ng-template>
+
+<ng-template #fieldField let-width>
+  <mat-form-field [class]="width">
+    <mat-label>{{ "matches.agenda.field" | transloco }}</mat-label>
+    <mat-select (selectionChange)="field.set($event.value)" [value]="field()">
+      <mat-option value="">{{ "matches.agenda.all" | transloco }}</mat-option>
+      @for (item of resource.value()?.fields ?? []; track item.id) {
+        <mat-option [value]="item.id">{{ item.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
 </ng-template>

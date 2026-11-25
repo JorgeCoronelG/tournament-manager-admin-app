@@ -2032,6 +2032,8 @@ export interface AgendaApiOptions {
     end: string;
     field: { id: number; name: string } | null;
     referee: { id: number; name: string } | null;
+    /** Any other field of the match JSON (score, status, leg...) */
+    extra?: Record<string, unknown>;
   }>;
 }
 
@@ -2056,8 +2058,12 @@ export async function mockAgendaApi(
 
     const noReferee = params.get("unassigned_referee") === "1";
     const field = params.get("field_id");
+    const from = params.get("date_from") ?? "";
+    const to = params.get("date_to") ?? "9999";
     const listed = matches.filter(
       (match) =>
+        match.start.slice(0, 10) >= from &&
+        match.start.slice(0, 10) <= to &&
         (!noReferee || !match.referee) &&
         (!field || String(match.field?.id) === field),
     );
@@ -2066,28 +2072,29 @@ export async function mockAgendaApi(
       json: {
         date_from: params.get("date_from"),
         date_to: params.get("date_to"),
-        days: listed.length
-          ? [
-              {
-                date: "2026-09-19",
-                matches: listed.map((match) => ({
-                  id: match.id,
-                  tournament: match.tournament,
-                  phase: "regular",
-                  round_label: match.round_label,
-                  group: "Grupo A",
-                  home_team: match.home_team,
-                  away_team: match.away_team,
-                  match_datetime: match.start,
-                  end_datetime: match.end,
-                  field: match.field,
-                  referee: match.referee,
-                  status: "scheduled",
-                  schedule_locked: false,
-                })),
-              },
-            ]
-          : [],
+        days: [...new Set(listed.map((match) => match.start.slice(0, 10)))]
+          .sort()
+          .map((date) => ({
+            date,
+            matches: listed
+              .filter((match) => match.start.startsWith(date))
+              .map((match) => ({
+                id: match.id,
+                tournament: match.tournament,
+                phase: "regular",
+                round_label: match.round_label,
+                group: "Grupo A",
+                home_team: match.home_team,
+                away_team: match.away_team,
+                match_datetime: match.start,
+                end_datetime: match.end,
+                field: match.field,
+                referee: match.referee,
+                status: "scheduled",
+                schedule_locked: false,
+                ...match.extra,
+              })),
+          })),
         fields: [
           { id: 1, name: "Cancha 1" },
           { id: 2, name: "Cancha 2" },

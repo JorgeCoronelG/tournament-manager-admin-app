@@ -931,6 +931,11 @@
       "prevWeek": "Semana anterior",
       "nextWeek": "Semana siguiente",
       "referee": "Árbitro",
+      "filters": {
+        "title": "Filtros",
+        "clear": "Limpiar filtros",
+        "active": "{{count}} activos"
+      },
       "field": "Cancha",
       "noField": "Sin cancha",
       "noReferee": "Solo sin árbitro",
