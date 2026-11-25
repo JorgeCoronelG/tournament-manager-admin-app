@@ -12,7 +12,7 @@
       role="alert"
     >
       <mat-icon class="shrink-0" svgIcon="mat:error" />
-      <p class="m-0 text-sm">{{ message }}</p>
+      <p class="m-0 min-w-0 text-sm">{{ message }}</p>
     </div>
   }
 
@@ -22,7 +22,7 @@
       role="status"
     >
       <mat-icon class="shrink-0" svgIcon="mat:warning" />
-      <p class="m-0 text-sm">
+      <p class="m-0 min-w-0 text-sm">
         {{
           (count === 1 ? "matches.assign.takenOne" : "matches.assign.takenMany")
             | transloco: { count }
@@ -40,7 +40,7 @@
         <mat-radio-group
           (change)="setMode($event.value)"
           [value]="mode()"
-          class="flex flex-col"
+          class="flex flex-col [&_label]:!whitespace-normal"
         >
           <mat-radio-button value="balanced">
             {{ "matches.assign.balanced" | transloco }}
@@ -67,7 +67,7 @@
       <mat-radio-group
         (change)="setScope($event.value)"
         [value]="scope()"
-        class="flex flex-col"
+        class="flex flex-col [&_label]:!whitespace-normal"
       >
         <mat-radio-button value="all">
           {{ "matches.assign.scopeAll" | transloco }}
@@ -85,7 +85,7 @@
         <mat-checkbox
           (change)="setAlignFinals($event.checked)"
           [checked]="alignFinals()"
-          class="-ml-3"
+          class="-ml-3 [&_label]:!whitespace-normal"
         >
           {{ "matches.assign.alignFinals" | transloco }}
         </mat-checkbox>
@@ -97,7 +97,9 @@
 
   @if (preview(); as result) {
     <section class="flex flex-col gap-3">
-      <header class="flex items-start justify-between gap-3">
+      <header
+        class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2"
+      >
         <div>
           <h3 class="m-0 text-lg font-medium">
             {{ "matches.assign.summary.title" | transloco }}
@@ -149,7 +151,7 @@
           role="status"
         >
           <mat-icon class="shrink-0" svgIcon="mat:warning" />
-          <div class="flex flex-col gap-1">
+          <div class="flex min-w-0 flex-col gap-1">
             @for (line of block.lines; track line) {
               <p class="m-0 text-sm">{{ line }}</p>
             }
@@ -172,7 +174,55 @@
         </div>
       }
 
-      @if (playoffs) {
+      @if (playoffs && isMobile()) {
+        <ul class="m-0 flex list-none flex-col gap-2 p-0">
+          @for (round of result.rounds ?? []; track $index) {
+            <li class="rounded border p-3">
+              <p class="m-0 text-sm font-medium">
+                {{ roundName(round.round_name, round.leg) }}
+              </p>
+              @if (round.liguilla) {
+                <p class="m-0 text-xs text-secondary">{{ round.liguilla }}</p>
+              }
+              <p class="m-0 text-xs text-secondary">
+                @if (round.date) {
+                  {{ parseDate(round.date) | date: "dd/MM/yyyy" }}
+                } @else {
+                  —
+                }
+              </p>
+              <dl class="m-0 mt-2 grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <dd class="m-0 text-lg font-medium">{{ round.matches }}</dd>
+                  <dt class="text-xs text-secondary">
+                    {{ "matches.assign.matches" | transloco }}
+                  </dt>
+                </div>
+                <div>
+                  <dd class="m-0 text-lg font-medium">{{ round.scheduled }}</dd>
+                  <dt class="text-xs text-secondary">
+                    {{ "matches.assign.scheduledColumn" | transloco }}
+                  </dt>
+                </div>
+                <div>
+                  <dd
+                    [class]="
+                      round.unscheduled > 0
+                        ? 'm-0 text-lg font-medium text-amber-800 dark:text-amber-400'
+                        : 'm-0 text-lg font-medium'
+                    "
+                  >
+                    {{ round.unscheduled }}
+                  </dd>
+                  <dt class="text-xs text-secondary">
+                    {{ "matches.assign.unscheduledColumn" | transloco }}
+                  </dt>
+                </div>
+              </dl>
+            </li>
+          }
+        </ul>
+      } @else if (playoffs) {
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
             <thead>
@@ -229,7 +279,9 @@
         </div>
       }
 
-      <div class="flex items-baseline justify-between gap-3">
+      <div
+        class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"
+      >
         <h3 class="m-0 text-base font-medium">
           {{
             (playoffs
@@ -249,10 +301,12 @@
       </div>
 
       <app-scroll-fade
-        [maxHeight]="groups().length > 4 ? 'max-h-78' : 'max-h-none'"
+        [maxHeight]="
+          groups().length > 4 && !isMobile() ? 'max-h-78' : 'max-h-none'
+        "
         [thin]="true"
       >
-        <div [class]="groups().length > 4 ? 'pr-3' : ''">
+        <div [class]="groups().length > 4 && !isMobile() ? 'pr-3' : ''">
           <mat-accordion
             class="block mb-2 rounded border overflow-hidden"
             multi
@@ -275,50 +329,34 @@
                           {{ group.range ?? ("matches.noDate" | transloco) }}
                         </p>
                       </div>
-                      @let pending = group.total - group.scheduled;
-                      <div class="shrink-0 text-right text-xs">
-                        <p class="m-0 text-secondary">
-                          {{
-                            "matches.assign.matchesCount"
-                              | transloco: { count: group.total }
-                          }}
-                        </p>
-                        @if (pending > 0) {
-                          <p class="m-0 mt-1 text-xs">
-                            {{
-                              (group.scheduled === 1
-                                ? "matches.assign.programmedOne"
-                                : "matches.assign.programmedMany"
-                              ) | transloco: { count: group.scheduled }
-                            }}
-                            ·
-                            <span class="text-amber-800 dark:text-amber-400">{{
-                              "matches.assign.pendingCount"
-                                | transloco: { count: pending }
-                            }}</span>
-                          </p>
-                        }
-                      </div>
+                      @if (!isMobile()) {
+                        <ng-container
+                          [ngTemplateOutlet]="counts"
+                          [ngTemplateOutletContext]="{ $implicit: group }"
+                        />
+                      }
                     </div>
+                    @if (isMobile()) {
+                      <div class="pl-[52px]">
+                        <ng-container
+                          [ngTemplateOutlet]="counts"
+                          [ngTemplateOutletContext]="{ $implicit: group }"
+                        />
+                      </div>
+                    }
                   </div>
                 </mat-expansion-panel-header>
 
                 <ul class="m-0 list-none p-0">
                   @for (match of group.matches; track match.id) {
-                    <li
-                      class="flex items-center gap-3 border-t py-3 first:border-t-0"
-                    >
-                      <span
-                        class="flex size-10 shrink-0 items-center justify-center rounded border"
+                    @if (isMobile()) {
+                      <li
+                        class="flex flex-col gap-1 border-t py-3 first:border-t-0"
                       >
-                        <mat-icon svgIcon="mat:calendar_month" />
-                      </span>
-                      <div class="min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2">
-                          <p class="m-0 font-medium">
-                            {{ match.home_team ?? "—" }} vs
-                            {{ match.away_team ?? "—" }}
-                          </p>
+                        <p class="m-0 flex items-start gap-2">
+                          <span class="min-w-0 flex-1 font-medium">{{
+                            match.home_team ?? "—"
+                          }}</span>
                           @if (hasSeveralGroups() && match.group) {
                             <span
                               class="shrink-0 rounded-full border px-2 text-xs text-secondary"
@@ -326,8 +364,14 @@
                               {{ match.group }}
                             </span>
                           }
-                        </div>
+                        </p>
                         <p class="m-0 text-xs text-secondary">
+                          {{ "matches.vs" | transloco }}
+                        </p>
+                        <p class="m-0 font-medium">
+                          {{ match.away_team ?? "—" }}
+                        </p>
+                        <p class="m-0 mt-1 text-xs text-secondary">
                           @if (match.match_datetime) {
                             {{ when(match.match_datetime) }}
                           } @else {
@@ -335,14 +379,52 @@
                               "matches.noDate" | transloco
                             }}</span>
                           }
+                          @if (match.field?.name) {
+                            · {{ match.field?.name }}
+                          }
                         </p>
-                      </div>
-                      @if (match.field?.name) {
-                        <span class="shrink-0 text-sm text-secondary">{{
-                          match.field?.name
-                        }}</span>
-                      }
-                    </li>
+                      </li>
+                    } @else {
+                      <li
+                        class="flex items-center gap-3 border-t py-3 first:border-t-0"
+                      >
+                        <span
+                          class="flex size-10 shrink-0 items-center justify-center rounded border"
+                        >
+                          <mat-icon svgIcon="mat:calendar_month" />
+                        </span>
+                        <div class="min-w-0 flex-1">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <p class="m-0 font-medium">
+                              {{ match.home_team ?? "—" }} vs
+                              {{ match.away_team ?? "—" }}
+                            </p>
+                            @if (hasSeveralGroups() && match.group) {
+                              <span
+                                class="shrink-0 rounded-full border px-2 text-xs text-secondary"
+                              >
+                                {{ match.group }}
+                              </span>
+                            }
+                          </div>
+                          <p class="m-0 text-xs text-secondary">
+                            @if (match.match_datetime) {
+                              {{ when(match.match_datetime) }}
+                            } @else {
+                              <span
+                                class="text-amber-800 dark:text-amber-400"
+                                >{{ "matches.noDate" | transloco }}</span
+                              >
+                            }
+                          </p>
+                        </div>
+                        @if (match.field?.name) {
+                          <span class="shrink-0 text-sm text-secondary">{{
+                            match.field?.name
+                          }}</span>
+                        }
+                      </li>
+                    }
                   }
                 </ul>
               </mat-expansion-panel>
@@ -364,6 +446,36 @@
     >
       {{ "common.close" | transloco }}
     </button>
+  } @else if (isMobile()) {
+    <div class="flex w-full flex-col gap-2">
+      <div class="flex gap-2">
+        <button
+          (click)="calculate()"
+          [disabled]="working()"
+          mat-stroked-button
+          type="button"
+        >
+          {{ "matches.assign.preview" | transloco }}
+        </button>
+        <button
+          (click)="assign()"
+          [disabled]="!preview() || working()"
+          color="primary"
+          mat-flat-button
+          type="button"
+        >
+          {{ "matches.assign.confirm" | transloco }}
+        </button>
+      </div>
+      <button
+        class="w-full !flex-none"
+        mat-button
+        mat-dialog-close
+        type="button"
+      >
+        {{ "common.cancel" | transloco }}
+      </button>
+    </div>
   } @else {
     <button mat-button mat-dialog-close type="button">
       {{ "common.cancel" | transloco }}
@@ -387,3 +499,26 @@
     </button>
   }
 </mat-dialog-actions>
+
+<ng-template #counts let-group>
+  @let pending = group.total - group.scheduled;
+  <div [class]="isMobile() ? 'text-xs' : 'shrink-0 text-right text-xs'">
+    <p class="m-0 text-secondary">
+      {{ "matches.assign.matchesCount" | transloco: { count: group.total } }}
+    </p>
+    @if (pending > 0) {
+      <p class="m-0 mt-1 text-xs">
+        {{
+          (group.scheduled === 1
+            ? "matches.assign.programmedOne"
+            : "matches.assign.programmedMany"
+          ) | transloco: { count: group.scheduled }
+        }}
+        ·
+        <span class="text-amber-800 dark:text-amber-400">{{
+          "matches.assign.pendingCount" | transloco: { count: pending }
+        }}</span>
+      </p>
+    }
+  </div>
+</ng-template>

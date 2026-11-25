@@ -673,6 +673,7 @@ export class MatchesPageComponent {
           data: { tournamentId: tournament.id, phase: this.scheduling() },
           width: "960px",
           maxWidth: "95vw",
+          panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
         },
       )
       .afterClosed()
