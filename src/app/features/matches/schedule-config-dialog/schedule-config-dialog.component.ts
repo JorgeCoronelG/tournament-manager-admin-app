@@ -40,6 +40,7 @@ import {
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { catchError, throwError } from "rxjs";
 import { backendMessage, fieldErrors } from "../../../core/http/api-errors";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { FieldsApi } from "../../fields/fields.api";
 import { FieldsQuery } from "../../fields/field.model";
@@ -134,6 +135,8 @@ type CapacityRow =
   ],
 })
 export class ScheduleConfigDialogComponent {
+  protected readonly isMobile = injectIsMobile();
+
   /** Days before today cannot be picked as the calendar's start */
   readonly today = new Date();
 

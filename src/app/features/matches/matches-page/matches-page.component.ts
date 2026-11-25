@@ -671,7 +671,7 @@ export class MatchesPageComponent {
         {
           autoFocus: "dialog",
           data: { tournamentId: tournament.id, phase: this.scheduling() },
-          width: this.scheduling() === "playoffs" ? "560px" : "960px",
+          width: "960px",
           maxWidth: "95vw",
         },
       )
@@ -787,6 +787,7 @@ export class MatchesPageComponent {
           },
           width: "960px",
           maxWidth: "95vw",
+          panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
         },
       )
       .afterClosed()

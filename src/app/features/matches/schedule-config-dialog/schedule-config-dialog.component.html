@@ -6,7 +6,11 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-5 !pt-2">
+  <mat-dialog-content
+    [class]="
+      isMobile() ? 'flex flex-col gap-4 !pt-2' : 'flex flex-col gap-5 !pt-2'
+    "
+  >
     <mat-progress-bar [class.invisible]="!loading()" mode="indeterminate" />
 
     @if (configResource.error()) {
@@ -69,7 +73,7 @@
             class="[&_.mat-mdc-button-touch-target]:hidden"
             matIconSuffix
           />
-          <mat-datepicker #startPicker />
+          <mat-datepicker #startPicker [touchUi]="isMobile()" />
         </mat-form-field>
       }
 
@@ -107,24 +111,39 @@
           <h3 class="m-0 text-base font-medium">
             {{ "matches.config.days" | transloco }}
           </h3>
-          <mat-icon
-            [attr.aria-label]="'matches.config.daysHint' | transloco"
-            [matTooltip]="'matches.config.daysHint' | transloco"
-            class="size-4! text-base! text-secondary"
-            svgIcon="mat:info"
-          />
+          @if (!isMobile()) {
+            <mat-icon
+              [attr.aria-label]="'matches.config.daysHint' | transloco"
+              [matTooltip]="'matches.config.daysHint' | transloco"
+              class="size-4! text-base! text-secondary"
+              svgIcon="mat:info"
+            />
+          }
         </div>
-        <button
-          [attr.aria-label]="'matches.config.addDay' | transloco"
-          [disabled]="!freeWeekdays().length"
-          [matMenuTriggerFor]="dayMenu"
-          [matTooltip]="'matches.config.addDay' | transloco"
-          class="app-action-primary"
-          mat-icon-button
-          type="button"
-        >
-          <mat-icon svgIcon="mat:add" />
-        </button>
+        @if (isMobile()) {
+          <button
+            [disabled]="!freeWeekdays().length"
+            [matMenuTriggerFor]="dayMenu"
+            class="shrink-0 whitespace-nowrap app-button-compact"
+            mat-stroked-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+            {{ "matches.config.addDay" | transloco }}
+          </button>
+        } @else {
+          <button
+            [attr.aria-label]="'matches.config.addDay' | transloco"
+            [disabled]="!freeWeekdays().length"
+            [matMenuTriggerFor]="dayMenu"
+            [matTooltip]="'matches.config.addDay' | transloco"
+            class="app-action-primary"
+            mat-icon-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+          </button>
+        }
         <mat-menu #dayMenu="matMenu">
           @for (weekday of freeWeekdays(); track weekday) {
             <button (click)="addDay(weekday)" mat-menu-item type="button">
@@ -133,6 +152,11 @@
           }
         </mat-menu>
       </div>
+      @if (isMobile()) {
+        <p class="m-0 -mt-2 text-xs text-secondary">
+          {{ "matches.config.daysHint" | transloco }}
+        </p>
+      }
 
       @if (!model().days.length) {
         <p class="m-0 text-sm text-secondary">
@@ -142,11 +166,26 @@
 
       @for (day of model().days; track day.weekday; let d = $index) {
         <div class="rounded border p-3 flex flex-col gap-3">
-          <div class="flex flex-wrap items-start gap-3">
-            <h4 class="m-0 mt-4 text-sm font-medium w-24">
+          <div
+            [class]="
+              isMobile()
+                ? 'grid grid-cols-2 items-start gap-3 [&_.mat-mdc-form-field-subscript-wrapper]:!min-h-0'
+                : 'flex flex-wrap items-start gap-3'
+            "
+          >
+            <h4
+              [class]="
+                isMobile()
+                  ? 'm-0 order-1 col-span-2 col-start-1 row-start-1 self-center text-sm font-medium'
+                  : 'm-0 mt-4 text-sm font-medium w-24'
+              "
+            >
               {{ "matches.config.weekdays." + day.weekday | transloco }}
             </h4>
-            <mat-form-field class="w-40" subscriptSizing="dynamic">
+            <mat-form-field
+              [class]="isMobile() ? 'order-3 w-full' : 'w-40'"
+              subscriptSizing="dynamic"
+            >
               <mat-label>{{ "matches.config.start" | transloco }}</mat-label>
               <input
                 autocomplete="off"
@@ -167,7 +206,10 @@
                 }}</mat-error>
               }
             </mat-form-field>
-            <mat-form-field class="w-40" subscriptSizing="dynamic">
+            <mat-form-field
+              [class]="isMobile() ? 'order-4 w-full' : 'w-40'"
+              subscriptSizing="dynamic"
+            >
               <mat-label>{{ "matches.config.end" | transloco }}</mat-label>
               <input
                 autocomplete="off"
@@ -195,7 +237,12 @@
                 }}</mat-error>
               }
             </mat-form-field>
-            <mat-form-field class="flex-1 min-w-48" subscriptSizing="dynamic">
+            <mat-form-field
+              [class]="
+                isMobile() ? 'order-5 col-span-2 w-full' : 'flex-1 min-w-48'
+              "
+              subscriptSizing="dynamic"
+            >
               <mat-label>{{ "matches.config.fields" | transloco }}</mat-label>
               <mat-select
                 (selectionChange)="setDayFields(d, $event.value)"
@@ -210,16 +257,28 @@
                 <mat-error>{{ "validation.required" | transloco }}</mat-error>
               }
             </mat-form-field>
-            <button
-              (click)="removeDay(d)"
-              [attr.aria-label]="removeDayLabel(day.weekday)"
-              [matTooltip]="removeDayLabel(day.weekday)"
-              class="mt-1 app-action-danger"
-              mat-icon-button
-              type="button"
-            >
-              <mat-icon svgIcon="mat:delete" />
-            </button>
+            @if (isMobile()) {
+              <button
+                (click)="removeDay(d)"
+                class="order-2 col-span-2 col-start-1 row-start-1 justify-self-end app-action-danger app-button-compact"
+                mat-button
+                type="button"
+              >
+                <mat-icon svgIcon="mat:delete" />
+                {{ removeDayLabel(day.weekday) }}
+              </button>
+            } @else {
+              <button
+                (click)="removeDay(d)"
+                [attr.aria-label]="removeDayLabel(day.weekday)"
+                [matTooltip]="removeDayLabel(day.weekday)"
+                class="mt-1 app-action-danger"
+                mat-icon-button
+                type="button"
+              >
+                <mat-icon svgIcon="mat:delete" />
+              </button>
+            }
           </div>
 
           <mat-accordion class="block rounded border overflow-hidden" multi>
@@ -230,11 +289,23 @@
                   setFieldOpen(day.weekday, field.field_id, $event)
                 "
                 [expanded]="isFieldOpen(day.weekday, field.field_id, f)"
-                class="!rounded-none !shadow-none border-b last:border-b-0"
+                [class]="
+                  isMobile()
+                    ? '!rounded-none !shadow-none border-b last:border-b-0 [&_.mat-expansion-panel-body]:!px-3'
+                    : '!rounded-none !shadow-none border-b last:border-b-0'
+                "
               >
-                <mat-expansion-panel-header>
-                  <mat-panel-title class="items-center gap-2">
-                    <mat-icon svgIcon="mat:place" />
+                <mat-expansion-panel-header
+                  [class]="isMobile() ? '!h-auto !py-3' : ''"
+                >
+                  <mat-panel-title
+                    [class]="
+                      isMobile()
+                        ? 'items-center gap-x-2 gap-y-0.5 flex-wrap'
+                        : 'items-center gap-2'
+                    "
+                  >
+                    <mat-icon class="shrink-0" svgIcon="mat:place" />
                     <span class="font-medium">{{
                       fieldName(field.field_id)
                     }}</span>
@@ -243,22 +314,35 @@
                     >
                     @if (fieldHasIssues(field)) {
                       <mat-icon
-                        class="size-5! text-xl! text-red-600"
+                        class="size-5! text-xl! shrink-0 text-red-600"
                         svgIcon="mat:error"
                       />
                     }
-                  </mat-panel-title>
-                  <mat-panel-description class="justify-end text-xs">
-                    @if (!panel.expanded) {
-                      {{ rangeLabel(field) }}
+                    @if (isMobile() && !panel.expanded) {
+                      <span class="basis-full pl-8 text-xs text-secondary">{{
+                        rangeLabel(field)
+                      }}</span>
                     }
-                  </mat-panel-description>
+                  </mat-panel-title>
+                  @if (!isMobile()) {
+                    <mat-panel-description class="justify-end text-xs">
+                      @if (!panel.expanded) {
+                        {{ rangeLabel(field) }}
+                      }
+                    </mat-panel-description>
+                  }
                 </mat-expansion-panel-header>
 
                 @let overlaps =
                   overlappingWindows(field.windows.map(dayClocks));
                 @for (window of field.windows; track $index; let w = $index) {
-                  <div class="flex items-start gap-6 mb-3">
+                  <div
+                    [class]="
+                      isMobile()
+                        ? 'grid grid-cols-2 items-start gap-x-3 mb-3 [&_.mat-mdc-form-field-subscript-wrapper]:!min-h-0'
+                        : 'flex items-start gap-6 mb-3'
+                    "
+                  >
                     <mat-form-field class="flex-1">
                       <mat-label>{{
                         "matches.config.start" | transloco
@@ -349,18 +433,32 @@
                       }
                     </mat-form-field>
                     @if (field.windows.length > 1) {
-                      <button
-                        (click)="removeWindow(d, f, w)"
-                        [attr.aria-label]="
-                          'matches.config.removeWindow' | transloco
-                        "
-                        [matTooltip]="'matches.config.removeWindow' | transloco"
-                        class="mt-1 app-action-danger"
-                        mat-icon-button
-                        type="button"
-                      >
-                        <mat-icon svgIcon="mat:close" />
-                      </button>
+                      @if (isMobile()) {
+                        <button
+                          (click)="removeWindow(d, f, w)"
+                          class="col-span-2 justify-self-end app-action-danger app-button-compact"
+                          mat-button
+                          type="button"
+                        >
+                          <mat-icon svgIcon="mat:close" />
+                          {{ "matches.config.removeWindow" | transloco }}
+                        </button>
+                      } @else {
+                        <button
+                          (click)="removeWindow(d, f, w)"
+                          [attr.aria-label]="
+                            'matches.config.removeWindow' | transloco
+                          "
+                          [matTooltip]="
+                            'matches.config.removeWindow' | transloco
+                          "
+                          class="mt-1 app-action-danger"
+                          mat-icon-button
+                          type="button"
+                        >
+                          <mat-icon svgIcon="mat:close" />
+                        </button>
+                      }
                     }
                   </div>
                   @if (overlaps[w]) {
@@ -373,10 +471,22 @@
                   }
                 }
 
-                <div class="flex flex-wrap justify-end gap-2">
-                  <span [matTooltip]="'matches.config.resetHint' | transloco">
+                <div
+                  [class]="
+                    isMobile()
+                      ? 'grid grid-cols-2 gap-2'
+                      : 'flex flex-wrap justify-end gap-2'
+                  "
+                >
+                  <span
+                    [class]="isMobile() ? 'block' : ''"
+                    [matTooltip]="
+                      isMobile() ? '' : ('matches.config.resetHint' | transloco)
+                    "
+                  >
                     <button
                       (click)="resetField(d, f)"
+                      [class.w-full]="isMobile()"
                       [disabled]="!field.edited"
                       class="app-button-compact"
                       mat-stroked-button
@@ -388,6 +498,7 @@
                   </span>
                   <button
                     (click)="addWindow(d, f)"
+                    [class.w-full]="isMobile()"
                     class="app-button-compact"
                     mat-stroked-button
                     type="button"
@@ -396,6 +507,11 @@
                     {{ "matches.config.split" | transloco }}
                   </button>
                 </div>
+                @if (isMobile()) {
+                  <p class="m-0 mt-2 text-xs text-secondary">
+                    {{ "matches.config.resetHint" | transloco }}
+                  </p>
+                }
               </mat-expansion-panel>
             }
           </mat-accordion>
@@ -408,16 +524,28 @@
         <h3 class="m-0 text-base font-medium">
           {{ "matches.config.blocks" | transloco }}
         </h3>
-        <button
-          (click)="addBlock()"
-          [attr.aria-label]="'matches.config.addBlock' | transloco"
-          [matTooltip]="'matches.config.addBlock' | transloco"
-          class="app-action-primary"
-          mat-icon-button
-          type="button"
-        >
-          <mat-icon svgIcon="mat:add" />
-        </button>
+        @if (isMobile()) {
+          <button
+            (click)="addBlock()"
+            class="shrink-0 whitespace-nowrap app-button-compact"
+            mat-stroked-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+            {{ "matches.config.addBlock" | transloco }}
+          </button>
+        } @else {
+          <button
+            (click)="addBlock()"
+            [attr.aria-label]="'matches.config.addBlock' | transloco"
+            [matTooltip]="'matches.config.addBlock' | transloco"
+            class="app-action-primary"
+            mat-icon-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+          </button>
+        }
       </div>
 
       @if (!model().blocks.length) {
@@ -432,14 +560,20 @@
             @let item = model().blocks[b];
             <mat-expansion-panel
               [expanded]="openBlock() === b"
-              class="!rounded-none !shadow-none border-b last:border-b-0"
+              [class]="
+                isMobile()
+                  ? '!rounded-none !shadow-none border-b last:border-b-0 [&_.mat-expansion-panel-body]:!px-3'
+                  : '!rounded-none !shadow-none border-b last:border-b-0'
+              "
             >
               <mat-expansion-panel-header class="!h-auto !py-3">
                 <mat-panel-title class="items-start gap-3">
                   <mat-icon class="shrink-0" svgIcon="mat:event_busy" />
                   <div class="min-w-0">
-                    <div class="flex items-center gap-1">
-                      <p class="m-0 font-medium">{{ blockTitle(item) }}</p>
+                    <div class="flex items-start gap-1">
+                      <p class="m-0 min-w-0 font-medium">
+                        {{ blockTitle(item) }}
+                      </p>
                       @if (blockHasIssues(item)) {
                         <mat-icon
                           class="size-5! text-xl! shrink-0 text-red-600"
@@ -454,8 +588,14 @@
                 </mat-panel-title>
               </mat-expansion-panel-header>
 
-              <div class="grid gap-x-6 gap-y-3 pt-2 sm:grid-cols-2">
-                <mat-form-field>
+              <div
+                [class]="
+                  isMobile()
+                    ? 'grid grid-cols-2 gap-x-3 gap-y-3 pt-2'
+                    : 'grid gap-x-6 gap-y-3 pt-2 sm:grid-cols-2'
+                "
+              >
+                <mat-form-field [class]="isMobile() ? 'col-span-2' : ''">
                   <mat-label>{{
                     "matches.config.blockDate" | transloco
                   }}</mat-label>
@@ -476,14 +616,14 @@
                     class="[&_.mat-mdc-button-touch-target]:hidden"
                     matIconSuffix
                   />
-                  <mat-datepicker #blockPicker />
+                  <mat-datepicker #blockPicker [touchUi]="isMobile()" />
                   @if (block.date().errors().length) {
                     <mat-error>{{
                       "validation.required" | transloco
                     }}</mat-error>
                   }
                 </mat-form-field>
-                <mat-form-field>
+                <mat-form-field [class]="isMobile() ? 'col-span-2' : ''">
                   <mat-label>{{
                     "matches.config.blockField" | transloco
                   }}</mat-label>
@@ -515,7 +655,11 @@
                     matIconSuffix
                   />
                   <mat-timepicker #tp5 />
-                  <mat-hint>{{ "matches.config.allDay" | transloco }}</mat-hint>
+                  @if (!isMobile()) {
+                    <mat-hint>{{
+                      "matches.config.allDay" | transloco
+                    }}</mat-hint>
+                  }
                   @if (block.start().errors().length) {
                     <mat-error>{{
                       errorText(block.start().errors())
@@ -544,12 +688,23 @@
                     "
                     [options]="endOptions(clockOf(item.start))"
                   />
-                  <mat-hint>{{ "matches.config.allDay" | transloco }}</mat-hint>
+                  @if (!isMobile()) {
+                    <mat-hint>{{
+                      "matches.config.allDay" | transloco
+                    }}</mat-hint>
+                  }
                   @if (block.end().errors().length) {
                     <mat-error>{{ errorText(block.end().errors()) }}</mat-error>
                   }
                 </mat-form-field>
-                <mat-form-field class="sm:col-span-2">
+                @if (isMobile()) {
+                  <p class="col-span-2 m-0 -mt-1 text-xs text-secondary">
+                    {{ "matches.config.allDay" | transloco }}
+                  </p>
+                }
+                <mat-form-field
+                  [class]="isMobile() ? 'col-span-2' : 'sm:col-span-2'"
+                >
                   <mat-label>{{
                     "matches.config.reason" | transloco
                   }}</mat-label>
@@ -583,17 +738,30 @@
         <h3 class="m-0 text-base font-medium">
           {{ "matches.config.capacity.title" | transloco }}
         </h3>
-        <button
-          (click)="calculate()"
-          [disabled]="!valid() || calculating() || !changedSinceCalculated()"
-          [attr.aria-label]="'matches.config.capacity.calculate' | transloco"
-          [matTooltip]="'matches.config.capacity.calculate' | transloco"
-          class="app-action-primary"
-          mat-icon-button
-          type="button"
-        >
-          <mat-icon svgIcon="mat:refresh" />
-        </button>
+        @if (isMobile()) {
+          <button
+            (click)="calculate()"
+            [disabled]="!valid() || calculating() || !changedSinceCalculated()"
+            class="shrink-0 whitespace-nowrap app-button-compact"
+            mat-stroked-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:refresh" />
+            {{ "matches.config.capacity.calculate" | transloco }}
+          </button>
+        } @else {
+          <button
+            (click)="calculate()"
+            [disabled]="!valid() || calculating() || !changedSinceCalculated()"
+            [attr.aria-label]="'matches.config.capacity.calculate' | transloco"
+            [matTooltip]="'matches.config.capacity.calculate' | transloco"
+            class="app-action-primary"
+            mat-icon-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:refresh" />
+          </button>
+        }
       </div>
       @if (!data.playoffs && capacity()?.matchdays?.length) {
         <p class="m-0 text-xs text-secondary">
@@ -632,20 +800,30 @@
             role="status"
           >
             <mat-icon
+              [class.cursor-help]="!isMobile()"
               [matTooltip]="
-                'matches.config.capacity.lockedOutsideHint' | transloco
+                isMobile()
+                  ? ''
+                  : ('matches.config.capacity.lockedOutsideHint' | transloco)
               "
-              class="shrink-0 cursor-help"
+              class="shrink-0"
               svgIcon="mat:info"
             />
-            <p class="m-0 text-sm">
-              {{
-                (capacity.locked_outside_schedule === 1
-                  ? "matches.config.capacity.lockedOutsideOne"
-                  : "matches.config.capacity.lockedOutsideMany"
-                ) | transloco: { count: capacity.locked_outside_schedule }
-              }}
-            </p>
+            <div class="flex min-w-0 flex-col gap-1">
+              <p class="m-0 text-sm">
+                {{
+                  (capacity.locked_outside_schedule === 1
+                    ? "matches.config.capacity.lockedOutsideOne"
+                    : "matches.config.capacity.lockedOutsideMany"
+                  ) | transloco: { count: capacity.locked_outside_schedule }
+                }}
+              </p>
+              @if (isMobile()) {
+                <p class="m-0 text-xs">
+                  {{ "matches.config.capacity.lockedOutsideHint" | transloco }}
+                </p>
+              }
+            </div>
           </div>
         }
 
@@ -695,108 +873,195 @@
             </div>
           }
 
-          <table [dataSource]="rows()" class="w-full" mat-table>
-            <ng-container matColumnDef="matchday">
-              <th *matHeaderCellDef mat-header-cell>
-                {{ "matches.config.capacity.matchday" | transloco }}
-              </th>
-              <td *matCellDef="let day" class="font-medium" mat-cell>
-                {{ day.matchday ?? "-" }}
-              </td>
-            </ng-container>
+          @if (isMobile()) {
+            <ul class="m-0 flex list-none flex-col gap-2 p-0">
+              @for (row of rows(); track $index) {
+                <li
+                  [class]="
+                    row.matchday === null
+                      ? 'rounded border p-3 bg-black/5 text-gray-500 dark:bg-white/5 dark:text-gray-400'
+                      : 'rounded border p-3'
+                  "
+                >
+                  <p class="m-0 text-sm font-medium">
+                    {{ "matches.config.capacity.matchday" | transloco }}
+                    {{ row.matchday ?? "-" }}
+                  </p>
+                  <p class="m-0 text-xs text-secondary">
+                    @if (row.start_date && row.end_date) {
+                      @for (
+                        date of playDates(row.start_date, row.end_date);
+                        track date.getTime();
+                        let last = $last
+                      ) {
+                        {{ date | date: "dd/MM/yyyy" }}{{ last ? "" : "," }}
+                      } @empty {
+                        —
+                      }
+                    } @else {
+                      —
+                    }
+                  </p>
+                  <dl
+                    class="m-0 mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-sm"
+                  >
+                    <dt class="text-secondary">
+                      {{ "matches.config.capacity.matches" | transloco }}
+                    </dt>
+                    <dd class="m-0 text-right">
+                      {{ $any(row).matches_required ?? "-" }}
+                    </dd>
+                    <dt class="text-secondary">
+                      {{
+                        (hasOccupied()
+                          ? "matches.config.capacity.configured"
+                          : "matches.config.capacity.slots"
+                        ) | transloco
+                      }}
+                    </dt>
+                    <dd class="m-0 text-right">
+                      {{
+                        $any(row).slots_configured ??
+                          $any(row).slots_available ??
+                          "-"
+                      }}
+                    </dd>
+                    @if (hasOccupied()) {
+                      <dt class="text-secondary">
+                        {{ "matches.config.capacity.occupied" | transloco }}
+                      </dt>
+                      <dd class="m-0 text-right">
+                        {{ $any(row).slots_occupied ?? "-" }}
+                      </dd>
+                      <dt class="text-secondary">
+                        {{ "matches.config.capacity.available" | transloco }}
+                      </dt>
+                      <dd class="m-0 text-right">
+                        {{ $any(row).slots_available ?? "-" }}
+                      </dd>
+                    }
+                    <dt class="text-secondary">
+                      {{ "matches.config.capacity.deficit" | transloco }}
+                    </dt>
+                    <dd
+                      [class]="
+                        ($any(row).deficit ?? 0) > 0
+                          ? 'm-0 text-right font-medium text-amber-800 dark:text-amber-400'
+                          : $any(row).deficit === 0
+                            ? 'm-0 text-right font-medium text-green-800 dark:text-green-400'
+                            : 'm-0 text-right'
+                      "
+                    >
+                      {{ $any(row).deficit ?? "-" }}
+                    </dd>
+                  </dl>
+                </li>
+              }
+            </ul>
+          } @else {
+            <table [dataSource]="rows()" class="w-full" mat-table>
+              <ng-container matColumnDef="matchday">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "matches.config.capacity.matchday" | transloco }}
+                </th>
+                <td *matCellDef="let day" class="font-medium" mat-cell>
+                  {{ day.matchday ?? "-" }}
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="week">
-              <th *matHeaderCellDef mat-header-cell>
-                {{ "matches.config.capacity.weekColumn" | transloco }}
-              </th>
-              <td *matCellDef="let day" class="whitespace-nowrap" mat-cell>
-                @if (day.start_date && day.end_date) {
-                  @for (
-                    date of playDates(day.start_date, day.end_date);
-                    track date.getTime();
-                    let last = $last
-                  ) {
-                    {{ date | date: "dd/MM/yyyy" }}{{ last ? "" : "," }}
-                  } @empty {
+              <ng-container matColumnDef="week">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "matches.config.capacity.weekColumn" | transloco }}
+                </th>
+                <td *matCellDef="let day" class="whitespace-nowrap" mat-cell>
+                  @if (day.start_date && day.end_date) {
+                    @for (
+                      date of playDates(day.start_date, day.end_date);
+                      track date.getTime();
+                      let last = $last
+                    ) {
+                      {{ date | date: "dd/MM/yyyy" }}{{ last ? "" : "," }}
+                    } @empty {
+                      —
+                    }
+                  } @else {
                     —
                   }
-                } @else {
-                  —
-                }
-              </td>
-            </ng-container>
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="matches">
-              <th *matHeaderCellDef mat-header-cell>
-                {{ "matches.config.capacity.matches" | transloco }}
-              </th>
-              <td *matCellDef="let day" mat-cell>
-                {{ day.matches_required ?? "-" }}
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="matches">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "matches.config.capacity.matches" | transloco }}
+                </th>
+                <td *matCellDef="let day" mat-cell>
+                  {{ day.matches_required ?? "-" }}
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="slots">
-              <th *matHeaderCellDef mat-header-cell>
-                {{
-                  (hasOccupied()
-                    ? "matches.config.capacity.configured"
-                    : "matches.config.capacity.slots"
-                  ) | transloco
-                }}
-              </th>
-              <td *matCellDef="let day" mat-cell>
-                {{ day.slots_configured ?? day.slots_available ?? "-" }}
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="slots">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{
+                    (hasOccupied()
+                      ? "matches.config.capacity.configured"
+                      : "matches.config.capacity.slots"
+                    ) | transloco
+                  }}
+                </th>
+                <td *matCellDef="let day" mat-cell>
+                  {{ day.slots_configured ?? day.slots_available ?? "-" }}
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="occupied">
-              <th *matHeaderCellDef mat-header-cell>
-                {{ "matches.config.capacity.occupied" | transloco }}
-              </th>
-              <td *matCellDef="let day" mat-cell>
-                {{ day.slots_occupied ?? "-" }}
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="occupied">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "matches.config.capacity.occupied" | transloco }}
+                </th>
+                <td *matCellDef="let day" mat-cell>
+                  {{ day.slots_occupied ?? "-" }}
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="available">
-              <th *matHeaderCellDef mat-header-cell>
-                {{ "matches.config.capacity.available" | transloco }}
-              </th>
-              <td *matCellDef="let day" mat-cell>
-                {{ day.slots_available ?? "-" }}
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="available">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "matches.config.capacity.available" | transloco }}
+                </th>
+                <td *matCellDef="let day" mat-cell>
+                  {{ day.slots_available ?? "-" }}
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="deficit">
-              <th *matHeaderCellDef mat-header-cell>
-                {{ "matches.config.capacity.deficit" | transloco }}
-              </th>
-              <td
-                *matCellDef="let day"
+              <ng-container matColumnDef="deficit">
+                <th *matHeaderCellDef mat-header-cell>
+                  {{ "matches.config.capacity.deficit" | transloco }}
+                </th>
+                <td
+                  *matCellDef="let day"
+                  [class]="
+                    (day.deficit ?? 0) > 0
+                      ? 'font-medium text-amber-800 dark:text-amber-400'
+                      : day.deficit === 0
+                        ? 'font-medium text-green-800 dark:text-green-400'
+                        : ''
+                  "
+                  mat-cell
+                >
+                  {{ day.deficit ?? "-" }}
+                </td>
+              </ng-container>
+
+              <tr *matHeaderRowDef="columns()" mat-header-row></tr>
+              <tr
+                *matRowDef="let row; columns: columns()"
                 [class]="
-                  (day.deficit ?? 0) > 0
-                    ? 'font-medium text-amber-800 dark:text-amber-400'
-                    : day.deficit === 0
-                      ? 'font-medium text-green-800 dark:text-green-400'
-                      : ''
+                  row.matchday === null
+                    ? 'bg-black/5 text-gray-500 dark:bg-white/5 dark:text-gray-400'
+                    : ''
                 "
-                mat-cell
-              >
-                {{ day.deficit ?? "-" }}
-              </td>
-            </ng-container>
-
-            <tr *matHeaderRowDef="columns()" mat-header-row></tr>
-            <tr
-              *matRowDef="let row; columns: columns()"
-              [class]="
-                row.matchday === null
-                  ? 'bg-black/5 text-gray-500 dark:bg-white/5 dark:text-gray-400'
-                  : ''
-              "
-              mat-row
-            ></tr>
-          </table>
+                mat-row
+              ></tr>
+            </table>
+          }
 
           @if (occupiedGroups().length) {
             <section class="flex flex-col gap-3 p-4 mt-3 rounded border">
@@ -847,52 +1112,97 @@
               {{ "matches.config.capacity.playoffsNoDates" | transloco }}
             </p>
           } @else {
-            <table class="w-full text-sm text-left">
-              <thead>
-                <tr class="border-b">
-                  <th class="py-2 pr-3 font-medium">
-                    {{ "matches.assign.round" | transloco }}
-                  </th>
-                  <th class="py-2 pr-3 font-medium">
-                    {{ "matches.assign.date" | transloco }}
-                  </th>
-                  <th class="py-2 pr-3 font-medium">
-                    {{ "matches.assign.matches" | transloco }}
-                  </th>
-                  <th class="py-2 pr-3 font-medium">
-                    {{ "matches.config.capacity.slots" | transloco }}
-                  </th>
-                  <th class="py-2 font-medium">
-                    {{ "matches.config.capacity.deficit" | transloco }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+            @if (isMobile()) {
+              <ul class="m-0 flex list-none flex-col gap-2 p-0">
                 @for (round of capacity.playoff_rounds; track $index) {
-                  <tr class="border-b">
-                    <td class="py-2 pr-3 font-medium">
+                  <li class="rounded border p-3">
+                    <p class="m-0 text-sm font-medium">
                       {{ playoffRoundName(round) }}
-                    </td>
-                    <td class="py-2 pr-3 whitespace-nowrap">
+                    </p>
+                    <p class="m-0 text-xs text-secondary">
                       {{ parseDate(round.date) | date: "dd/MM/yyyy" }}
-                    </td>
-                    <td class="py-2 pr-3">{{ round.matches_required }}</td>
-                    <td class="py-2 pr-3">{{ round.slots_available }}</td>
-                    <td
-                      [class]="
-                        round.deficit > 0
-                          ? 'py-2 font-medium text-amber-800 dark:text-amber-400'
-                          : round.deficit === 0
-                            ? 'py-2 font-medium text-green-800 dark:text-green-400'
-                            : 'py-2'
-                      "
+                    </p>
+                    <dl
+                      class="m-0 mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-sm"
                     >
-                      {{ round.deficit }}
-                    </td>
-                  </tr>
+                      <dt class="text-secondary">
+                        {{ "matches.assign.matches" | transloco }}
+                      </dt>
+                      <dd class="m-0 text-right">
+                        {{ round.matches_required }}
+                      </dd>
+                      <dt class="text-secondary">
+                        {{ "matches.config.capacity.slots" | transloco }}
+                      </dt>
+                      <dd class="m-0 text-right">
+                        {{ round.slots_available }}
+                      </dd>
+                      <dt class="text-secondary">
+                        {{ "matches.config.capacity.deficit" | transloco }}
+                      </dt>
+                      <dd
+                        [class]="
+                          round.deficit > 0
+                            ? 'm-0 text-right font-medium text-amber-800 dark:text-amber-400'
+                            : round.deficit === 0
+                              ? 'm-0 text-right font-medium text-green-800 dark:text-green-400'
+                              : 'm-0 text-right'
+                        "
+                      >
+                        {{ round.deficit }}
+                      </dd>
+                    </dl>
+                  </li>
                 }
-              </tbody>
-            </table>
+              </ul>
+            } @else {
+              <table class="w-full text-sm text-left">
+                <thead>
+                  <tr class="border-b">
+                    <th class="py-2 pr-3 font-medium">
+                      {{ "matches.assign.round" | transloco }}
+                    </th>
+                    <th class="py-2 pr-3 font-medium">
+                      {{ "matches.assign.date" | transloco }}
+                    </th>
+                    <th class="py-2 pr-3 font-medium">
+                      {{ "matches.assign.matches" | transloco }}
+                    </th>
+                    <th class="py-2 pr-3 font-medium">
+                      {{ "matches.config.capacity.slots" | transloco }}
+                    </th>
+                    <th class="py-2 font-medium">
+                      {{ "matches.config.capacity.deficit" | transloco }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (round of capacity.playoff_rounds; track $index) {
+                    <tr class="border-b">
+                      <td class="py-2 pr-3 font-medium">
+                        {{ playoffRoundName(round) }}
+                      </td>
+                      <td class="py-2 pr-3 whitespace-nowrap">
+                        {{ parseDate(round.date) | date: "dd/MM/yyyy" }}
+                      </td>
+                      <td class="py-2 pr-3">{{ round.matches_required }}</td>
+                      <td class="py-2 pr-3">{{ round.slots_available }}</td>
+                      <td
+                        [class]="
+                          round.deficit > 0
+                            ? 'py-2 font-medium text-amber-800 dark:text-amber-400'
+                            : round.deficit === 0
+                              ? 'py-2 font-medium text-green-800 dark:text-green-400'
+                              : 'py-2'
+                        "
+                      >
+                        {{ round.deficit }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           }
         }
       }
