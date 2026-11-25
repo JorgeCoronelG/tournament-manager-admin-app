@@ -8,15 +8,25 @@
         role="alert"
       >
         <mat-icon class="shrink-0" svgIcon="mat:error" />
-        <p class="m-0 text-sm whitespace-pre-line">{{ message }}</p>
+        <p class="m-0 text-sm min-w-0 break-words whitespace-pre-line">
+          {{ message }}
+        </p>
       </div>
     }
 
     <div>
-      <div class="flex flex-wrap items-center gap-2">
-        <p class="m-0 font-medium">
-          {{ data.home.name }} vs {{ data.away.name }}
-        </p>
+      <div
+        class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2"
+      >
+        <div class="flex flex-col sm:flex-row sm:gap-1.5">
+          <p class="m-0 font-medium break-words">{{ data.home.name }}</p>
+          <p
+            class="m-0 text-sm text-secondary sm:text-base sm:font-medium sm:text-inherit"
+          >
+            vs
+          </p>
+          <p class="m-0 font-medium break-words">{{ data.away.name }}</p>
+        </div>
         @if (data.group) {
           <span
             class="shrink-0 rounded-full border px-2 text-xs text-secondary"
@@ -26,7 +36,9 @@
         }
       </div>
       @if (data.round) {
-        <p class="m-0 text-sm text-secondary">{{ data.round }}</p>
+        <p class="m-0 text-sm text-secondary">
+          {{ data.round }}
+        </p>
       }
     </div>
 
@@ -39,7 +51,11 @@
       class="flex flex-col"
     >
       @for (team of teams; track team.registration_id) {
-        <mat-radio-button [value]="team">{{ team.name }}</mat-radio-button>
+        <mat-radio-button
+          class="max-sm:min-h-12 max-sm:w-full whitespace-normal break-words"
+          [value]="team"
+          >{{ team.name }}</mat-radio-button
+        >
       }
     </mat-radio-group>
 
@@ -52,8 +68,8 @@
           <mat-icon class="!size-4 !text-base" svgIcon="mat:info" />
           {{ "matches.walkover.resultTitle" | transloco }}
         </p>
-        <div class="flex items-end justify-between gap-3">
-          <span class="text-sm text-secondary">
+        <div class="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+          <span class="min-w-0 break-words text-sm text-secondary">
             {{ "matches.walkover.summary" | transloco: { team: rival.name } }}
           </span>
           <span class="text-2xl font-semibold">{{ data.goals }} – 0</span>
@@ -77,16 +93,28 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close type="button">
+    <button
+      class="max-sm:!flex-1 max-sm:!min-w-0 max-sm:!px-0"
+      mat-button
+      mat-dialog-close
+      type="button"
+    >
       {{ "common.cancel" | transloco }}
     </button>
     <button
+      [attr.aria-label]="'matches.walkover.confirm' | transloco"
+      class="max-sm:!flex-1 max-sm:!min-w-0 max-sm:!px-0"
       [disabled]="!loser() || walkoverForm().submitting()"
       color="primary"
       mat-flat-button
       type="submit"
     >
-      {{ "matches.walkover.confirm" | transloco }}
+      {{
+        (isMobile()
+          ? "matches.walkover.confirmShort"
+          : "matches.walkover.confirm"
+        ) | transloco
+      }}
     </button>
   </mat-dialog-actions>
 </form>

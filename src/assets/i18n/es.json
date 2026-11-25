@@ -1139,6 +1139,7 @@
       "reason": "Motivo (opcional)",
       "reasonHint": "Ej. El equipo no se presentó o no completó los jugadores requeridos.",
       "confirm": "Registrar victoria por default",
+      "confirmShort": "Registrar",
       "tag": "Por default",
       "saved": "Victoria por default registrada"
     },
@@ -1151,6 +1152,7 @@
       "editTooltip": "Editar resultado",
       "withdrawnTooltip": "Un equipo está en baja: usa Ganado por default.",
       "goalsOf": "Goles de {{team}}",
+      "goals": "Goles",
       "scoreError": "Ingresa un entero de 0 a {{max}}",
       "saved": "Resultado guardado",
       "voided": "Resultado anulado",

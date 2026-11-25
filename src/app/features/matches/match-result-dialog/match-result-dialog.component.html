@@ -8,65 +8,113 @@
         role="alert"
       >
         <mat-icon class="shrink-0" svgIcon="mat:error" />
-        <p class="m-0 text-sm">{{ message }}</p>
+        <p class="m-0 text-sm min-w-0 break-words">{{ message }}</p>
       </div>
     }
 
-    <div class="flex items-start gap-4">
-      <mat-form-field class="flex-1">
-        <mat-label>{{ homeName }}</mat-label>
-        <input
-          [formField]="resultForm.home_score"
-          [attr.aria-label]="
-            'matches.result.goalsOf' | transloco: { team: homeName }
-          "
-          autocomplete="off"
-          cdkFocusInitial
-          inputmode="numeric"
-          matInput
-          type="number"
-        />
-        @if (resultForm.home_score().errors().length) {
-          <mat-error>{{ scoreError() }}</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field class="flex-1">
-        <mat-label>{{ awayName }}</mat-label>
-        <input
-          [formField]="resultForm.away_score"
-          [attr.aria-label]="
-            'matches.result.goalsOf' | transloco: { team: awayName }
-          "
-          autocomplete="off"
-          inputmode="numeric"
-          matInput
-          type="number"
-        />
-        @if (resultForm.away_score().errors().length) {
-          <mat-error>{{ scoreError() }}</mat-error>
-        }
-      </mat-form-field>
+    <div class="flex flex-col sm:flex-row sm:items-start sm:gap-4">
+      <div class="flex min-w-0 flex-col sm:flex-1">
+        <p class="m-0 mb-1 text-sm font-medium break-words sm:hidden">
+          {{ homeName }}
+        </p>
+        <mat-form-field class="w-full">
+          <mat-label
+            ><span class="sm:hidden">{{
+              "matches.result.goals" | transloco
+            }}</span
+            ><span class="max-sm:hidden">{{ homeName }}</span></mat-label
+          >
+          <input
+            [formField]="resultForm.home_score"
+            [attr.aria-label]="
+              'matches.result.goalsOf' | transloco: { team: homeName }
+            "
+            autocomplete="off"
+            cdkFocusInitial
+            inputmode="numeric"
+            matInput
+            step="1"
+            type="number"
+          />
+          @if (resultForm.home_score().errors().length) {
+            <mat-error>{{ scoreError() }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+      <div class="flex min-w-0 flex-col sm:flex-1">
+        <p class="m-0 mb-1 text-sm font-medium break-words sm:hidden">
+          {{ awayName }}
+        </p>
+        <mat-form-field
+          class="w-full max-sm:[&_.mat-mdc-form-field-subscript-wrapper]:!min-h-5"
+        >
+          <mat-label
+            ><span class="sm:hidden">{{
+              "matches.result.goals" | transloco
+            }}</span
+            ><span class="max-sm:hidden">{{ awayName }}</span></mat-label
+          >
+          <input
+            [formField]="resultForm.away_score"
+            [attr.aria-label]="
+              'matches.result.goalsOf' | transloco: { team: awayName }
+            "
+            autocomplete="off"
+            inputmode="numeric"
+            matInput
+            step="1"
+            type="number"
+          />
+          @if (resultForm.away_score().errors().length) {
+            <mat-error>{{ scoreError() }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
     </div>
   </mat-dialog-content>
 
-  <mat-dialog-actions align="end">
-    @if (hasResult) {
+  @if (hasResult) {
+    <div
+      class="sm:hidden mx-6 mb-2 border-b border-gray-300 pb-3 dark:border-gray-600"
+    >
       <button
         (click)="voidResult()"
         [disabled]="voiding() || resultForm().submitting()"
-        class="mr-auto"
+        class="app-action-danger"
         color="warn"
         mat-button
         type="button"
       >
         {{ "matches.result.voidAction" | transloco }}
       </button>
+    </div>
+  }
+
+  <mat-dialog-actions align="end">
+    @if (hasResult) {
+      <div class="mr-auto max-sm:hidden">
+        <button
+          (click)="voidResult()"
+          [disabled]="voiding() || resultForm().submitting()"
+          class="app-action-danger"
+          color="warn"
+          mat-button
+          type="button"
+        >
+          {{ "matches.result.voidAction" | transloco }}
+        </button>
+      </div>
     }
-    <button mat-button mat-dialog-close type="button">
+    <button
+      class="max-sm:!flex-1 max-sm:!min-w-0 max-sm:!px-0"
+      mat-button
+      mat-dialog-close
+      type="button"
+    >
       {{ "common.cancel" | transloco }}
     </button>
     <button
+      class="max-sm:!flex-1 max-sm:!min-w-0 max-sm:!px-0"
       [disabled]="resultForm().submitting() || voiding()"
       color="primary"
       mat-flat-button

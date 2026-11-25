@@ -18,6 +18,7 @@ import { MatRadioModule } from "@angular/material/radio";
 import { form, FormField, maxLength } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
 import { MatchesApi } from "../matches.api";
 
 /** A team of the match, as the dialog offers it */
@@ -71,6 +72,7 @@ export class WalkoverDialogComponent {
   private readonly formSubmit = inject(FormSubmitService);
   private readonly transloco = inject(TranslocoService);
 
+  protected readonly isMobile = injectIsMobile();
   readonly data = inject<WalkoverDialogData>(MAT_DIALOG_DATA);
   readonly teams = [this.data.home, this.data.away];
 
