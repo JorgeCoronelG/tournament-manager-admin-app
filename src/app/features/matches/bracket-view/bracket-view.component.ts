@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,6 +6,7 @@ import {
   inject,
   input,
   output,
+  linkedSignal,
   signal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
@@ -19,6 +20,11 @@ import { MatSelectModule } from "@angular/material/select";
 import { form, FormField } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
 import { parseDate } from "../../tournaments/tournament.model";
@@ -41,6 +47,7 @@ import { slotLabel } from "../schedule.model";
 import {
   buildPlayoffResultsData,
   buildPlayoffScheduleData,
+  downloadOptions,
   LegChoice,
   playoffFileName,
   roundResults,
@@ -72,6 +79,7 @@ import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
     SpinnerComponent,
     DatePipe,
     FormField,
+    NgTemplateOutlet,
     LogoImageComponent,
     MatButtonModule,
     MatDividerModule,
@@ -80,6 +88,7 @@ import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
     MatMenuModule,
     MatSelectModule,
     MatTooltipModule,
+    RowActionsComponent,
     TranslocoPipe,
   ],
 })
@@ -93,6 +102,8 @@ export class BracketViewComponent {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly parseDate = parseDate;
+  protected readonly isMobile = injectIsMobile();
+  protected readonly downloadOptions = downloadOptions;
 
   readonly tournamentId = input.required<number>();
   readonly tournamentName = input.required<string>();
@@ -137,6 +148,103 @@ export class BracketViewComponent {
   );
 
   protected readonly roundResults = roundResults;
+
+  /** Rounds the user opened or closed on a phone; a new bracket (after a reload) starts over */
+  private readonly toggled = linkedSignal<
+    readonly BracketPlayoff[],
+    Record<string, boolean>
+  >({ source: this.playoffs, computation: () => ({}) });
+
+  /** On a phone a round is a block: the current one is open (the last one when the tournament is over) */
+  isOpen(playoff: BracketPlayoff, round: BracketRound): boolean {
+    const key = `${playoff.group_id}:${round.index}`;
+    const hasCurrent = playoff.rounds.some((r) => this.isCurrent(playoff, r));
+
+    return (
+      this.toggled()[key] ??
+      (hasCurrent
+        ? this.isCurrent(playoff, round)
+        : round.index === playoff.rounds.at(-1)?.index)
+    );
+  }
+
+  toggleRound(playoff: BracketPlayoff, round: BracketRound): void {
+    const key = `${playoff.group_id}:${round.index}`;
+    const open = this.isOpen(playoff, round);
+
+    this.toggled.update((state) => ({ ...state, [key]: !open }));
+  }
+
+  /** The side that won a played match (goals, then penalties); null while it is not played or tied */
+  matchWinner(match: BracketMatch): "home" | "away" | null {
+    if (match.status !== "played") {
+      return null;
+    }
+
+    const { home_goals: hg, away_goals: ag } = match;
+    const [home, away] =
+      hg !== null && ag !== null && hg !== ag
+        ? [hg, ag]
+        : [match.home_penalties, match.away_penalties];
+
+    return home === null || away === null || home === away
+      ? null
+      : home > away
+        ? "home"
+        : "away";
+  }
+
+  /** The "⋮" of a match on a phone: program, default win and result */
+  matchActions(
+    playoff: BracketPlayoff,
+    round: BracketRound,
+    tie: BracketTie,
+    match: BracketMatch,
+  ): RowAction[] {
+    const scheduled = match.status === "scheduled";
+    const actions: RowAction[] = [];
+
+    if (this.schedulable() && scheduled) {
+      actions.push({
+        icon: "mat:calendar_month",
+        labelKey: "matches.program.action",
+        run: () => this.program(playoff, round, match),
+      });
+    }
+
+    if (!this.editable() || !this.hasTeams(match)) {
+      return actions;
+    }
+
+    if (scheduled) {
+      actions.push({
+        icon: "mat:flag",
+        labelKey: "matches.walkover.action",
+        run: () => this.walkover(match),
+      });
+    }
+
+    const locked = this.hasLaterResults(playoff, round);
+    const withdrawn = this.hasWithdrawn(match);
+    const hintKey = locked
+      ? "matches.bracket.resultLocked"
+      : withdrawn
+        ? "matches.result.withdrawnTooltip"
+        : null;
+
+    actions.push({
+      icon: "mat:scoreboard",
+      labelKey:
+        match.status === "played"
+          ? "matches.result.editTooltip"
+          : "matches.bracket.register",
+      run: () => this.editResult(tie, match),
+      disabled: locked || withdrawn,
+      hint: hintKey ? this.transloco.translate(hintKey) : undefined,
+    });
+
+    return actions;
+  }
 
   /** Index of the round whose image is being generated */
   protected readonly exportingImage = signal<number | null>(null);

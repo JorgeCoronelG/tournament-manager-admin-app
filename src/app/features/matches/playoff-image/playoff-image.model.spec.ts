@@ -3,6 +3,7 @@ import { bracketMatch, round, team, tie } from "./playoff-fixtures";
 import {
   buildPlayoffResultsData,
   buildPlayoffScheduleData,
+  downloadOptions,
   LegChoice,
   playoffFileName,
   roundResults,
@@ -409,5 +410,50 @@ describe("buildPlayoffResultsData", () => {
         title: "Resultados",
       }).champion,
     ).toBeNull();
+  });
+});
+
+describe("downloadOptions", () => {
+  const summary = (r: BracketRound) =>
+    downloadOptions(r).map(
+      (o) => `${o.kind}:${o.choice}${o.disabled ? ":off" : ""}`,
+    );
+
+  it("offers the schedule and the results of a single-match round", () => {
+    expect(summary(round([tie([bracketMatch(1)])], 1))).toEqual([
+      "schedule:both",
+      "results:both:off",
+    ]);
+    expect(summary(round([tie([played(1, null, 1, 0)])], 1))).toEqual([
+      "schedule:both",
+      "results:both",
+    ]);
+  });
+
+  it("lists every leg of a home-and-away round without submenus", () => {
+    const r = round(
+      [tie([played(1, 1, 1, 0), bracketMatch(2, { leg: 2 })])],
+      2,
+    );
+
+    expect(summary(r)).toEqual([
+      "schedule:first",
+      "schedule:second",
+      "schedule:both",
+      "results:first",
+      "results:second:off",
+      "results:both",
+    ]);
+    expect(downloadOptions(r).filter((o) => o.divider)).toHaveLength(1);
+  });
+
+  it("disables every result while nothing was played", () => {
+    const r = round([tie([bracketMatch(1, { leg: 1 })])], 2);
+
+    expect(
+      downloadOptions(r)
+        .filter((o) => o.kind === "results")
+        .every((o) => o.disabled),
+    ).toBe(true);
   });
 });

@@ -288,7 +288,12 @@
           }}
           @if (playedOf(group) > 0) {
             ·
-            {{ "matches.playedCount" | transloco: { played: playedOf(group) } }}
+            {{
+              (playedOf(group) === 1
+                ? "matches.playedCountOne"
+                : "matches.playedCount"
+              ) | transloco: { played: playedOf(group) }
+            }}
           }
           @if (unscheduledOf(group) > 0) {
             ·
