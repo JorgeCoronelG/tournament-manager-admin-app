@@ -894,6 +894,8 @@
         "lock": "y dejará de estar fijado",
         "confirm": "Quitar"
       },
+      "swapShort": "Intercambiar",
+      "clearShort": "Quitar horario",
       "swapTitle": "Intercambiar partido",
       "swap": "Intercambiar con otro partido",
       "swapConfirm": "Intercambiar",

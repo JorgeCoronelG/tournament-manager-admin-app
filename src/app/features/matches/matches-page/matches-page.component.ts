@@ -994,6 +994,7 @@ export class MatchesPageComponent {
           },
           width: "720px",
           maxWidth: "95vw",
+          panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
         },
       )
       .afterClosed()

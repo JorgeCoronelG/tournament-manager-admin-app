@@ -448,6 +448,7 @@ export class AgendaViewComponent {
       },
       width: "720px",
       maxWidth: "95vw",
+      panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
     });
 
     // The page keeps its place when the dialog opens and closes, and after the data is asked again
