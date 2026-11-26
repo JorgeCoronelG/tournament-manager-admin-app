@@ -949,6 +949,7 @@ export class MatchesPageComponent {
           width: "720px",
           maxWidth: "95vw",
           autoFocus: "dialog",
+          panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
         },
       )
       .afterClosed()

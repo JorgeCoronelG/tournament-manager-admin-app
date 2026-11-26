@@ -1,4 +1,4 @@
-import { expect, Page, test } from "@playwright/test";
+import { expect, Locator, Page, test } from "@playwright/test";
 import {
   freezeTime,
   gotoApp,
@@ -938,5 +938,170 @@ test.describe("playoffs", () => {
     await expect(
       page.getByRole("dialog").getByText("Grupo B · Mejor 4.º"),
     ).toBeVisible();
+  });
+});
+
+const SEVERAL = {
+  ...BEST_INFO,
+  playoffs: [
+    BEST_INFO.playoffs[0],
+    { ...PROPOSAL.playoffs[0], group_id: 11, name: "Plata" },
+  ],
+};
+
+/** The content of the dialog is the only box that scrolls, and never sideways */
+async function expectSingleScroll(page: Page) {
+  const problems = await page
+    .locator("mat-dialog-container")
+    .first()
+    .evaluate((dialog) =>
+      Array.from(dialog.querySelectorAll<HTMLElement>("*"))
+        .filter((el) => !el.closest("mat-progress-bar, table, mat-tab-header"))
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          const content = el.matches("mat-dialog-content");
+          const nested =
+            !content &&
+            /auto|scroll/.test(style.overflowY) &&
+            el.scrollHeight > el.clientHeight + 1;
+          const sideways = content && el.scrollWidth > el.clientWidth + 1;
+
+          return el.offsetParent !== null && (nested || sideways);
+        })
+        .map((el) => `${el.tagName}.${el.className}`),
+    );
+  expect(problems).toEqual([]);
+}
+
+async function openClose(page: Page, preview: unknown) {
+  const { api } = await open(page, "Torneo 02", { preview });
+  if (page.viewportSize()!.width < 600) {
+    await page.getByRole("button", { name: "Acciones del calendario" }).click();
+    await page.getByRole("menuitem", { name: "Cerrar fase regular" }).click();
+  } else {
+    await page.getByRole("button", { name: "Cerrar fase regular" }).click();
+  }
+  await expect(page.locator(".mat-mdc-dialog-surface")).toHaveCSS(
+    "transform",
+    "none",
+  );
+
+  return { api, dialog: page.getByRole("dialog").first() };
+}
+
+for (const viewport of [
+  { width: 375, height: 667 },
+  { width: 360, height: 640 },
+  { width: 599, height: 800 },
+]) {
+  test.describe(`close phase on ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport });
+
+    test("blocked: pending matches, ties and one full width button", async ({
+      page,
+    }) => {
+      const { dialog } = await openClose(page, BLOCKED);
+      const box = await dialog.boundingBox();
+      expect(box!.width).toBe(viewport.width);
+      await dialog.getByRole("button", { name: /Jornada 2/ }).click();
+      await expect(dialog.getByText("Halcones vs Lobos")).toBeVisible();
+      await expectSingleScroll(page);
+      const understood = await dialog
+        .getByRole("button", { name: "Entendido" })
+        .boundingBox();
+      expect(understood!.width).toBeGreaterThan(viewport.width - 40);
+    });
+
+    test("blocked best places: cards and define order", async ({ page }) => {
+      const { dialog } = await openClose(page, BEST_BLOCKED);
+      await expect(dialog.locator("table")).toBeHidden();
+      await expect(dialog.locator("ul li dl").first()).toBeVisible();
+      await dialog.getByRole("button", { name: "Definir orden" }).click();
+      await expect(page.getByRole("dialog")).toHaveCount(2);
+      await page
+        .getByRole("dialog")
+        .last()
+        .getByRole("button", { name: "Cancelar" })
+        .click();
+      await expect(page.getByRole("dialog")).toHaveCount(1);
+      await expectSingleScroll(page);
+    });
+
+    test("proposal: stacked pairings, modal datepicker, hours and confirm", async ({
+      page,
+    }) => {
+      const { api, dialog } = await openClose(page, PROPOSAL);
+      await expectSingleScroll(page);
+      const reset = dialog.getByRole("button", { name: "Restablecer cruces" });
+      await expect(reset).toBeDisabled();
+      const a = dialog.getByRole("combobox", { name: "Cruce 1: equipo 1" });
+      const b = dialog.getByRole("combobox", { name: "Cruce 1: equipo 2" });
+      await a.scrollIntoViewIfNeeded();
+      expect((await b.boundingBox())!.y).toBeGreaterThan(
+        (await a.boundingBox())!.y + 30,
+      );
+      // "vs" sits halfway between both selectors
+      const field = (select: Locator) =>
+        select.locator("xpath=ancestor::mat-form-field").boundingBox();
+      const [top, bottom, vs] = [
+        await field(a),
+        await field(b),
+        await dialog.getByText("vs", { exact: true }).first().boundingBox(),
+      ];
+      const above = vs!.y - (top!.y + top!.height);
+      const below = bottom!.y - (vs!.y + vs!.height);
+      expect(Math.abs(above - below)).toBeLessThan(2);
+      await a.click();
+      await page.getByRole("option", { name: "2. Tigres" }).click();
+      await expect(reset).toBeEnabled();
+      await dialog.locator("mat-datepicker-toggle button").first().click();
+      await expect(page.locator(".mat-datepicker-content-touch")).toBeVisible();
+      await page
+        .locator(".mat-calendar-body-cell:not([aria-disabled])")
+        .first()
+        .click();
+      await expect(page.locator(".mat-datepicker-content-touch")).toHaveCount(
+        0,
+      );
+      const hours = dialog.getByRole("button", { name: "Configurar horarios" });
+      await hours.scrollIntoViewIfNeeded();
+      await expect(
+        dialog.getByText("Define los horarios y canchas disponibles"),
+      ).toBeVisible();
+      await hours.click();
+      await expect(page.getByRole("dialog")).toHaveCount(2);
+      const child = page.getByRole("dialog").last();
+      await expect(page.locator(".app-dialog-fullscreen")).toHaveCount(2);
+      await child.getByRole("button", { name: "Cancelar" }).click();
+      await expect(page.getByRole("dialog")).toHaveCount(1);
+      await dialog
+        .getByRole("button", { name: "Confirmar y pasar a liguilla" })
+        .click();
+      await page
+        .getByRole("dialog")
+        .last()
+        .getByRole("button", { name: "Cerrar fase regular" })
+        .click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      expect(api.writes).toHaveLength(1);
+    });
+
+    test("several playoffs use tabs", async ({ page }) => {
+      const { dialog } = await openClose(page, SEVERAL);
+      await expect(dialog.getByRole("tab")).toHaveCount(2);
+      await expectSingleScroll(page);
+      await dialog.locator("ul li dl").first().scrollIntoViewIfNeeded();
+    });
+  });
+}
+
+test.describe("close phase from 600px", () => {
+  test.use({ viewport: { width: 600, height: 800 } });
+
+  test("keeps the table and the icon to reset", async ({ page }) => {
+    const { dialog } = await openClose(page, BEST_INFO);
+    await expect(dialog.locator("table")).toBeVisible();
+    await expect(dialog.locator("ul li dl").first()).toBeHidden();
+    await expect(page.locator(".app-dialog-fullscreen")).toHaveCount(0);
   });
 });
