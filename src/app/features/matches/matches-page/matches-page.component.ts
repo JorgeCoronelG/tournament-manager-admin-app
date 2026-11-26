@@ -637,6 +637,13 @@ export class MatchesPageComponent {
     );
   }
 
+  /** "Mié 06/01 · 6:00 p.m." (the date alone, the field goes on its own line) */
+  slotDate(match: Match): string {
+    return slotLabel(match.match_datetime ?? "", null, (weekday) =>
+      this.transloco.translate(`matches.config.weekdays.${weekday}`),
+    );
+  }
+
   /** "Antes: Sáb 07/11 · 8:00 a.m." for a match that was moved by hand */
   previousSlot(match: Match): string {
     return this.transloco.translate("matches.rescheduledHint", {
