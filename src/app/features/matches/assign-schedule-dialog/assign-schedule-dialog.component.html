@@ -302,11 +302,11 @@
 
       <app-scroll-fade
         [maxHeight]="
-          groups().length > 4 && !isMobile() ? 'max-h-78' : 'max-h-none'
+          groups().length > 4 ? 'max-h-none sm:max-h-78' : 'max-h-none'
         "
         [thin]="true"
       >
-        <div [class]="groups().length > 4 && !isMobile() ? 'pr-3' : ''">
+        <div [class]="groups().length > 4 ? 'sm:pr-3' : ''">
           <mat-accordion
             class="block mb-2 rounded border overflow-hidden"
             multi
@@ -502,7 +502,7 @@
 
 <ng-template #counts let-group>
   @let pending = group.total - group.scheduled;
-  <div [class]="isMobile() ? 'text-xs' : 'shrink-0 text-right text-xs'">
+  <div class="text-xs sm:shrink-0 sm:text-right">
     <p class="m-0 text-secondary">
       {{ "matches.assign.matchesCount" | transloco: { count: group.total } }}
     </p>

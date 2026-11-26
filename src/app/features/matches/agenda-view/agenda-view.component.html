@@ -22,19 +22,15 @@
     <mat-icon svgIcon="mat:chevron_right" />
   </button>
   <button
+    class="max-sm:!min-w-0 max-sm:!px-3"
     (click)="today()"
-    [class]="isMobile() ? '!min-w-0 !px-3' : ''"
     mat-stroked-button
     type="button"
   >
     {{ "matches.agenda.today" | transloco }}
   </button>
   <mat-form-field
-    [class]="
-      isMobile()
-        ? 'order-last basis-full w-full [&_.mat-mdc-form-field-subscript-wrapper]:hidden'
-        : 'w-44 [&_.mat-mdc-form-field-subscript-wrapper]:hidden'
-    "
+    class="[&_.mat-mdc-form-field-subscript-wrapper]:hidden max-sm:order-last max-sm:basis-full max-sm:w-full sm:w-44"
   >
     <mat-label>{{ "matches.agenda.date" | transloco }}</mat-label>
     <input
@@ -128,22 +124,14 @@
 @if (unscheduled().length) {
   <section class="mb-4 rounded border">
     <h3
-      [class]="
-        isMobile()
-          ? 'm-0 flex items-center gap-2 px-3 py-3 text-sm font-medium'
-          : 'm-0 flex items-center gap-2 px-4 py-3 text-sm font-medium'
-      "
+      class="m-0 flex items-center gap-2 py-3 text-sm font-medium max-sm:px-3 sm:px-4"
     >
       <mat-icon class="!size-5 !text-xl" svgIcon="mat:pending_actions" />
       {{ "matches.agenda.pendingTitle" | transloco }}
     </h3>
     @for (item of unscheduled(); track item.id) {
       <div
-        [class]="
-          isMobile()
-            ? 'flex flex-col items-stretch gap-2 border-t px-3 py-3'
-            : 'flex items-center justify-between gap-3 border-t px-4 py-3'
-        "
+        class="flex border-t py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:px-3 sm:items-center sm:justify-between sm:gap-3 sm:px-4"
       >
         <div class="min-w-0">
           <p class="m-0 truncate font-medium">{{ item.name }}</p>
@@ -157,8 +145,8 @@
           </p>
         </div>
         <button
+          class="max-sm:w-full sm:shrink-0"
           (click)="openCalendar.emit(item.id)"
-          [class]="isMobile() ? 'w-full' : 'shrink-0'"
           mat-button
           type="button"
         >

@@ -146,13 +146,11 @@ describe("ProgramMatchDialogComponent", () => {
 
   it("puts the date and the time in two columns and the field below", () => {
     const host: HTMLElement = setup(true).nativeElement;
-    const fields = host.querySelectorAll(
-      ".grid.grid-cols-2.gap-x-3 > mat-form-field",
-    );
+    const fields = host.querySelectorAll(".grid.gap-x-3 > mat-form-field");
 
     expect(fields).toHaveLength(3);
-    expect(fields[2].classList).toContain("col-span-2");
-    expect(fields[0].classList).not.toContain("col-span-2");
+    expect(fields[2].classList).toContain("max-sm:col-span-2");
+    expect(fields[0].classList).not.toContain("max-sm:col-span-2");
   });
 
   it("makes the suggestions touch-sized and keeps them out of a nested scroll", () => {
@@ -160,8 +158,8 @@ describe("ProgramMatchDialogComponent", () => {
     const host: HTMLElement = fixture.nativeElement;
     const chip = host.querySelector<HTMLElement>("button[aria-pressed]")!;
 
-    expect(chip.classList).toContain("min-h-10");
-    expect(chip.classList).toContain("py-2");
+    expect(chip.classList).toContain("max-sm:min-h-10");
+    expect(chip.classList).toContain("max-sm:py-2");
 
     fixture.componentInstance.slotsExpanded.set(true);
     fixture.detectChanges();
@@ -194,7 +192,7 @@ describe("ProgramMatchDialogComponent", () => {
       "li button[aria-pressed]",
     ) as HTMLElement;
 
-    expect(option.classList).toContain("flex-col");
-    expect(option.classList).toContain("min-h-12");
+    expect(option.classList).toContain("max-sm:flex-col");
+    expect(option.classList).toContain("max-sm:min-h-12");
   });
 });

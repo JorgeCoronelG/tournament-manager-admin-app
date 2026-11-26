@@ -206,7 +206,7 @@ describe("RegistrationsPageComponent", () => {
       b.textContent?.includes("Inscribir equipos"),
     );
 
-    expect(register?.classList.contains("w-full")).toBe(true);
+    expect(register?.classList.contains("max-sm:w-full")).toBe(true);
     expect(el.querySelector("app-filters-toggle")).toBeNull();
     expect(el.querySelectorAll("mat-form-field")).toHaveLength(2);
   });

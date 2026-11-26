@@ -6,11 +6,7 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content
-    [class]="
-      isMobile() ? 'flex flex-col gap-4 !pt-2' : 'flex flex-col gap-5 !pt-2'
-    "
-  >
+  <mat-dialog-content class="flex flex-col !pt-2 max-sm:gap-4 sm:gap-5">
     <mat-progress-bar [class.invisible]="!loading()" mode="indeterminate" />
 
     @if (configResource.error()) {
@@ -167,23 +163,15 @@
       @for (day of model().days; track day.weekday; let d = $index) {
         <div class="rounded border p-3 flex flex-col gap-3">
           <div
-            [class]="
-              isMobile()
-                ? 'grid grid-cols-2 items-start gap-3 [&_.mat-mdc-form-field-subscript-wrapper]:!min-h-0'
-                : 'flex flex-wrap items-start gap-3'
-            "
+            class="items-start gap-3 max-sm:grid max-sm:grid-cols-2 max-sm:[&_.mat-mdc-form-field-subscript-wrapper]:!min-h-0 sm:flex sm:flex-wrap"
           >
             <h4
-              [class]="
-                isMobile()
-                  ? 'm-0 order-1 col-span-2 col-start-1 row-start-1 self-center text-sm font-medium'
-                  : 'm-0 mt-4 text-sm font-medium w-24'
-              "
+              class="m-0 text-sm font-medium max-sm:order-1 max-sm:col-span-2 max-sm:col-start-1 max-sm:row-start-1 max-sm:self-center sm:mt-4 sm:w-24"
             >
               {{ "matches.config.weekdays." + day.weekday | transloco }}
             </h4>
             <mat-form-field
-              [class]="isMobile() ? 'order-3 w-full' : 'w-40'"
+              class="max-sm:order-3 max-sm:w-full sm:w-40"
               subscriptSizing="dynamic"
             >
               <mat-label>{{ "matches.config.start" | transloco }}</mat-label>
@@ -207,7 +195,7 @@
               }
             </mat-form-field>
             <mat-form-field
-              [class]="isMobile() ? 'order-4 w-full' : 'w-40'"
+              class="max-sm:order-4 max-sm:w-full sm:w-40"
               subscriptSizing="dynamic"
             >
               <mat-label>{{ "matches.config.end" | transloco }}</mat-label>
@@ -238,9 +226,7 @@
               }
             </mat-form-field>
             <mat-form-field
-              [class]="
-                isMobile() ? 'order-5 col-span-2 w-full' : 'flex-1 min-w-48'
-              "
+              class="max-sm:order-5 max-sm:col-span-2 max-sm:w-full sm:flex-1 sm:min-w-48"
               subscriptSizing="dynamic"
             >
               <mat-label>{{ "matches.config.fields" | transloco }}</mat-label>
@@ -284,26 +270,16 @@
           <mat-accordion class="block rounded border overflow-hidden" multi>
             @for (field of day.fields; track field.field_id; let f = $index) {
               <mat-expansion-panel
+                class="!rounded-none !shadow-none border-b last:border-b-0 max-sm:[&_.mat-expansion-panel-body]:!px-3"
                 #panel="matExpansionPanel"
                 (expandedChange)="
                   setFieldOpen(day.weekday, field.field_id, $event)
                 "
                 [expanded]="isFieldOpen(day.weekday, field.field_id, f)"
-                [class]="
-                  isMobile()
-                    ? '!rounded-none !shadow-none border-b last:border-b-0 [&_.mat-expansion-panel-body]:!px-3'
-                    : '!rounded-none !shadow-none border-b last:border-b-0'
-                "
               >
-                <mat-expansion-panel-header
-                  [class]="isMobile() ? '!h-auto !py-3' : ''"
-                >
+                <mat-expansion-panel-header class="max-sm:!h-auto max-sm:!py-3">
                   <mat-panel-title
-                    [class]="
-                      isMobile()
-                        ? 'items-center gap-x-2 gap-y-0.5 flex-wrap'
-                        : 'items-center gap-2'
-                    "
+                    class="items-center max-sm:gap-x-2 max-sm:gap-y-0.5 max-sm:flex-wrap sm:gap-2"
                   >
                     <mat-icon class="shrink-0" svgIcon="mat:place" />
                     <span class="font-medium">{{
@@ -337,11 +313,7 @@
                   overlappingWindows(field.windows.map(dayClocks));
                 @for (window of field.windows; track $index; let w = $index) {
                   <div
-                    [class]="
-                      isMobile()
-                        ? 'grid grid-cols-2 items-start gap-x-3 mb-3 [&_.mat-mdc-form-field-subscript-wrapper]:!min-h-0'
-                        : 'flex items-start gap-6 mb-3'
-                    "
+                    class="items-start mb-3 max-sm:grid max-sm:grid-cols-2 max-sm:gap-x-3 max-sm:[&_.mat-mdc-form-field-subscript-wrapper]:!min-h-0 sm:flex sm:gap-6"
                   >
                     <mat-form-field class="flex-1">
                       <mat-label>{{
@@ -472,23 +444,18 @@
                 }
 
                 <div
-                  [class]="
-                    isMobile()
-                      ? 'grid grid-cols-2 gap-2'
-                      : 'flex flex-wrap justify-end gap-2'
-                  "
+                  class="gap-2 max-sm:grid max-sm:grid-cols-2 sm:flex sm:flex-wrap sm:justify-end"
                 >
                   <span
-                    [class]="isMobile() ? 'block' : ''"
+                    class="max-sm:block"
                     [matTooltip]="
                       isMobile() ? '' : ('matches.config.resetHint' | transloco)
                     "
                   >
                     <button
                       (click)="resetField(d, f)"
-                      [class.w-full]="isMobile()"
                       [disabled]="!field.edited"
-                      class="app-button-compact"
+                      class="app-button-compact max-sm:w-full"
                       mat-stroked-button
                       type="button"
                     >
@@ -498,8 +465,7 @@
                   </span>
                   <button
                     (click)="addWindow(d, f)"
-                    [class.w-full]="isMobile()"
-                    class="app-button-compact"
+                    class="app-button-compact max-sm:w-full"
                     mat-stroked-button
                     type="button"
                   >
@@ -559,12 +525,8 @@
           @for (block of scheduleForm.blocks; track $index; let b = $index) {
             @let item = model().blocks[b];
             <mat-expansion-panel
+              class="!rounded-none !shadow-none border-b last:border-b-0 max-sm:[&_.mat-expansion-panel-body]:!px-3"
               [expanded]="openBlock() === b"
-              [class]="
-                isMobile()
-                  ? '!rounded-none !shadow-none border-b last:border-b-0 [&_.mat-expansion-panel-body]:!px-3'
-                  : '!rounded-none !shadow-none border-b last:border-b-0'
-              "
             >
               <mat-expansion-panel-header class="!h-auto !py-3">
                 <mat-panel-title class="items-start gap-3">
@@ -589,13 +551,9 @@
               </mat-expansion-panel-header>
 
               <div
-                [class]="
-                  isMobile()
-                    ? 'grid grid-cols-2 gap-x-3 gap-y-3 pt-2'
-                    : 'grid gap-x-6 gap-y-3 pt-2 sm:grid-cols-2'
-                "
+                class="grid gap-y-3 pt-2 max-sm:grid-cols-2 max-sm:gap-x-3 sm:gap-x-6 sm:grid-cols-2"
               >
-                <mat-form-field [class]="isMobile() ? 'col-span-2' : ''">
+                <mat-form-field class="max-sm:col-span-2">
                   <mat-label>{{
                     "matches.config.blockDate" | transloco
                   }}</mat-label>
@@ -623,7 +581,7 @@
                     }}</mat-error>
                   }
                 </mat-form-field>
-                <mat-form-field [class]="isMobile() ? 'col-span-2' : ''">
+                <mat-form-field class="max-sm:col-span-2">
                   <mat-label>{{
                     "matches.config.blockField" | transloco
                   }}</mat-label>
@@ -702,9 +660,7 @@
                     {{ "matches.config.allDay" | transloco }}
                   </p>
                 }
-                <mat-form-field
-                  [class]="isMobile() ? 'col-span-2' : 'sm:col-span-2'"
-                >
+                <mat-form-field class="max-sm:col-span-2 sm:col-span-2">
                   <mat-label>{{
                     "matches.config.reason" | transloco
                   }}</mat-label>
@@ -800,13 +756,12 @@
             role="status"
           >
             <mat-icon
-              [class.cursor-help]="!isMobile()"
               [matTooltip]="
                 isMobile()
                   ? ''
                   : ('matches.config.capacity.lockedOutsideHint' | transloco)
               "
-              class="shrink-0"
+              class="shrink-0 sm:cursor-help"
               svgIcon="mat:info"
             />
             <div class="flex min-w-0 flex-col gap-1">

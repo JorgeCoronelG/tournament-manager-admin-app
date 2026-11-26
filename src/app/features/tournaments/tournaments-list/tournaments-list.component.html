@@ -40,13 +40,9 @@
       </ng-template>
 
       <div
-        [class]="
-          isMobile()
-            ? 'flex items-start gap-2 mb-2'
-            : 'flex flex-wrap items-start gap-4 mb-4'
-        "
+        class="flex items-start max-sm:gap-2 max-sm:mb-2 sm:flex-wrap sm:gap-4 sm:mb-4"
       >
-        <mat-form-field [class]="isMobile() ? 'flex-1 min-w-0' : 'w-72'">
+        <mat-form-field class="max-sm:flex-1 max-sm:min-w-0 sm:w-72">
           <mat-label>{{ "tournaments.search" | transloco }}</mat-label>
           <mat-icon matPrefix svgIcon="mat:search" />
           <input

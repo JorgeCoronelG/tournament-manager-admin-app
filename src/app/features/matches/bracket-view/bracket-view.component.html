@@ -1,5 +1,5 @@
 @if (playoffs().length > 1) {
-  <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
+  <mat-form-field class="max-sm:w-full sm:w-72">
     <mat-label>{{ "matches.bracket.playoff" | transloco }}</mat-label>
     <mat-select [formField]="pickForm.playoff">
       @for (playoff of playoffs(); track playoff.group_id; let i = $index) {
@@ -27,8 +27,8 @@
   @if (editable() && allDecided()) {
     <div class="flex justify-end mb-4">
       <button
+        class="max-sm:w-full"
         (click)="finish()"
-        [class.w-full]="isMobile()"
         color="primary"
         mat-flat-button
         type="button"
@@ -43,6 +43,7 @@
     @if (!readOnly()) {
       @let results = roundResults(round);
       <button
+        class="app-action-primary max-sm:mr-1 sm:[&_.mat-mdc-button-touch-target]:hidden"
         (click)="$event.stopPropagation()"
         (keydown)="$event.stopPropagation()"
         [attr.aria-busy]="exportingImage() === round.index"
@@ -50,11 +51,6 @@
         [matMenuTriggerFor]="downloadMenu"
         [matTooltip]="
           isMobile() ? '' : ('matches.jornadaImage.downloadImage' | transloco)
-        "
-        [class]="
-          isMobile()
-            ? 'mr-1 app-action-primary'
-            : '[&_.mat-mdc-button-touch-target]:hidden app-action-primary'
         "
         mat-icon-button
         type="button"
@@ -248,13 +244,7 @@
   </ng-template>
 
   <ng-template #tiesTpl let-playoff="playoff" let-round>
-    <div
-      [class]="
-        isMobile()
-          ? 'flex flex-col gap-3'
-          : 'flex flex-1 flex-col justify-around gap-3'
-      "
-    >
+    <div class="flex flex-col gap-3 sm:flex-1 sm:justify-around">
       @let current = isCurrent(playoff, round);
       @for (tie of round.ties; track tie.id; let tieIndex = $index) {
         @let compact = current || (tie.team_a !== null && tie.team_b !== null);
@@ -291,11 +281,7 @@
                     />
                   }
                   <span
-                    [class]="
-                      isMobile()
-                        ? 'flex-1 min-w-0 line-clamp-2'
-                        : 'flex-1 truncate'
-                    "
+                    class="flex-1 max-sm:min-w-0 max-sm:line-clamp-2 sm:truncate"
                   >
                     @if (
                       !compact && !isMobile() && seedOf(tie, $any(side));

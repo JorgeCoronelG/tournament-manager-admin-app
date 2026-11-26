@@ -118,11 +118,7 @@
       </div>
     </div>
   } @else if (view() === "edit") {
-    <div
-      [class]="
-        isMobile() ? 'grid grid-cols-2 gap-x-3' : 'grid gap-x-3 sm:grid-cols-3'
-      "
-    >
+    <div class="grid gap-x-3 max-sm:grid-cols-2 sm:grid-cols-3">
       <mat-form-field class="w-full">
         <mat-label>{{ "matches.program.date" | transloco }}</mat-label>
         <input
@@ -171,7 +167,7 @@
         }
       </mat-form-field>
 
-      <mat-form-field [class]="isMobile() ? 'col-span-2 w-full' : 'w-full'">
+      <mat-form-field class="w-full max-sm:col-span-2">
         <mat-label>{{ "matches.program.field" | transloco }}</mat-label>
         <mat-select [formField]="programForm.field">
           @for (field of fields(); track field.id) {
@@ -203,12 +199,12 @@
         </div>
         <app-scroll-fade
           [maxHeight]="
-            slotsExpanded() && !isMobile() ? 'max-h-40' : 'max-h-none'
+            slotsExpanded() ? 'max-h-none sm:max-h-40' : 'max-h-none'
           "
           [thin]="true"
         >
           <div
-            [class]="slotsExpanded() && !isMobile() ? 'pr-3' : ''"
+            [class]="slotsExpanded() ? 'sm:pr-3' : ''"
             class="flex flex-wrap gap-2"
           >
             @for (
@@ -223,10 +219,7 @@
                     ? 'border-primary-600 bg-primary-600/10 text-primary-700 dark:text-primary-300'
                     : 'border-gray-400'
                 "
-                [class.min-h-10]="isMobile()"
-                [class.py-2]="isMobile()"
-                [class.py-1]="!isMobile()"
-                class="rounded-full border px-3 text-sm cursor-pointer"
+                class="rounded-full border px-3 text-sm cursor-pointer max-sm:min-h-10 max-sm:py-2 sm:py-1"
                 type="button"
               >
                 {{ clockLabel(slot.start_time) }} · {{ slot.field_name }}
@@ -238,8 +231,7 @@
           <button
             (click)="slotsExpanded.set(!slotsExpanded())"
             [attr.aria-expanded]="slotsExpanded()"
-            [class.min-h-10]="isMobile()"
-            class="flex items-center justify-center gap-1 self-center text-sm bg-transparent border-0 p-0 cursor-pointer"
+            class="flex items-center justify-center gap-1 self-center text-sm bg-transparent border-0 p-0 cursor-pointer max-sm:min-h-10"
             type="button"
           >
             {{
@@ -280,11 +272,9 @@
     </mat-form-field>
 
     <mat-checkbox
+      class="-ml-3 max-sm:[&_label]:!whitespace-normal sm:-mt-3"
       (change)="locked.set($event.checked)"
       [checked]="locked()"
-      [class]="
-        isMobile() ? '-ml-3 [&_label]:!whitespace-normal' : '-ml-3 -mt-3'
-      "
     >
       {{ "matches.program.lock" | transloco }}
       <span class="text-secondary">
@@ -322,10 +312,7 @@
                     ? 'bg-primary-600/10'
                     : 'bg-transparent'
                 "
-                [class.flex-col]="isMobile()"
-                [class.items-start]="isMobile()"
-                [class.min-h-12]="isMobile()"
-                class="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm cursor-pointer"
+                class="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm cursor-pointer max-sm:flex-col max-sm:items-start max-sm:min-h-12"
                 type="button"
               >
                 <span class="flex flex-wrap items-center gap-2">

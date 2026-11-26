@@ -24,12 +24,10 @@
       </ng-template>
 
       <div
-        [class]="
-          isMobile() ? 'flex flex-col' : 'flex flex-wrap items-start gap-4 mb-4'
-        "
+        class="flex max-sm:flex-col sm:flex-wrap sm:items-start sm:gap-4 sm:mb-4"
       >
         @if (!tournamentsResource.hasValue() || tournaments().length > 0) {
-          <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
+          <mat-form-field class="max-sm:w-full sm:w-72">
             <mat-label>{{ "rosters.tournament" | transloco }}</mat-label>
             <mat-select [formField]="pickerForm.tournament">
               @for (item of tournaments(); track item.id) {
@@ -40,7 +38,7 @@
         }
 
         @if (tournament()) {
-          <mat-form-field [class]="isMobile() ? 'w-full' : 'w-72'">
+          <mat-form-field class="max-sm:w-full sm:w-72">
             <mat-label>{{ "rosters.team" | transloco }}</mat-label>
             <mat-select
               [formField]="teamPickerForm.team"
