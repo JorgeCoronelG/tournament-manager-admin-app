@@ -46,6 +46,7 @@ Node no siempre está instalado en la máquina: si falta, ejecuta los comandos d
 - Los colores salen de `themes` en `src/@ui/tailwind/tailwind.config.ts` → variables CSS (plugin `@ui/tailwind/plugins/themes.ts`) → tokens `--mat-sys-*` en `@ui/styles/_themes.scss`. No hardcodees colores en componentes: usa las clases de Tailwind (`bg-primary-600`, `text-default`) o las variables `--app-*`.
 - Angular Material 3: solo `primary` viene de serie. `color="accent"` y `color="warn"` funcionan únicamente en botones y `mat-icon` (`partials/plugins/@angular/material/_button.scss` y `_icon.scss`).
 - Overrides de tokens de Material (`mat.*-overrides`) van dentro de `body`, no de `:root`: las variables que referencian a otras se resuelven donde se declaran.
+- Los breakpoints se definen solo en `src/@ui/tailwind/breakpoints.ts`. En HTML usa `sm:`/`max-sm:`/`lg:`; en SCSS, `@variant lg { }` y `theme(--breakpoint-lg)` (nunca `theme("screens.lg")`, que ignora la config); en TypeScript, `mediaUp`/`mediaDown`. No escribas píxeles de breakpoint a mano.
 - Tailwind 4 se usa con la config JS (`@config`). Un SCSS con `@apply` o `theme()` necesita `@reference` a `src/@ui/styles/tailwind.css` en su primera línea; prefiere clases en el HTML en código nuevo. No importes Tailwind con `layer()`: las utilidades deben quedar sin capa para ganar a Material.
 - Los plugins de Tailwind usan `plugin` de `@ui/tailwind/utils/plugin` (no `tailwindcss/plugin` directo) y no pueden usar `e()`.
 - Los estilos globales y de Material viven en `@ui/styles`; los de un componente, junto al componente.

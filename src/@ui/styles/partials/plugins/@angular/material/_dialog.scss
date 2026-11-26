@@ -16,7 +16,7 @@
 
 /** Phones: dialogs fill the width (16px margins) and never overflow it */
 .cdk-overlay-pane.mat-mdc-dialog-panel {
-  @media (max-width: 599px) {
+  @variant max-sm {
     width: calc(100vw - 32px) !important;
   }
 
@@ -31,13 +31,13 @@
 
   /* Room for a two-line error so it does not overlap the next field */
   .mat-mdc-dialog-content .mat-mdc-form-field-subscript-wrapper {
-    @media (max-width: 599px) {
+    @variant max-sm {
       min-height: 2.5rem;
     }
   }
 
   .mat-mdc-dialog-actions .mat-mdc-button-base {
-    @media (max-width: 599px) {
+    @variant max-sm {
       min-height: 44px;
     }
   }
@@ -58,7 +58,7 @@
  * the actions stay at the bottom, half and half, above the safe area.
  */
 .cdk-overlay-pane.mat-mdc-dialog-panel.app-dialog-fullscreen {
-  @media (max-width: 599px) {
+  @variant max-sm {
     width: 100vw !important;
     max-width: 100vw !important;
     height: 100dvh !important;

@@ -74,7 +74,7 @@
   .app-layout-content {
     margin-top: var(--app-toolbar-height);
 
-    @media (min-width: theme("screens.lg")) {
+    @variant lg {
       margin-top: calc(
         var(--app-toolbar-height) + var(--app-navigation-height)
       );
@@ -180,7 +180,7 @@
 // Phones: no page-fill. The table has no max height or inner vertical scroll;
 // it takes what it needs and the whole page scrolls. Only wide tables scroll
 // sideways.
-@media (max-width: 599.98px) {
+@variant max-sm {
   .app-layout-sidenav-content:has(.app-page-fill) .app-layout-content {
     flex: 1 0 auto;
     min-height: 0;
