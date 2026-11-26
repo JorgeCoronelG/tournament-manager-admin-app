@@ -113,7 +113,7 @@
                     "
                     [thin]="true"
                   >
-                    <div [class]="view.groups.length > 3 ? 'sm:pr-3' : ''">
+                    <div [class.sm:pr-3]="view.groups.length > 3">
                       <mat-accordion
                         class="block rounded border overflow-hidden"
                         multi
@@ -363,7 +363,7 @@
         [thin]="true"
       >
         <ol
-          [class]="proposal.qualified.length > 4 ? 'sm:pr-3' : ''"
+          [class.sm:pr-3]="proposal.qualified.length > 4"
           class="m-0 p-0 list-none flex flex-col gap-2"
         >
           @for (team of proposal.qualified; track team.registration_id) {
@@ -454,10 +454,7 @@
         "
         [thin]="true"
       >
-        <div
-          [class]="proposal.qualified.length > 4 ? 'sm:pr-3' : ''"
-          class="pt-2"
-        >
+        <div [class.sm:pr-3]="proposal.qualified.length > 4" class="pt-2">
           @for (
             tie of closeForm.playoffs[index].ties;
             track $index;
@@ -547,10 +544,7 @@
         "
         [thin]="true"
       >
-        <div
-          [class]="matchLabels(proposal).length > 4 ? 'sm:pr-3' : ''"
-          class="pt-2"
-        >
+        <div [class.sm:pr-3]="matchLabels(proposal).length > 4" class="pt-2">
           @for (
             row of closeForm.playoffs[index].dates;
             track $index;
@@ -666,7 +660,7 @@
           </thead>
           <tbody>
             @for (row of table.table; track row.registration_id) {
-              <tr [class]="!row.qualified && !row.tied ? 'opacity-70' : ''">
+              <tr [class.opacity-70]="!row.qualified && !row.tied">
                 <td class="p-2">{{ row.rank }}</td>
                 <td class="p-2">
                   <span class="font-medium">{{ row.team_name }}</span>
@@ -697,7 +691,7 @@
       <ul class="m-0 flex list-none flex-col gap-2 p-0 sm:hidden">
         @for (row of table.table; track row.registration_id) {
           <li
-            [class]="!row.qualified && !row.tied ? 'opacity-70' : ''"
+            [class.opacity-70]="!row.qualified && !row.tied"
             class="rounded border p-3 text-sm"
           >
             <div class="flex flex-wrap items-center gap-1">

@@ -203,10 +203,7 @@
           "
           [thin]="true"
         >
-          <div
-            [class]="slotsExpanded() ? 'sm:pr-3' : ''"
-            class="flex flex-wrap gap-2"
-          >
+          <div [class.sm:pr-3]="slotsExpanded()" class="flex flex-wrap gap-2">
             @for (
               slot of visibleSlots();
               track slot.start_time + slot.field_id

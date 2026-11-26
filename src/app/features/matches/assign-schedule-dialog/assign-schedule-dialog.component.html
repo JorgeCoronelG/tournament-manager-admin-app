@@ -306,7 +306,7 @@
         "
         [thin]="true"
       >
-        <div [class]="groups().length > 4 ? 'sm:pr-3' : ''">
+        <div [class.sm:pr-3]="groups().length > 4">
           <mat-accordion
             class="block mb-2 rounded border overflow-hidden"
             multi
