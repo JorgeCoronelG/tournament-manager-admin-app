@@ -1,10 +1,35 @@
-import { expect, test } from "@playwright/test";
+import { expect, Locator, Page, test } from "@playwright/test";
 import {
   freezeTime,
   gotoApp,
   makeTournaments,
   mockTournamentsApi,
 } from "./support";
+
+/**
+ * Opens the new tournament dialog and waits until it has finished opening: it
+ * then moves the focus to the name. Typing earlier races with that move.
+ */
+async function openNewTournament(page: Page) {
+  await page.getByRole("button", { name: "Nuevo torneo" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Nombre")).toBeFocused();
+
+  return dialog;
+}
+
+/** Picks the 20th in the calendar and waits for it to close, so it blocks nothing */
+async function pickStartDate(page: Page, field: Locator) {
+  await field.click();
+  const day = page.getByRole("button", { name: "20 de septiembre de 2026" });
+  await expect(page.locator("mat-datepicker-content")).toHaveCSS(
+    "opacity",
+    "1",
+  );
+  await day.click();
+  await expect(field).toHaveValue("20/09/2026");
+  await expect(page.locator("mat-datepicker-content")).toHaveCount(0);
+}
 
 test.describe("tournaments", () => {
   test.beforeEach(async ({ page }) => {
@@ -121,8 +146,7 @@ test.describe("tournaments", () => {
     const api = await mockTournamentsApi(page);
     await gotoApp(page, "/dashboard/torneos");
 
-    await page.getByRole("button", { name: "Nuevo torneo" }).click();
-    const dialog = page.getByRole("dialog");
+    const dialog = await openNewTournament(page);
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(dialog.getByText("Este campo es obligatorio")).toHaveCount(3);
 
@@ -131,15 +155,7 @@ test.describe("tournaments", () => {
     await page.getByRole("option", { name: "Mixto" }).click();
     // Read only: the date comes from the calendar (in Spanish), opened by clicking the field
     const date = dialog.getByLabel("Fecha de inicio");
-    await date.click();
-    await expect(
-      page.getByRole("button", { name: "20 de septiembre de 2026" }),
-    ).toBeVisible();
-    await page
-      .locator(".mat-calendar-body-cell")
-      .getByText("20", { exact: true })
-      .click();
-    await expect(date).toHaveValue("20/09/2026");
+    await pickStartDate(page, date);
 
     // Typing or erasing does nothing
     await date.press("Backspace");
@@ -180,10 +196,11 @@ test.describe("tournaments", () => {
     const api = await mockTournamentsApi(page);
     await gotoApp(page, "/dashboard/torneos");
 
-    await page.getByRole("button", { name: "Nuevo torneo" }).click();
-    const dialog = page.getByRole("dialog");
+    const dialog = await openNewTournament(page);
 
     await dialog.getByLabel("Duración del partido (minutos)").fill("10");
+    // The error shows once the field is left
+    await dialog.getByLabel("Duración del partido (minutos)").blur();
     await expect(
       dialog.getByText("Ingresa un valor entre 20 y 180"),
     ).toBeVisible();
@@ -215,11 +232,7 @@ test.describe("tournaments", () => {
     await dialog.getByRole("combobox", { name: "Género" }).click();
     await page.getByRole("option", { name: "Mixto" }).click();
     const date = dialog.getByLabel("Fecha de inicio");
-    await date.click();
-    await page
-      .locator(".mat-calendar-body-cell")
-      .getByText("20", { exact: true })
-      .click();
+    await pickStartDate(page, date);
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(dialog).toBeHidden();
 
@@ -236,16 +249,11 @@ test.describe("tournaments", () => {
     const api = await mockTournamentsApi(page);
     await gotoApp(page, "/dashboard/torneos");
 
-    await page.getByRole("button", { name: "Nuevo torneo" }).click();
-    const dialog = page.getByRole("dialog");
+    const dialog = await openNewTournament(page);
     await dialog.getByLabel("Nombre").fill("Apertura");
     await dialog.getByRole("combobox", { name: "Género" }).click();
     await page.getByRole("option", { name: "Mixto" }).click();
-    await dialog.getByLabel("Fecha de inicio").click();
-    await page
-      .locator(".mat-calendar-body-cell")
-      .getByText("20", { exact: true })
-      .click();
+    await pickStartDate(page, dialog.getByLabel("Fecha de inicio"));
     await dialog.getByLabel("Duración del partido (minutos)").fill("");
 
     await dialog.getByRole("button", { name: "Guardar" }).click();
