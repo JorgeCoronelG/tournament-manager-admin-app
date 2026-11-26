@@ -1105,3 +1105,53 @@ test.describe("close phase from 600px", () => {
     await expect(page.locator(".app-dialog-fullscreen")).toHaveCount(0);
   });
 });
+
+for (const viewport of [
+  { width: 375, height: 667 },
+  { width: 360, height: 640 },
+]) {
+  test.describe(`finish tournament ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport });
+
+    for (const count of [1, 3]) {
+      test(`with ${count} champion(s)`, async ({ page }) => {
+        const base = BRACKET.playoffs[1];
+        const bracket = {
+          playoffs: Array.from({ length: count }, (_, i) => ({
+            ...base,
+            group_id: 20 + i,
+            name: `Liguilla de Campeones Zona ${i + 1}`,
+            champion: team(5 + i, `Deportivo Los Campeones del Bajío ${i + 1}`),
+            rounds: [
+              {
+                ...base.rounds[0],
+                ties: [
+                  {
+                    ...base.rounds[0].ties[0],
+                    winner_team_id: 50,
+                    winner_registration_id: 5,
+                  },
+                ],
+              },
+            ],
+          })),
+        };
+        await open(page, "Torneo 04", { bracket });
+        await page.getByRole("tab", { name: "Liguilla" }).click();
+        await page.getByRole("button", { name: "Finalizar torneo" }).click();
+        await expect(page.locator(".mat-mdc-dialog-surface")).toHaveCSS(
+          "transform",
+          "none",
+        );
+        const content = page.locator("mat-dialog-content");
+        expect(
+          await content.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+        ).toBe(true);
+        const buttons = page.locator("mat-dialog-actions button");
+        const a = (await buttons.nth(0).boundingBox())!;
+        const b = (await buttons.nth(1).boundingBox())!;
+        expect(Math.abs(a.width - b.width)).toBeLessThan(2);
+      });
+    }
+  });
+}

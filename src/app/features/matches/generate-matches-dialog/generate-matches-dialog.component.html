@@ -13,7 +13,7 @@
         role="status"
       >
         <mat-icon class="shrink-0" svgIcon="mat:warning" />
-        <div class="flex flex-col gap-1">
+        <div class="flex min-w-0 flex-col gap-1 break-words">
           <p class="m-0 text-sm font-medium">
             {{ "matches.regenerate.warning" | transloco }}
           </p>
@@ -36,7 +36,7 @@
         role="alert"
       >
         <mat-icon class="shrink-0" svgIcon="mat:error" />
-        <p class="m-0 text-sm">{{ message }}</p>
+        <p class="m-0 min-w-0 break-words text-sm">{{ message }}</p>
       </div>
     }
 
@@ -53,7 +53,9 @@
       <ul class="m-0 p-0 list-none">
         @for (group of summary(); track group.name) {
           <li class="flex flex-col gap-1 border-t py-3 first:border-t-0">
-            <span class="text-sm font-medium">{{ group.name }}</span>
+            <span class="break-words text-sm font-medium">{{
+              group.name
+            }}</span>
             <span class="text-sm text-secondary">
               {{
                 "matches.generate.groupSummary"
@@ -109,7 +111,7 @@
 
     <mat-checkbox
       [formField]="generateForm.shuffle"
-      class="-ml-3 [&_.mat-mdc-checkbox-touch-target]:hidden"
+      class="-ml-3 max-sm:min-h-12 max-sm:[&_label]:!whitespace-normal sm:[&_.mat-mdc-checkbox-touch-target]:hidden"
     >
       {{ "matches.generate.shuffle" | transloco }}
     </mat-checkbox>
@@ -120,10 +122,16 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close type="button">
+    <button
+      class="max-sm:!h-auto max-sm:!min-h-11 max-sm:!min-w-0 max-sm:!flex-1 max-sm:!whitespace-normal max-sm:!px-2 max-sm:py-2"
+      mat-button
+      mat-dialog-close
+      type="button"
+    >
       {{ "common.cancel" | transloco }}
     </button>
     <button
+      class="max-sm:!h-auto max-sm:!min-h-11 max-sm:!min-w-0 max-sm:!flex-1 max-sm:!whitespace-normal max-sm:!px-2 max-sm:py-2"
       [color]="data.regenerate ? 'warn' : 'primary'"
       [disabled]="generateForm().submitting()"
       mat-flat-button

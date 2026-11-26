@@ -1357,6 +1357,7 @@
       "warningDetail": "Se eliminarán los partidos actuales y se generarán nuevos enfrentamientos desde cero.",
       "warningClosing": "Esta acción no se puede deshacer.",
       "lost": "Se perderán {{what}}.",
+      "lostSingle": "Se perderá {{what}}.",
       "lostSchedulesOne": "{{count}} horario asignado",
       "lostSchedulesMany": "{{count}} horarios asignados",
       "lostLockedOne": "({{count}} partido fijado)",
