@@ -17,7 +17,9 @@
 }
 
 <ng-template #groupTable let-group>
-  <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+  <div
+    class="mb-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+  >
     <p class="m-0 text-sm text-secondary">
       <span class="mr-1 font-semibold">{{
         "matches.standings.criteria" | transloco
@@ -35,11 +37,12 @@
         [attr.aria-label]="exportKey | transloco"
         [disabled]="exporting()"
         [matTooltip]="exportKey | transloco"
+        class="w-full sm:w-auto"
         mat-stroked-button
         type="button"
       >
         @if (exporting()) {
-          <app-spinner [size]="18" />
+          <app-spinner matButtonIcon [size]="18" />
         } @else {
           <mat-icon [svgIcon]="canShare ? 'mat:share' : 'mat:image'" />
         }
@@ -71,15 +74,22 @@
 
   @if (hasTies(group)) {
     <div
-      class="flex flex-wrap items-center gap-3 mb-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
+      class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center mb-3 p-3 rounded border border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-200"
       role="status"
     >
-      <mat-icon class="shrink-0" svgIcon="mat:warning" />
-      <p class="m-0 text-sm flex-1">
-        {{ "matches.standings.tied" | transloco }}
-      </p>
+      <div class="flex items-center gap-3 sm:flex-1">
+        <mat-icon class="shrink-0" svgIcon="mat:warning" />
+        <p class="m-0 min-w-0 flex-1 text-sm">
+          {{ "matches.standings.tied" | transloco }}
+        </p>
+      </div>
       @if (editable()) {
-        <button (click)="defineOrder(group)" mat-stroked-button type="button">
+        <button
+          (click)="defineOrder(group)"
+          class="w-full sm:w-auto"
+          mat-stroked-button
+          type="button"
+        >
           {{ "matches.standings.defineOrder" | transloco }}
         </button>
       }
@@ -87,15 +97,22 @@
   }
 
   @if (hasManualOrder(group)) {
-    <div class="mb-3 flex flex-wrap items-center gap-3">
+    <div
+      class="mb-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+    >
       <span
-        class="inline-flex items-center gap-1.5 rounded-full bg-gray-500/10 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400"
+        class="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full bg-gray-500/10 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400"
       >
         <mat-icon class="!size-4 shrink-0" svgIcon="mat:info" />
         {{ "matches.standings.manualOrderApplied" | transloco }}
       </span>
       @if (editable()) {
-        <button (click)="clearOrder(group)" mat-stroked-button type="button">
+        <button
+          (click)="clearOrder(group)"
+          class="w-full sm:w-auto"
+          mat-stroked-button
+          type="button"
+        >
           {{ "matches.standings.clearOrderAction" | transloco }}
         </button>
       }
@@ -105,14 +122,14 @@
   <div class="bg-foreground rounded shadow overflow-x-auto">
     <table [dataSource]="group.rows" mat-table>
       <ng-container matColumnDef="position">
-        <th *matHeaderCellDef mat-header-cell>
+        <th *matHeaderCellDef class="max-sm:!pl-3 max-sm:!pr-1" mat-header-cell>
           {{ "matches.standings.columns.position" | transloco }}
         </th>
         <td
           *matCellDef="let row"
           [matTooltip]="qualifyHint(row)"
           [matTooltipDisabled]="!qualifyHint(row)"
-          class="relative"
+          class="relative max-sm:!pl-3 max-sm:!pr-1 tabular-nums"
           mat-cell
         >
           @let qualified = qualifying(row);
@@ -131,29 +148,35 @@
       </ng-container>
 
       <ng-container matColumnDef="team">
-        <th *matHeaderCellDef mat-header-cell>
+        <th *matHeaderCellDef class="max-sm:!px-1" mat-header-cell>
           {{ "matches.standings.columns.team" | transloco }}
         </th>
-        <td *matCellDef="let row" mat-cell>
-          <span class="flex items-center gap-2">
+        <td *matCellDef="let row" class="w-full max-sm:!px-1" mat-cell>
+          <span
+            class="flex items-center gap-2 max-sm:flex-col max-sm:items-start max-sm:gap-0.5 max-sm:py-1"
+          >
             <app-logo-image
               [alt]="row.team_name"
               [src]="row.logo_url"
-              class="w-6 h-6 rounded-full shrink-0"
+              class="w-6 h-6 rounded-full shrink-0 max-sm:!hidden"
             />
-            <span class="font-medium">{{ row.team_name }}</span>
-            @if (row.withdrawn) {
-              <span
-                class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                >{{ "matches.standings.withdrawn" | transloco }}</span
-              >
-            }
-            @if (isTied(group, row)) {
-              <span
-                class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-800 dark:text-amber-400"
-                >{{ "matches.standings.tie" | transloco }}</span
-              >
-            }
+            <span class="font-medium max-sm:line-clamp-2 max-sm:break-words">{{
+              row.team_name
+            }}</span>
+            <span class="flex flex-wrap gap-1 empty:hidden sm:contents">
+              @if (row.withdrawn) {
+                <span
+                  class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                  >{{ "matches.standings.withdrawn" | transloco }}</span
+                >
+              }
+              @if (isTied(group, row)) {
+                <span
+                  class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-800 dark:text-amber-400"
+                  >{{ "matches.standings.tie" | transloco }}</span
+                >
+              }
+            </span>
           </span>
         </td>
       </ng-container>
@@ -176,7 +199,8 @@
             *matHeaderCellDef
             [class.font-semibold]="column[0] === 'points'"
             [matTooltip]="'matches.standings.tips.' + column[1] | transloco"
-            class="text-center"
+            class="text-center max-sm:!px-1"
+            [class.max-sm:!hidden]="hiddenOnPhones(column[0])"
             mat-header-cell
           >
             {{ "matches.standings.columns." + column[1] | transloco }}
@@ -184,7 +208,8 @@
           <td
             *matCellDef="let row"
             [class.font-semibold]="column[0] === 'points'"
-            class="text-center"
+            class="text-center tabular-nums max-sm:!px-1"
+            [class.max-sm:!hidden]="hiddenOnPhones(column[0])"
             mat-cell
           >
             {{ row[column[0]] }}
@@ -197,8 +222,23 @@
         *matRowDef="let row; columns: columns"
         [class.bg-amber-500/10]="isTied(group, row)"
         [class.opacity-60]="row.withdrawn"
+        class="max-sm:!h-11"
         mat-row
       ></tr>
     </table>
   </div>
+
+  <!-- No tooltips on touch screens: the abbreviations are written out -->
+  <p
+    class="mb-0 mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-secondary sm:hidden"
+  >
+    @for (key of legendColumns; track key) {
+      <span>
+        <span class="font-semibold">{{
+          "matches.standings.columns." + key | transloco
+        }}</span>
+        {{ "matches.standings.tips." + key | transloco }}
+      </span>
+    }
+  </p>
 </ng-template>
