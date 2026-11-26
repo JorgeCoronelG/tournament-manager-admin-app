@@ -4,6 +4,7 @@ import {
   computed,
   inject,
 } from "@angular/core";
+import { DecimalPipe } from "@angular/common";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -18,7 +19,13 @@ import { TournamentsApi } from "../tournaments.api";
   selector: "app-tournament-history-summary",
   templateUrl: "./tournament-history-summary.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LogoImageComponent, MatButtonModule, MatIconModule, TranslocoPipe],
+  imports: [
+    DecimalPipe,
+    LogoImageComponent,
+    MatButtonModule,
+    MatIconModule,
+    TranslocoPipe,
+  ],
 })
 export class TournamentHistorySummaryComponent {
   // The tournament's id is in the detail route that holds this tab

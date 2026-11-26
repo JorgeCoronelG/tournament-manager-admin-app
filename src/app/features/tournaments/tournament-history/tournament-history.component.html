@@ -7,19 +7,8 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "tournaments.history.search" | transloco }}</mat-label>
-          <mat-icon matPrefix svgIcon="mat:search" />
-          <input
-            [formField]="filtersForm.search"
-            autocomplete="off"
-            matInput
-            type="search"
-          />
-        </mat-form-field>
-
-        <mat-form-field class="w-48">
+      <ng-template #yearField let-width>
+        <mat-form-field [class]="width">
           <mat-label>{{ "tournaments.history.year" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.year">
             <mat-option value="">{{
@@ -30,9 +19,49 @@
             }
           </mat-select>
         </mat-form-field>
+      </ng-template>
+
+      <div
+        class="flex items-start max-sm:gap-2 max-sm:mb-2 sm:flex-wrap sm:gap-4 sm:mb-4"
+      >
+        <mat-form-field class="max-sm:flex-1 max-sm:min-w-0 sm:w-72">
+          <mat-label>{{ "tournaments.history.search" | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="mat:search" />
+          <input
+            [formField]="filtersForm.search"
+            autocomplete="off"
+            matInput
+            type="search"
+          />
+        </mat-form-field>
+
+        @if (isMobile()) {
+          <app-filters-toggle
+            [(open)]="filtersOpen"
+            [count]="activeFilters()"
+            activeKey="tournaments.history.filters.active"
+            titleKey="tournaments.history.filters.title"
+          />
+        } @else {
+          <ng-container
+            *ngTemplateOutlet="yearField; context: { $implicit: 'w-48' }"
+          />
+        }
       </div>
 
-      <div class="app-table-card bg-foreground rounded shadow">
+      @if (isMobile() && filtersOpen()) {
+        <app-filters-panel
+          (cleared)="clearFilters()"
+          [canClear]="activeFilters() > 0"
+          clearKey="tournaments.history.filters.clear"
+        >
+          <ng-container
+            *ngTemplateOutlet="yearField; context: { $implicit: 'w-full' }"
+          />
+        </app-filters-panel>
+      }
+
+      <div #tableCard class="app-table-card bg-foreground rounded shadow">
         <mat-progress-bar
           [class.invisible]="!resource.isLoading()"
           mode="indeterminate"
@@ -41,35 +70,61 @@
         <div class="app-table-scroll">
           <table [dataSource]="rows()" class="w-full" mat-table>
             <ng-container matColumnDef="name">
-              <th *matHeaderCellDef mat-header-cell>
+              <th *matHeaderCellDef class="max-sm:!px-2" mat-header-cell>
                 {{ "tournaments.history.columns.tournament" | transloco }}
               </th>
-              <td *matCellDef="let row" mat-cell class="font-medium">
+              <td
+                *matCellDef="let row"
+                class="font-medium max-sm:break-words max-sm:!px-2"
+                mat-cell
+              >
                 {{ row.name }}
               </td>
             </ng-container>
 
             <ng-container matColumnDef="teams_count">
-              <th *matHeaderCellDef mat-header-cell>
+              <th *matHeaderCellDef class="max-sm:!px-2" mat-header-cell>
                 {{ "tournaments.history.columns.teams" | transloco }}
               </th>
-              <td *matCellDef="let row" mat-cell>{{ row.teams_count }}</td>
+              <td *matCellDef="let row" class="max-sm:!px-2" mat-cell>
+                {{ row.teams_count }}
+              </td>
             </ng-container>
 
             <ng-container matColumnDef="playoffs_count">
-              <th *matHeaderCellDef mat-header-cell>
+              <th *matHeaderCellDef class="max-sm:!px-2" mat-header-cell>
                 {{ "tournaments.history.columns.playoffs" | transloco }}
               </th>
-              <td *matCellDef="let row" mat-cell>{{ row.playoffs_count }}</td>
+              <td *matCellDef="let row" class="max-sm:!px-2" mat-cell>
+                {{ row.playoffs_count }}
+              </td>
             </ng-container>
 
-            <ng-container matColumnDef="actions" stickyEnd>
-              <th *matHeaderCellDef mat-header-cell>
+            <ng-container matColumnDef="actionsMenu">
+              <th *matHeaderCellDef class="max-sm:!px-2" mat-header-cell>
                 <span class="sr-only">{{
                   "tournaments.history.columns.actions" | transloco
                 }}</span>
               </th>
-              <td *matCellDef="let row" mat-cell class="whitespace-nowrap">
+              <td *matCellDef="let row" class="w-14 max-sm:!px-2" mat-cell>
+                <app-row-actions
+                  [actions]="rowActions(row)"
+                  labelKey="tournaments.history.actions.menu"
+                />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions" stickyEnd>
+              <th *matHeaderCellDef class="max-sm:!px-2" mat-header-cell>
+                <span class="sr-only">{{
+                  "tournaments.history.columns.actions" | transloco
+                }}</span>
+              </th>
+              <td
+                *matCellDef="let row"
+                mat-cell
+                class="whitespace-nowrap max-sm:!px-2"
+              >
                 <a
                   [attr.aria-label]="
                     'tournaments.history.viewTournament'
@@ -85,8 +140,11 @@
               </td>
             </ng-container>
 
-            <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-            <tr *matRowDef="let row; columns: columns" mat-row></tr>
+            <tr
+              *matHeaderRowDef="columns(); sticky: !isMobile()"
+              mat-header-row
+            ></tr>
+            <tr *matRowDef="let row; columns: columns()" mat-row></tr>
           </table>
         </div>
 
@@ -117,7 +175,8 @@
           [pageIndex]="paging().page"
           [pageSizeOptions]="[5, 10, 25]"
           [pageSize]="paging().pageSize"
-          showFirstLastButtons
+          [hidePageSize]="isMobile()"
+          [showFirstLastButtons]="!isMobile()"
         />
       </div>
     }

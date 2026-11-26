@@ -1,13 +1,16 @@
 import {
+  afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
+  viewChild,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatTabsModule } from "@angular/material/tabs";
+import { MatTabNav, MatTabsModule } from "@angular/material/tabs";
 import {
   ActivatedRoute,
   RouterLink,
@@ -95,6 +98,44 @@ export class TournamentHistoryDetailComponent {
     () => this.groupsResource.value()?.playoffs.length ?? 0,
   );
   protected readonly hasPlayoffs = computed(() => this.playoffsCount() > 0);
+
+  private readonly tabNav = viewChild(MatTabNav);
+  private readonly tabNavElement = viewChild(MatTabNav, { read: ElementRef });
+
+  constructor() {
+    // A tab opened by its URL can be out of view on a phone. It runs again when
+    // the playoffs tab shows up, which pushes the ones after it further right.
+    afterRenderEffect(() => {
+      this.hasPlayoffs();
+      const nav = this.tabNav();
+      const host: HTMLElement | undefined = this.tabNavElement()?.nativeElement;
+
+      if (nav && host) {
+        // The router marks the active link and Material measures them first
+        setTimeout(() => this.showActiveTab(nav, host));
+      }
+    });
+  }
+
+  private showActiveTab(nav: MatTabNav, host: HTMLElement): void {
+    nav.updatePagination();
+
+    // The arrows that pagination adds make the visible area narrower
+    requestAnimationFrame(() => {
+      const link = host.querySelector<HTMLElement>(".mdc-tab--active");
+      const view = host.querySelector<HTMLElement>(
+        ".mat-mdc-tab-link-container",
+      );
+
+      if (link && view) {
+        const hidden = link.offsetLeft + link.offsetWidth - view.clientWidth;
+
+        if (hidden > 0) {
+          nav.scrollDistance = hidden;
+        }
+      }
+    });
+  }
 
   protected readonly crumbs = computed<Crumb[]>(() => [
     this.transloco.translate("nav.tournaments"),

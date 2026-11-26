@@ -317,6 +317,14 @@
     "history": {
       "title": "Historial de torneos",
       "search": "Buscar torneo...",
+      "filters": {
+        "title": "Filtros",
+        "clear": "Limpiar",
+        "active": "{{count}} activos"
+      },
+      "actions": {
+        "menu": "Acciones"
+      },
       "year": "Año",
       "allYears": "Todos los años",
       "columns": {

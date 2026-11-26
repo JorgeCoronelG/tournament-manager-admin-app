@@ -8,22 +8,29 @@
     </button>
   </div>
 } @else if (summary(); as data) {
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <div class="grid grid-cols-2 gap-4 max-sm:gap-3 lg:grid-cols-4">
     @for (card of cards(); track card.key) {
-      <div class="bg-foreground rounded shadow p-5">
-        <div class="flex items-start justify-between gap-2">
-          <p class="m-0 text-sm text-secondary">
+      <!-- As the dashboard's cards; a bit tighter on phones so long words fit -->
+      <div
+        class="flex items-center gap-3 rounded-xl bg-foreground p-4 shadow max-sm:gap-2 max-sm:px-2.5 max-sm:py-3"
+      >
+        <span
+          class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-600/10 text-primary-600 max-sm:size-9"
+        >
+          <mat-icon [svgIcon]="card.icon" />
+        </span>
+        <div class="min-w-0">
+          <p class="m-0 text-3xl font-semibold">{{ card.value | number }}</p>
+          <p class="m-0 break-words text-sm text-secondary max-sm:text-xs">
             {{ "tournaments.history.summary." + card.key | transloco }}
           </p>
-          <mat-icon class="shrink-0 text-secondary" [svgIcon]="card.icon" />
         </div>
-        <p class="m-0 mt-3 text-4xl font-semibold">{{ card.value }}</p>
       </div>
     }
   </div>
 
   @if (data.playoffs.length) {
-    <section class="bg-foreground rounded shadow mt-4 p-5">
+    <section class="bg-foreground rounded shadow mt-4 p-4 sm:p-5">
       <h2 class="m-0 flex items-center gap-2 text-base font-medium">
         <mat-icon svgIcon="mat:emoji_events" />
         {{ "tournaments.history.summary.results" | transloco }}
@@ -31,7 +38,7 @@
 
       <div class="mt-4 flex flex-col gap-4">
         @for (playoff of data.playoffs; track playoff.id) {
-          <div class="rounded border p-4">
+          <div class="rounded border p-3 sm:p-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <p class="m-0 font-medium">{{ playoff.name }}</p>
               <span
@@ -60,10 +67,12 @@
                       [src]="champion.logo_url"
                       class="h-6 w-6 shrink-0 rounded-full"
                     />
-                    <span class="truncate">{{ champion.name }}</span>
+                    <span class="min-w-0 max-sm:break-words sm:truncate">{{
+                      champion.name
+                    }}</span>
                   </p>
                   @if (playoff.runner_up; as runnerUp) {
-                    <p class="m-0 mt-1 text-sm text-secondary">
+                    <p class="m-0 mt-1 break-words text-sm text-secondary">
                       {{
                         "tournaments.history.summary.runnerUp"
                           | transloco: { team: runnerUp.name }
@@ -78,7 +87,7 @@
       </div>
     </section>
   } @else if (data.champion; as leaders) {
-    <section class="bg-foreground rounded shadow mt-4 p-5">
+    <section class="bg-foreground rounded shadow mt-4 p-4 sm:p-5">
       <h2 class="m-0 flex items-center gap-2 text-base font-medium">
         <mat-icon svgIcon="mat:emoji_events" />
         {{ "tournaments.history.summary.champion" | transloco }}
@@ -86,7 +95,7 @@
 
       <div class="mt-4 flex flex-col gap-4">
         @for (team of leaders.teams; track team.group_id) {
-          <div class="flex items-center gap-4 rounded border p-4">
+          <div class="flex items-center gap-4 rounded border p-3 sm:p-4">
             <mat-icon
               class="!size-7 shrink-0 text-amber-500"
               svgIcon="mat:emoji_events"
@@ -104,7 +113,9 @@
                   [src]="team.logo_url"
                   class="h-6 w-6 shrink-0 rounded-full"
                 />
-                <span class="truncate">{{ team.name }}</span>
+                <span class="min-w-0 max-sm:break-words sm:truncate">{{
+                  team.name
+                }}</span>
               </p>
             </div>
           </div>
@@ -114,15 +125,15 @@
   }
 } @else {
   <div aria-busy="true" class="animate-pulse">
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
       @for (card of [1, 2, 3, 4]; track card) {
-        <div class="bg-foreground rounded shadow p-5">
+        <div class="bg-foreground rounded shadow p-4 sm:p-5">
           <div class="h-3 w-32 rounded bg-gray-500/20"></div>
           <div class="mt-4 h-9 w-16 rounded bg-gray-500/20"></div>
         </div>
       }
     </div>
-    <div class="bg-foreground rounded shadow mt-4 p-5">
+    <div class="bg-foreground rounded shadow mt-4 p-4 sm:p-5">
       <div class="h-4 w-48 rounded bg-gray-500/20"></div>
       <div class="mt-4 h-24 rounded bg-gray-500/10"></div>
     </div>
