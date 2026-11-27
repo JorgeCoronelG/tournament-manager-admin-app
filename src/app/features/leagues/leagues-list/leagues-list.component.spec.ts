@@ -1,3 +1,4 @@
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { signal, WritableSignal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -44,10 +45,18 @@ describe("LeaguesListComponent", () => {
   let failure: WritableSignal<unknown>;
   let query: () => LeaguesQuery;
 
-  function setup() {
+  function setup(mobile = false) {
     TestBed.configureTestingModule({
       providers: [
         provideTestI18n(),
+        {
+          provide: BreakpointObserver,
+          useValue: {
+            observe: (query: string) =>
+              of({ matches: mobile && query.includes("599"), breakpoints: {} }),
+            isMatched: (query: string) => mobile && query.includes("599"),
+          },
+        },
         provideRouter([]),
         provideApp({ config: appConfigs.poseidon, availableThemes: [] }),
         { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
@@ -229,5 +238,77 @@ describe("LeaguesListComponent", () => {
     list.openForm(league(1));
     expect(notifySuccess).toHaveBeenCalledWith("leagues.updated");
     expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+  describe("on phones", () => {
+    const button = (root: ParentNode, label: string) =>
+      root.querySelector<HTMLButtonElement>(`button[aria-label^="${label}"]`);
+
+    it("shows the search and the filters button; manager and status wait for the panel", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+
+      expect(el.querySelector("input[type=search]")).toBeTruthy();
+      expect(button(el, "Filtros")).toBeTruthy();
+      expect(el.textContent).toContain("Nueva liga");
+      expect(el.querySelector("app-league-admin-select")).toBeNull();
+      expect(el.querySelector("mat-select")).toBeNull();
+
+      button(el, "Filtros")?.click();
+      fixture.detectChanges();
+      expect(el.querySelector("app-league-admin-select")).toBeTruthy();
+      expect(el.querySelector("mat-select")).toBeTruthy();
+    });
+
+    it("counts the manager and the status, and clears them", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+      const list = fixture.componentInstance;
+
+      button(el, "Filtros")?.click();
+      fixture.detectChanges();
+      const clear = Array.from(el.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Limpiar",
+      ) as HTMLButtonElement;
+      expect(clear.disabled).toBe(true);
+
+      list.filters.update((f) => ({ ...f, adminUserId: 7, status: "active" }));
+      fixture.detectChanges();
+      expect(list.activeFilters()).toBe(2);
+      expect(button(el, "Filtros")?.getAttribute("aria-label")).toBe(
+        "Filtros, 2 activos",
+      );
+
+      clear.click();
+      fixture.detectChanges();
+      expect(list.filters()).toMatchObject({ adminUserId: "", status: "" });
+    });
+
+    it("puts the actions menu first and drops the sticky actions column", () => {
+      const columns = setup(true).componentInstance.columns();
+
+      expect(columns[0]).toBe("actionsMenu");
+      expect(columns).not.toContain("actions");
+    });
+
+    it.each([
+      [true, ["Editar", "Desactivar liga", "Eliminar"]],
+      [false, ["Editar", "Activar liga", "Eliminar"]],
+    ])(
+      "offers the right actions when is_active is %s",
+      async (active, items) => {
+        rows.set([{ ...league(1), is_active: active }]);
+        const fixture = setup(true);
+
+        button(fixture.nativeElement, "Acciones")?.click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        const labels = Array.from(
+          document.querySelectorAll(".mat-mdc-menu-panel [mat-menu-item]"),
+        ).map((item) => item.textContent?.trim());
+        expect(labels).toEqual(items);
+      },
+    );
   });
 });

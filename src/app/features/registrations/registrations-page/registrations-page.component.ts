@@ -3,8 +3,10 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   signal,
+  viewChild,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
@@ -27,6 +29,15 @@ import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/ap
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
@@ -83,6 +94,7 @@ import { RegistrationsApi } from "../registrations.api";
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    RowActionsComponent,
     TournamentStatusChipComponent,
     TranslocoPipe,
     UserStatusChipComponent,
@@ -170,14 +182,64 @@ export class RegistrationsPageComponent {
   });
 
   /** The Group column only makes sense when the tournament has several regular groups */
-  readonly columns = computed(() => [
-    "logo",
-    "team",
-    ...(this.groupNames() ? ["group"] : []),
-    "manager",
-    "created_at",
-    "actions",
-  ]);
+  readonly isMobile = injectIsMobile();
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() => {
+    const data = [
+      "logo",
+      "team",
+      ...(this.groupNames() ? ["group"] : []),
+      "manager",
+      "created_at",
+    ];
+
+    return this.isMobile() ? ["actionsMenu", ...data] : [...data, "actions"];
+  });
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(registration: Registration): RowAction[] {
+    return [
+      ...(this.canWithdraw()
+        ? [
+            ...(this.canReplace()
+              ? [
+                  {
+                    icon: "mat:swap_horiz",
+                    labelKey: "registrations.actions.replace",
+                    run: () => this.replace(registration),
+                  },
+                ]
+              : []),
+            ...(!isWithdrawn(registration)
+              ? [
+                  {
+                    icon: "mat:person_remove",
+                    labelKey: "registrations.actions.withdraw",
+                    run: () => this.withdraw(registration),
+                    danger: true,
+                  },
+                ]
+              : []),
+            {
+              icon: "mat:history",
+              labelKey: "registrations.actions.history",
+              run: () => this.history(registration),
+            },
+          ]
+        : []),
+      ...(this.editable()
+        ? [
+            {
+              icon: "mat:remove_circle",
+              labelKey: "registrations.actions.remove",
+              run: () => this.remove(registration),
+              danger: true,
+            },
+          ]
+        : []),
+    ];
+  }
 
   /** Name of the registration's group as the backend says it (withdrawn teams keep theirs); null when it has none */
   groupName(registration: Registration): string | null {
@@ -197,6 +259,7 @@ export class RegistrationsPageComponent {
     filters: this.filters,
     defaultSort: { active: "created_at", direction: "desc" },
     resetOn: this.tournamentId,
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(this.tournamentId, query),
   });
 
@@ -205,7 +268,16 @@ export class RegistrationsPageComponent {
   readonly rows = this.list.rows;
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: back to the top of the table on a page change (there are no filters to fold) */
+  readonly changePage = mobileList({
+    filters: this.filters,
+    activeKeys: [],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  }).changePage;
 
   /** Totals of the whole tournament, whatever the search or the page */
   private readonly summary = computed(() => this.resource.value()?.summary);

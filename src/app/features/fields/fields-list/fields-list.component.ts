@@ -1,9 +1,12 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
   linkedSignal,
+  viewChild,
 } from "@angular/core";
 import { Observable } from "rxjs";
 import { MatButtonModule } from "@angular/material/button";
@@ -29,6 +32,17 @@ import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { FieldFormDialogComponent } from "../field-form-dialog/field-form-dialog.component";
 import { FieldStatusChipComponent } from "../field-status-chip/field-status-chip.component";
 import { Field, FIELD_STATUSES, FieldsFilters } from "../field.model";
@@ -46,6 +60,8 @@ import { FieldsApi } from "../fields.api";
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
     FieldStatusChipComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     LeagueRequiredComponent,
     MatButtonModule,
@@ -58,6 +74,8 @@ import { FieldsApi } from "../fields.api";
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    NgTemplateOutlet,
+    RowActionsComponent,
     TranslocoPipe,
   ],
 })
@@ -70,7 +88,16 @@ export class FieldsListComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  readonly columns = ["name", "status", "created_at", "actions"];
+  readonly isMobile = injectIsMobile();
+
+  private readonly dataColumns = ["name", "status", "created_at"];
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", ...this.dataColumns]
+      : [...this.dataColumns, "actions"],
+  );
   readonly statuses = FIELD_STATUSES;
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
@@ -88,6 +115,7 @@ export class FieldsListComponent {
     defaultSort: { active: "created_at", direction: "desc" },
     // Another league has other fields: start again from the first page
     resetOn: this.leagueContext.activeLeagueId,
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(query),
   });
 
@@ -98,9 +126,48 @@ export class FieldsListComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  private readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["status"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   readonly crumbs = computed(() => [this.transloco.translate("nav.fields")]);
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(field: Field): RowAction[] {
+    const active = field.status === "active";
+
+    return [
+      {
+        icon: "mat:edit",
+        labelKey: "fields.actions.edit",
+        run: () => this.openForm(field),
+      },
+      {
+        icon: active ? "mat:toggle_on" : "mat:toggle_off",
+        labelKey: active
+          ? "fields.actions.deactivate"
+          : "fields.actions.activate",
+        run: () => this.toggleStatus(field),
+      },
+      {
+        icon: "mat:delete",
+        labelKey: "fields.actions.delete",
+        run: () => this.remove(field),
+        danger: true,
+      },
+    ];
+  }
 
   openForm(field?: Field): void {
     this.dialog

@@ -5,6 +5,10 @@ import {
   Provider,
 } from "@angular/core";
 import {
+  MAT_DIALOG_DEFAULT_OPTIONS,
+  MatDialogConfig,
+} from "@angular/material/dialog";
+import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldDefaultOptions,
 } from "@angular/material/form-field";
@@ -36,6 +40,16 @@ export function provideApp(options: {
       useValue: {
         appearance: "outline",
       } satisfies MatFormFieldDefaultOptions,
+    },
+    {
+      // Dialogs never exceed the viewport; on phones they fill it (see _dialog.scss)
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      // Start from Material's own defaults (role, backdrop, focus...): the token replaces them
+      useFactory: (): MatDialogConfig => ({
+        ...new MatDialogConfig(),
+        maxWidth: "calc(100vw - 32px)",
+        maxHeight: "calc(100dvh - 32px)",
+      }),
     },
     {
       // Tooltips go above their element across the whole app

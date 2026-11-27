@@ -3,8 +3,10 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   linkedSignal,
+  viewChild,
 } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
@@ -31,6 +33,17 @@ import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
 import { UserStatusChipComponent } from "../../users/user-status-chip/user-status-chip.component";
 import {
@@ -58,6 +71,8 @@ import { TeamsApi } from "../teams.api";
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     LeagueRequiredComponent,
     LogoImageComponent,
@@ -72,6 +87,7 @@ import { TeamsApi } from "../teams.api";
     MatTableModule,
     MatTooltipModule,
     NgTemplateOutlet,
+    RowActionsComponent,
     TeamStatusChipComponent,
     TranslocoPipe,
     UserStatusChipComponent,
@@ -86,14 +102,14 @@ export class TeamsListComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  readonly columns = [
-    "logo",
-    "name",
-    "manager",
-    "status",
-    "created_at",
-    "actions",
-  ];
+  readonly isMobile = injectIsMobile();
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", "logo", "name", "status", "created_at"]
+      : ["logo", "name", "manager", "status", "created_at", "actions"],
+  );
   readonly statuses = TEAM_STATUSES;
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
@@ -115,6 +131,7 @@ export class TeamsListComponent {
     defaultSort: { active: "created_at", direction: "desc" },
     // Another league has other teams: start again from the first page
     resetOn: this.leagueContext.activeLeagueId,
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(query),
   });
 
@@ -125,7 +142,20 @@ export class TeamsListComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  private readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["status", "manager"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   /** The delegates of this league's teams, for the delegate filter */
   private readonly managersResource = this.api.managers();
@@ -147,6 +177,67 @@ export class TeamsListComponent {
   });
 
   readonly crumbs = computed(() => [this.transloco.translate("nav.teams")]);
+
+  /**
+   * The row's actions for the phone menu, the same as the desktop buttons: the
+   * team's, the delegate's group, and then (after a divider) ban and delete.
+   */
+  rowActions(team: Team): RowAction[] {
+    const banned = team.status === "banned";
+
+    return [
+      {
+        icon: "mat:edit",
+        labelKey: "teams.actions.edit",
+        run: () => this.openForm(team),
+      },
+      {
+        icon: team.manager ? "mat:swap_horiz" : "mat:person_add",
+        labelKey: team.manager
+          ? "teams.actions.changeManager"
+          : "teams.actions.assignManager",
+        run: () => this.openManager(team),
+      },
+      // Only a pending account can still be edited or re-invited
+      ...(team.manager?.account_status === "pending"
+        ? [
+            {
+              icon: "mat:manage_accounts",
+              labelKey: "teams.actions.editManager",
+              run: () => this.openManagerEdit(team),
+            },
+            {
+              icon: "mat:forward_to_inbox",
+              labelKey: "teams.actions.resendInvitation",
+              run: () => this.resendInvitation(team),
+            },
+          ]
+        : []),
+      ...(team.manager
+        ? [
+            {
+              icon: "mat:person_remove",
+              labelKey: "teams.actions.removeManager",
+              run: () => this.removeManager(team),
+              danger: true,
+            },
+          ]
+        : []),
+      {
+        icon: banned ? "mat:check_circle" : "mat:block",
+        labelKey: banned ? "teams.actions.reactivate" : "teams.actions.ban",
+        run: () => this.toggleStatus(team),
+        danger: !banned,
+        divider: true,
+      },
+      {
+        icon: "mat:delete",
+        labelKey: "teams.actions.delete",
+        run: () => this.remove(team),
+        danger: true,
+      },
+    ];
+  }
 
   openForm(team?: Team): void {
     this.dialog

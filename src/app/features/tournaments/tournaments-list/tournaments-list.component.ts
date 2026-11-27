@@ -2,9 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
   linkedSignal,
+  viewChild,
 } from "@angular/core";
+import { NgTemplateOutlet } from "@angular/common";
 import { Observable } from "rxjs";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
@@ -26,6 +29,17 @@ import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolb
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { TournamentFormDialogComponent } from "../tournament-form-dialog/tournament-form-dialog.component";
@@ -57,6 +71,8 @@ const START_DATE_FORMAT = new Intl.DateTimeFormat("es-MX", {
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     LeagueRequiredComponent,
     MatButtonModule,
@@ -69,6 +85,8 @@ const START_DATE_FORMAT = new Intl.DateTimeFormat("es-MX", {
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    NgTemplateOutlet,
+    RowActionsComponent,
     TournamentStatusChipComponent,
     TranslocoPipe,
   ],
@@ -83,14 +101,22 @@ export class TournamentsListComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  readonly columns = [
+  readonly isMobile = injectIsMobile();
+
+  private readonly dataColumns = [
     "name",
     "gender",
     "age",
     "start_date",
     "status",
-    "actions",
   ];
+
+  /** Desktop: icon buttons in the last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", ...this.dataColumns]
+      : [...this.dataColumns, "actions"],
+  );
   readonly genders = TOURNAMENT_GENDERS;
   readonly statuses = TOURNAMENT_STATUSES;
 
@@ -113,6 +139,7 @@ export class TournamentsListComponent {
     defaultSort: { active: "created_at", direction: "desc" },
     // Another league has other tournaments: start again from the first page
     resetOn: this.leagueContext.activeLeagueId,
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(query),
   });
 
@@ -123,7 +150,20 @@ export class TournamentsListComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  private readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["gender", "status"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   /** What the league uses of its limits; the summary and the start button read it */
   readonly limits = this.limitsApi.ofActiveLeague();
@@ -136,6 +176,45 @@ export class TournamentsListComponent {
 
     return !!limits && tournamentsReached(limits);
   });
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(tournament: Tournament): RowAction[] {
+    const planning = tournament.status === "planning";
+    const blocked = planning && this.startBlocked();
+
+    return [
+      ...(tournament.status !== "finished"
+        ? [
+            {
+              icon: "mat:edit",
+              labelKey: "tournaments.actions.edit",
+              run: () => this.openForm(tournament),
+            },
+            {
+              icon: planning ? "mat:play_circle" : "mat:check_circle",
+              labelKey: planning
+                ? "tournaments.actions.start"
+                : "tournaments.actions.finish",
+              run: () => this.advance(tournament),
+              disabled: blocked,
+              // No tooltips on touch screens: the reason is written in the menu
+              hint: blocked ? this.advanceTip(tournament) : undefined,
+            },
+          ]
+        : []),
+      ...(planning
+        ? [
+            {
+              icon: "mat:delete",
+              labelKey: "tournaments.actions.delete",
+              run: () => this.remove(tournament),
+              danger: true,
+              divider: true,
+            },
+          ]
+        : []),
+    ];
+  }
 
   /** Text of the start/finish button; at the limit, why the tournament cannot start */
   advanceTip(tournament: Tournament): string {
@@ -192,7 +271,6 @@ export class TournamentsListComponent {
         {
           data: tournament ?? null,
           width: "560px",
-          maxWidth: "95vw",
           autoFocus: tournament ? "dialog" : "first-tabbable",
         },
       )

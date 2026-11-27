@@ -86,12 +86,18 @@ export class GenerateMatchesDialogComponent {
       parts.push(t("matches.regenerate.lostReferees", referees));
     }
 
+    // Singular verb only when what is lost is a single thing
+    const single = parts.length === 1 && (scheduled || referees) === 1;
+
     return parts.length
-      ? this.transloco.translate("matches.regenerate.lost", {
-          what: parts.join(
-            ` ${this.transloco.translate("matches.regenerate.and")} `,
-          ),
-        })
+      ? this.transloco.translate(
+          `matches.regenerate.lost${single ? "Single" : ""}`,
+          {
+            what: parts.join(
+              ` ${this.transloco.translate("matches.regenerate.and")} `,
+            ),
+          },
+        )
       : null;
   });
 

@@ -61,6 +61,48 @@ export function roundResults(round: BracketRound): RoundResults {
   return { first, second, any: first || second };
 }
 
+/** One entry of the flat download menu of a round (phones): no submenus */
+export interface DownloadOption {
+  kind: "schedule" | "results";
+  choice: LegChoice;
+  /** There is nothing to download yet (a results image with no score) */
+  disabled: boolean;
+  /** Starts a new group: the results come after the schedules */
+  divider: boolean;
+}
+
+/** The images a round offers as one list: schedules, then results; a home-and-away round adds one per leg */
+export function downloadOptions(round: BracketRound): DownloadOption[] {
+  const results = roundResults(round);
+
+  if (round.legs === 1) {
+    return [
+      { kind: "schedule", choice: "both", disabled: false, divider: false },
+      {
+        kind: "results",
+        choice: "both",
+        disabled: !results.any,
+        divider: true,
+      },
+    ];
+  }
+
+  const enabled = {
+    first: results.first,
+    second: results.second,
+    both: results.any,
+  };
+
+  return (["schedule", "results"] as const).flatMap((kind) =>
+    (["first", "second", "both"] as const).map((choice) => ({
+      kind,
+      choice,
+      disabled: kind === "results" && !enabled[choice],
+      divider: kind === "results" && choice === "first",
+    })),
+  );
+}
+
 /** The matches of a tie an image includes, in leg order */
 export function matchesOf(tie: BracketTie, choice: LegChoice): BracketMatch[] {
   const sorted = [...tie.matches].sort(

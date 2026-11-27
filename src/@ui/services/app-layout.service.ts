@@ -2,6 +2,7 @@ import { effect, inject, Service, signal } from "@angular/core";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { map } from "rxjs/operators";
+import { mediaDown, mediaUp } from "../tailwind/breakpoints";
 
 @Service()
 export class AppLayoutService {
@@ -16,12 +17,12 @@ export class AppLayoutService {
   private readonly _sidenavCollapsedOpen = signal(false);
   readonly sidenavCollapsedOpen = this._sidenavCollapsedOpen.asReadonly();
 
-  readonly isDesktop = this.observeQuery("(min-width: 1280px)");
-  readonly ltLg = this.observeQuery("(max-width: 1279px)");
-  readonly gtMd = this.observeQuery("(min-width: 960px)");
-  readonly ltMd = this.observeQuery("(max-width: 959px)");
-  readonly gtSm = this.observeQuery("(min-width: 600px)");
-  readonly isMobile = this.observeQuery("(max-width: 599px)");
+  readonly isDesktop = this.observeQuery(mediaUp("lg"));
+  readonly ltLg = this.observeQuery(mediaDown("lg"));
+  readonly gtMd = this.observeQuery(mediaUp("md"));
+  readonly ltMd = this.observeQuery(mediaDown("md"));
+  readonly gtSm = this.observeQuery(mediaUp("sm"));
+  readonly isMobile = this.observeQuery(mediaDown("sm"));
 
   constructor() {
     /**

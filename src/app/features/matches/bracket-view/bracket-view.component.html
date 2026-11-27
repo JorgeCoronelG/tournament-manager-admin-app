@@ -1,5 +1,5 @@
 @if (playoffs().length > 1) {
-  <mat-form-field class="w-72">
+  <mat-form-field class="max-sm:w-full sm:w-72">
     <mat-label>{{ "matches.bracket.playoff" | transloco }}</mat-label>
     <mat-select [formField]="pickForm.playoff">
       @for (playoff of playoffs(); track playoff.group_id; let i = $index) {
@@ -16,7 +16,7 @@
       role="status"
     >
       <mat-icon class="shrink-0" svgIcon="mat:emoji_events" />
-      <p class="m-0 font-medium">
+      <p class="m-0 min-w-0 font-medium">
         {{
           "matches.bracket.champion" | transloco: { team: champion.team_name }
         }}
@@ -26,289 +26,435 @@
 
   @if (editable() && allDecided()) {
     <div class="flex justify-end mb-4">
-      <button (click)="finish()" color="primary" mat-flat-button type="button">
+      <button
+        class="max-sm:w-full"
+        (click)="finish()"
+        color="primary"
+        mat-flat-button
+        type="button"
+      >
         <mat-icon svgIcon="mat:flag" />
         {{ "matches.bracket.finish" | transloco }}
       </button>
     </div>
   }
 
-  <div class="flex items-stretch gap-6 overflow-x-auto pb-2">
-    @for (round of playoff.rounds; track round.index) {
-      <section class="shrink-0 w-96 flex flex-col gap-3">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="m-0 text-lg font-medium">{{ round.name }}</h2>
-          @if (!readOnly()) {
-            @let results = roundResults(round);
+  <ng-template #downloadTpl let-playoff="playoff" let-round>
+    @if (!readOnly()) {
+      @let results = roundResults(round);
+      <button
+        class="app-action-primary max-sm:mr-1 sm:[&_.mat-mdc-button-touch-target]:hidden"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+        [attr.aria-busy]="exportingImage() === round.index"
+        [attr.aria-label]="'matches.jornadaImage.downloadImage' | transloco"
+        [matMenuTriggerFor]="downloadMenu"
+        [matTooltip]="
+          isMobile() ? '' : ('matches.jornadaImage.downloadImage' | transloco)
+        "
+        mat-icon-button
+        type="button"
+      >
+        @if (exportingImage() === round.index) {
+          <app-spinner [size]="20" />
+        } @else {
+          <mat-icon svgIcon="mat:download" />
+        }
+      </button>
+      <mat-menu #downloadMenu="matMenu">
+        @if (isMobile()) {
+          @let options = downloadOptions(round);
+          @for (option of options; track option.kind + option.choice) {
+            @if (option.divider) {
+              <mat-divider />
+            }
+            @if (round.legs > 1 && (option.divider || $first)) {
+              <p class="m-0 px-4 pt-2 pb-1 text-xs font-medium text-secondary">
+                {{
+                  (option.kind === "schedule"
+                    ? "matches.playoffImage.schedule"
+                    : "matches.playoffImage.results"
+                  ) | transloco
+                }}
+              </p>
+            }
             <button
-              (click)="$event.stopPropagation()"
-              (keydown)="$event.stopPropagation()"
-              [attr.aria-busy]="exportingImage() === round.index"
-              [attr.aria-label]="
-                'matches.jornadaImage.downloadImage' | transloco
-              "
-              [matMenuTriggerFor]="downloadMenu"
-              [matTooltip]="'matches.jornadaImage.downloadImage' | transloco"
-              class="[&_.mat-mdc-button-touch-target]:hidden app-action-primary"
-              mat-icon-button
+              (click)="download(playoff, round, option.kind, option.choice)"
+              [disabled]="option.disabled"
+              mat-menu-item
               type="button"
             >
-              @if (exportingImage() === round.index) {
-                <app-spinner [size]="20" />
-              } @else {
-                <mat-icon svgIcon="mat:download" />
-              }
+              <mat-icon
+                [svgIcon]="
+                  round.legs === 1
+                    ? option.kind === 'schedule'
+                      ? 'mat:calendar_month'
+                      : 'mat:bar_chart'
+                    : option.choice === 'first'
+                      ? 'mat:arrow_forward'
+                      : option.choice === 'second'
+                        ? 'mat:arrow_back'
+                        : 'mat:layers'
+                "
+              />
+              <span class="flex flex-col leading-tight">
+                <span>{{
+                  (round.legs === 1
+                    ? option.kind === "schedule"
+                      ? "matches.playoffImage.schedule"
+                      : "matches.playoffImage.results"
+                    : "matches.playoffImage." + option.choice
+                  ) | transloco
+                }}</span>
+                @if (round.legs > 1 && option.choice === "both") {
+                  <span class="text-xs text-secondary">{{
+                    "matches.playoffImage.bothSubtitle" | transloco
+                  }}</span>
+                }
+                @if (option.disabled) {
+                  <span class="text-xs text-secondary">{{
+                    "matches.playoffImage.noResultsYet" | transloco
+                  }}</span>
+                }
+              </span>
             </button>
-            <mat-menu #downloadMenu="matMenu">
-              @if (round.legs === 1) {
-                <button
-                  (click)="download(playoff, round, 'schedule', 'both')"
-                  mat-menu-item
-                  type="button"
-                >
-                  <mat-icon svgIcon="mat:calendar_month" />
-                  {{ "matches.playoffImage.schedule" | transloco }}
-                </button>
-                <button
-                  (click)="download(playoff, round, 'results', 'both')"
-                  [disabled]="!results.any"
-                  mat-menu-item
-                  type="button"
-                >
-                  <mat-icon svgIcon="mat:bar_chart" />
-                  <span class="flex flex-col leading-tight">
-                    <span>{{
-                      "matches.playoffImage.results" | transloco
-                    }}</span>
-                    @if (!results.any) {
-                      <span class="text-xs text-secondary">{{
-                        "matches.playoffImage.noResultsYet" | transloco
-                      }}</span>
-                    }
-                  </span>
-                </button>
-              } @else {
-                <button
-                  [matMenuTriggerFor]="scheduleLegs"
-                  mat-menu-item
-                  type="button"
-                >
-                  <mat-icon svgIcon="mat:calendar_month" />
-                  {{ "matches.playoffImage.schedule" | transloco }}
-                </button>
-                <button
-                  [disabled]="!results.any"
-                  [matMenuTriggerFor]="resultsLegs"
-                  mat-menu-item
-                  type="button"
-                >
-                  <mat-icon svgIcon="mat:bar_chart" />
-                  <span class="flex flex-col leading-tight">
-                    <span>{{
-                      "matches.playoffImage.results" | transloco
-                    }}</span>
-                    @if (!results.any) {
-                      <span class="text-xs text-secondary">{{
-                        "matches.playoffImage.noResultsYet" | transloco
-                      }}</span>
-                    }
-                  </span>
-                </button>
-              }
-            </mat-menu>
-            <mat-menu #scheduleLegs="matMenu">
-              <button
-                (click)="download(playoff, round, 'schedule', 'first')"
-                mat-menu-item
-                type="button"
-              >
-                <mat-icon svgIcon="mat:arrow_forward" />
-                {{ "matches.playoffImage.first" | transloco }}
-              </button>
-              <button
-                (click)="download(playoff, round, 'schedule', 'second')"
-                mat-menu-item
-                type="button"
-              >
-                <mat-icon svgIcon="mat:arrow_back" />
-                {{ "matches.playoffImage.second" | transloco }}
-              </button>
-              <mat-divider />
-              <button
-                (click)="download(playoff, round, 'schedule', 'both')"
-                mat-menu-item
-                type="button"
-              >
-                <mat-icon svgIcon="mat:layers" />
-                <span class="flex flex-col leading-tight">
-                  <span>{{ "matches.playoffImage.both" | transloco }}</span>
-                  <span class="text-xs text-secondary">{{
-                    "matches.playoffImage.bothSubtitle" | transloco
-                  }}</span>
-                </span>
-              </button>
-            </mat-menu>
-            <mat-menu #resultsLegs="matMenu">
-              <button
-                (click)="download(playoff, round, 'results', 'first')"
-                [disabled]="!results.first"
-                mat-menu-item
-                type="button"
-              >
-                <mat-icon svgIcon="mat:arrow_forward" />
-                {{ "matches.playoffImage.first" | transloco }}
-              </button>
-              <button
-                (click)="download(playoff, round, 'results', 'second')"
-                [disabled]="!results.second"
-                mat-menu-item
-                type="button"
-              >
-                <mat-icon svgIcon="mat:arrow_back" />
-                {{ "matches.playoffImage.second" | transloco }}
-              </button>
-              <mat-divider />
-              <button
-                (click)="download(playoff, round, 'results', 'both')"
-                [disabled]="!results.any"
-                mat-menu-item
-                type="button"
-              >
-                <mat-icon svgIcon="mat:layers" />
-                <span class="flex flex-col leading-tight">
-                  <span>{{ "matches.playoffImage.both" | transloco }}</span>
-                  <span class="text-xs text-secondary">{{
-                    "matches.playoffImage.bothSubtitle" | transloco
-                  }}</span>
-                </span>
-              </button>
-            </mat-menu>
           }
-        </div>
-        <div class="flex flex-1 flex-col justify-around gap-3">
-          @let current = isCurrent(playoff, round);
-          @for (tie of round.ties; track tie.id; let tieIndex = $index) {
-            @let compact =
-              current || (tie.team_a !== null && tie.team_b !== null);
-            <article
-              [attr.aria-label]="
-                (tie.team_a?.team_name ?? ('matches.bracket.tbd' | transloco)) +
-                ' / ' +
-                (tie.team_b?.team_name ?? ('matches.bracket.tbd' | transloco))
-              "
-              class="bg-foreground rounded shadow p-3 flex flex-col gap-2"
+        } @else {
+          @if (round.legs === 1) {
+            <button
+              (click)="download(playoff, round, 'schedule', 'both')"
+              mat-menu-item
+              type="button"
             >
+              <mat-icon svgIcon="mat:calendar_month" />
+              {{ "matches.playoffImage.schedule" | transloco }}
+            </button>
+            <button
+              (click)="download(playoff, round, 'results', 'both')"
+              [disabled]="!results.any"
+              mat-menu-item
+              type="button"
+            >
+              <mat-icon svgIcon="mat:bar_chart" />
+              <span class="flex flex-col leading-tight">
+                <span>{{ "matches.playoffImage.results" | transloco }}</span>
+                @if (!results.any) {
+                  <span class="text-xs text-secondary">{{
+                    "matches.playoffImage.noResultsYet" | transloco
+                  }}</span>
+                }
+              </span>
+            </button>
+          } @else {
+            <button
+              [matMenuTriggerFor]="scheduleLegs"
+              mat-menu-item
+              type="button"
+            >
+              <mat-icon svgIcon="mat:calendar_month" />
+              {{ "matches.playoffImage.schedule" | transloco }}
+            </button>
+            <button
+              [disabled]="!results.any"
+              [matMenuTriggerFor]="resultsLegs"
+              mat-menu-item
+              type="button"
+            >
+              <mat-icon svgIcon="mat:bar_chart" />
+              <span class="flex flex-col leading-tight">
+                <span>{{ "matches.playoffImage.results" | transloco }}</span>
+                @if (!results.any) {
+                  <span class="text-xs text-secondary">{{
+                    "matches.playoffImage.noResultsYet" | transloco
+                  }}</span>
+                }
+              </span>
+            </button>
+          }
+        }
+      </mat-menu>
+      <mat-menu #scheduleLegs="matMenu">
+        <button
+          (click)="download(playoff, round, 'schedule', 'first')"
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon svgIcon="mat:arrow_forward" />
+          {{ "matches.playoffImage.first" | transloco }}
+        </button>
+        <button
+          (click)="download(playoff, round, 'schedule', 'second')"
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon svgIcon="mat:arrow_back" />
+          {{ "matches.playoffImage.second" | transloco }}
+        </button>
+        <mat-divider />
+        <button
+          (click)="download(playoff, round, 'schedule', 'both')"
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon svgIcon="mat:layers" />
+          <span class="flex flex-col leading-tight">
+            <span>{{ "matches.playoffImage.both" | transloco }}</span>
+            <span class="text-xs text-secondary">{{
+              "matches.playoffImage.bothSubtitle" | transloco
+            }}</span>
+          </span>
+        </button>
+      </mat-menu>
+      <mat-menu #resultsLegs="matMenu">
+        <button
+          (click)="download(playoff, round, 'results', 'first')"
+          [disabled]="!results.first"
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon svgIcon="mat:arrow_forward" />
+          {{ "matches.playoffImage.first" | transloco }}
+        </button>
+        <button
+          (click)="download(playoff, round, 'results', 'second')"
+          [disabled]="!results.second"
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon svgIcon="mat:arrow_back" />
+          {{ "matches.playoffImage.second" | transloco }}
+        </button>
+        <mat-divider />
+        <button
+          (click)="download(playoff, round, 'results', 'both')"
+          [disabled]="!results.any"
+          mat-menu-item
+          type="button"
+        >
+          <mat-icon svgIcon="mat:layers" />
+          <span class="flex flex-col leading-tight">
+            <span>{{ "matches.playoffImage.both" | transloco }}</span>
+            <span class="text-xs text-secondary">{{
+              "matches.playoffImage.bothSubtitle" | transloco
+            }}</span>
+          </span>
+        </button>
+      </mat-menu>
+    }
+  </ng-template>
+
+  <ng-template #tiesTpl let-playoff="playoff" let-round>
+    <div class="flex flex-col gap-3 sm:flex-1 sm:justify-around">
+      @let current = isCurrent(playoff, round);
+      @for (tie of round.ties; track tie.id; let tieIndex = $index) {
+        @let compact = current || (tie.team_a !== null && tie.team_b !== null);
+        <article
+          [attr.aria-label]="
+            (tie.team_a?.team_name ?? ('matches.bracket.tbd' | transloco)) +
+            ' / ' +
+            (tie.team_b?.team_name ?? ('matches.bracket.tbd' | transloco))
+          "
+          class="bg-foreground rounded shadow p-3 flex flex-col gap-2"
+        >
+          <div
+            [class]="
+              compact
+                ? 'flex flex-col gap-2'
+                : 'flex flex-col gap-2 rounded bg-gray-500/10 p-3'
+            "
+          >
+            @for (side of ["a", "b"]; track side) {
+              @let team = side === "a" ? tie.team_a : tie.team_b;
               <div
                 [class]="
-                  compact
-                    ? 'flex flex-col gap-2'
-                    : 'flex flex-col gap-2 rounded bg-gray-500/10 p-3'
+                  isWinner(tie, team)
+                    ? 'flex items-center gap-2 rounded px-2 py-1 bg-green-600/10 font-medium'
+                    : 'flex items-center gap-2 rounded px-2 py-1'
                 "
               >
-                @for (side of ["a", "b"]; track side) {
-                  @let team = side === "a" ? tie.team_a : tie.team_b;
-                  <div
-                    [class]="
-                      isWinner(tie, team)
-                        ? 'flex items-center gap-2 rounded px-2 py-1 bg-green-600/10 font-medium'
-                        : 'flex items-center gap-2 rounded px-2 py-1'
-                    "
+                @if (team) {
+                  @if (!isMobile()) {
+                    <app-logo-image
+                      [alt]="team.team_name"
+                      [src]="team.logo_url"
+                      class="w-6 h-6 rounded-full shrink-0"
+                    />
+                  }
+                  <span
+                    class="flex-1 max-sm:min-w-0 max-sm:line-clamp-2 sm:truncate"
                   >
-                    @if (team) {
-                      <app-logo-image
-                        [alt]="team.team_name"
-                        [src]="team.logo_url"
-                        class="w-6 h-6 rounded-full shrink-0"
-                      />
-                      <span class="flex-1 truncate">
-                        @if (!compact && seedOf(tie, $any(side)); as seed) {
-                          <span class="text-secondary">{{ seed }}.</span>
-                        }
-                        {{ team.team_name }}
-                      </span>
-                      @if (compact && seedOf(tie, $any(side)); as seed) {
-                        <span class="text-secondary text-sm">{{ seed }}.º</span>
-                      }
-                      @if (isWinner(tie, team)) {
-                        <mat-icon
-                          class="!size-4 !text-base"
-                          svgIcon="mat:check_circle"
-                        />
-                      }
-                    } @else if (
-                      feederLabel(playoff, round, tieIndex, $any(side));
-                      as feeder
+                    @if (
+                      !compact && !isMobile() && seedOf(tie, $any(side));
+                      as seed
                     ) {
-                      <mat-icon
-                        class="shrink-0 text-secondary"
-                        svgIcon="mat:shield"
-                      />
-                      <span class="text-secondary">{{ feeder }}</span>
-                    } @else {
-                      <span class="text-secondary">{{
-                        "matches.bracket.tbd" | transloco
-                      }}</span>
+                      <span class="text-secondary">{{ seed }}.</span>
                     }
-                  </div>
+                    {{ team.team_name }}
+                  </span>
+                  @if (
+                    (compact || isMobile()) && seedOf(tie, $any(side));
+                    as seed
+                  ) {
+                    <span class="shrink-0 text-secondary text-sm"
+                      >{{ seed }}.º</span
+                    >
+                  }
+                  @if (isWinner(tie, team)) {
+                    <mat-icon
+                      class="shrink-0 !size-4 !text-base"
+                      svgIcon="mat:check_circle"
+                    />
+                  }
+                } @else if (
+                  feederLabel(playoff, round, tieIndex, $any(side));
+                  as feeder
+                ) {
+                  <mat-icon
+                    class="shrink-0 text-secondary"
+                    svgIcon="mat:shield"
+                  />
+                  <span class="min-w-0 text-secondary">{{ feeder }}</span>
+                } @else {
+                  <span class="text-secondary">{{
+                    "matches.bracket.tbd" | transloco
+                  }}</span>
                 }
               </div>
+            }
+          </div>
 
-              @for (match of tie.matches; track match.id) {
-                @if (compact && hasTeams(match)) {
-                  <div class="border-t pt-3 text-sm flex flex-col gap-2">
-                    <div class="flex items-center justify-between gap-2">
-                      <span class="font-medium">{{ legLabel(match) }}</span>
-                      <span class="flex items-center gap-2 text-secondary">
-                        @if (
-                          match.original_match_datetime &&
-                          match.status !== "played"
-                        ) {
-                          <span
-                            [matTooltip]="previousSlot(match)"
-                            class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-blue-600/10 text-blue-800 dark:text-blue-300"
-                            >{{ "matches.rescheduled" | transloco }}</span
-                          >
-                        }
-                        @if (match.match_datetime) {
-                          {{ slotText(match) }}
-                        } @else if (match.scheduled_date) {
-                          {{
-                            parseDate(match.scheduled_date) | date: "dd/MM/yyyy"
-                          }}
-                        }
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                      <span class="truncate">
-                        {{ match.home_team?.team_name }}
-                        {{ "matches.vs" | transloco }}
-                        {{ match.away_team?.team_name }}
-                      </span>
-                      <span class="flex items-center gap-1 whitespace-nowrap">
-                        @if (match.status === "played") {
-                          <span class="font-medium">{{ score(match) }}</span>
-                          @if (match.is_walkover) {
-                            <span
-                              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                              >{{ "matches.walkover.tag" | transloco }}</span
-                            >
+          @for (match of tie.matches; track match.id) {
+            @if (isMobile()) {
+              <div class="border-t pt-4 text-sm flex flex-col gap-3">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="min-w-0 pt-0.5 font-medium">{{
+                    legLabel(match)
+                  }}</span>
+                  <div class="flex flex-wrap items-center justify-end gap-1">
+                    @if (isFinal(playoff, round)) {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-800 dark:text-amber-400"
+                        >{{ "matches.bracket.final" | transloco }}</span
+                      >
+                    }
+                    @if (match.status === "played") {
+                      @if (match.is_walkover) {
+                        <span
+                          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                          >{{ "matches.walkover.tag" | transloco }}</span
+                        >
+                      }
+                      @if (!readOnly()) {
+                        <span
+                          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/10 text-green-800 dark:text-green-400"
+                          >{{ "matches.played" | transloco }}</span
+                        >
+                      }
+                    } @else if (hasTeams(match)) {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                        >{{ "matches.bracket.toPlay" | transloco }}</span
+                      >
+                    }
+                    @if (
+                      match.original_match_datetime && match.status !== "played"
+                    ) {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-blue-600/10 text-blue-800 dark:text-blue-300"
+                        >{{ "matches.rescheduled" | transloco }}</span
+                      >
+                    }
+                    @if (hasWithdrawn(match)) {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                        >{{ "matches.withdrawnTeam" | transloco }}</span
+                      >
+                    }
+                  </div>
+                </div>
+                @if (
+                  hasTeams(match) &&
+                  (match.match_datetime || match.scheduled_date)
+                ) {
+                  <span class="text-secondary">
+                    @if (match.match_datetime) {
+                      {{ slotText(match) }}
+                    } @else {
+                      {{
+                        parseDate(match.scheduled_date!) | date: "dd/MM/yyyy"
+                      }}
+                    }
+                  </span>
+                }
+                @let actions = matchActions(playoff, round, tie, match);
+                @if (hasTeams(match) || actions.length > 0) {
+                  <div class="flex items-center gap-2 py-1">
+                    @if (hasTeams(match)) {
+                      @let winner = matchWinner(match);
+                      @let played = match.status === "played";
+                      <div class="flex flex-1 min-w-0 flex-col gap-2">
+                        <div
+                          [class]="
+                            winner === 'home'
+                              ? 'flex items-start gap-2 font-semibold'
+                              : winner === 'away'
+                                ? 'flex items-start gap-2 text-secondary'
+                                : 'flex items-start gap-2'
+                          "
+                        >
+                          <span class="flex-1 min-w-0 line-clamp-2">{{
+                            match.home_team?.team_name
+                          }}</span>
+                          @if (played) {
+                            <span class="min-w-8 text-right tabular-nums">
+                              {{ match.home_goals }}
+                              @if (match.home_penalties !== null) {
+                                <small>({{ match.home_penalties }})</small>
+                              }
+                            </span>
                           }
-                          @if (!readOnly()) {
-                            <span
-                              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/10 text-green-800 dark:text-green-400"
-                              >{{ "matches.played" | transloco }}</span
-                            >
-                          }
-                        } @else {
-                          <span
-                            class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                            >{{ "matches.bracket.toPlay" | transloco }}</span
-                          >
+                        </div>
+                        @if (!played) {
+                          <span class="text-xs text-secondary">{{
+                            "matches.vs" | transloco
+                          }}</span>
                         }
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2">
+                        <div
+                          [class]="
+                            winner === 'away'
+                              ? 'flex items-start gap-2 font-semibold'
+                              : winner === 'home'
+                                ? 'flex items-start gap-2 text-secondary'
+                                : 'flex items-start gap-2'
+                          "
+                        >
+                          <span class="flex-1 min-w-0 line-clamp-2">{{
+                            match.away_team?.team_name
+                          }}</span>
+                          @if (played) {
+                            <span class="min-w-8 text-right tabular-nums">
+                              {{ match.away_goals }}
+                              @if (match.away_penalties !== null) {
+                                <small>({{ match.away_penalties }})</small>
+                              }
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="flex flex-1 min-w-0 flex-col gap-1">
+                        @if (match.match_datetime || match.scheduled_date) {
+                          <span class="text-secondary">
+                            @if (match.match_datetime) {
+                              {{ slotText(match) }}
+                            } @else {
+                              {{
+                                parseDate(match.scheduled_date!)
+                                  | date: "dd/MM/yyyy"
+                              }}
+                            }
+                          </span>
+                        }
                         <span
                           [class.opacity-60]="!match.referee"
                           class="text-xs text-secondary"
@@ -321,226 +467,373 @@
                               : ("matches.noReferee" | transloco)
                           }}
                         </span>
-                        @if (match.schedule_locked) {
-                          <mat-icon
-                            [matTooltip]="'matches.lockedMatch' | transloco"
-                            class="!w-4 !h-4 text-secondary"
-                            svgIcon="mat:lock"
-                          />
-                        }
                       </div>
-                      <span class="flex items-center">
-                        @if (schedulable() && match.status === "scheduled") {
-                          <button
-                            (click)="program(playoff, round, match)"
-                            [attr.aria-label]="
-                              'matches.program.action' | transloco
-                            "
-                            [matTooltip]="'matches.program.action' | transloco"
-                            class="size-9! p-1.5! [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
-                            mat-icon-button
-                            type="button"
-                          >
-                            <mat-icon svgIcon="mat:calendar_month" />
-                          </button>
-                        }
-                        @if (editable() && match.status === "scheduled") {
-                          <button
-                            (click)="walkover(match)"
-                            [attr.aria-label]="
-                              'matches.walkover.action' | transloco
-                            "
-                            [matTooltip]="'matches.walkover.action' | transloco"
-                            class="size-9! p-1.5! [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
-                            mat-icon-button
-                            type="button"
-                          >
-                            <mat-icon svgIcon="mat:flag" />
-                          </button>
-                        }
-                        @if (editable()) {
-                          @let locked = hasLaterResults(playoff, round);
-                          <!-- A disabled button gets no pointer events: the tooltip lives on its wrapper -->
-                          <span
-                            [matTooltip]="
-                              (locked
-                                ? 'matches.bracket.resultLocked'
-                                : hasWithdrawn(match)
-                                  ? 'matches.result.withdrawnTooltip'
-                                  : 'matches.result.editTooltip'
-                              ) | transloco
-                            "
-                            class="inline-flex"
-                          >
-                            <button
-                              (click)="editResult(tie, match)"
-                              [attr.aria-label]="
-                                'matches.result.editTooltip' | transloco
-                              "
-                              [disabled]="locked || hasWithdrawn(match)"
-                              class="size-9! p-1.5! [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
-                              mat-icon-button
-                              type="button"
-                            >
-                              <mat-icon svgIcon="mat:scoreboard" />
-                            </button>
-                          </span>
-                        }
-                      </span>
-                    </div>
-                  </div>
-                } @else {
-                  <div class="border-t pt-2 text-sm flex flex-col gap-1">
-                    <div
-                      class="flex items-center justify-between gap-2 text-secondary"
-                    >
-                      <span>{{ legLabel(match) }}</span>
-                      <span class="flex items-center gap-1 text-right">
-                        @if (match.match_datetime) {
-                          @if (isFinal(playoff, round)) {
-                            <span
-                              class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-800 dark:text-amber-400"
-                              >{{ "matches.bracket.final" | transloco }}</span
-                            >
-                          }
-                          {{ slotText(match) }}
-                        } @else if (match.scheduled_date) {
-                          {{
-                            parseDate(match.scheduled_date) | date: "dd/MM/yyyy"
-                          }}
-                        }
-                      </span>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2 text-xs">
-                      <span
-                        [class.opacity-60]="!match.referee"
-                        class="text-secondary"
-                      >
-                        {{
-                          match.referee
-                            ? ("matches.referee"
-                              | transloco: { name: match.referee.name ?? "—" })
-                            : ("matches.noReferee" | transloco)
-                        }}
-                      </span>
-                      @if (match.schedule_locked) {
-                        <mat-icon
-                          [matTooltip]="'matches.lockedMatch' | transloco"
-                          class="!w-4 !h-4 text-secondary"
-                          svgIcon="mat:lock"
-                        />
-                      }
-                      @if (match.original_match_datetime) {
-                        <span
-                          [matTooltip]="previousSlot(match)"
-                          class="inline-block rounded-full px-2 py-0.5 font-medium bg-blue-600/10 text-blue-800 dark:text-blue-300"
-                          >{{ "matches.rescheduled" | transloco }}</span
-                        >
-                      }
-                      @if (schedulable() && match.status === "scheduled") {
-                        <button
-                          (click)="program(playoff, round, match)"
-                          [attr.aria-label]="
-                            'matches.program.action' | transloco
-                          "
-                          [matTooltip]="'matches.program.action' | transloco"
-                          class="ml-auto app-action-primary"
-                          mat-icon-button
-                          type="button"
-                        >
-                          <mat-icon svgIcon="mat:calendar_month" />
-                        </button>
-                      }
-                    </div>
-                    @if (hasTeams(match)) {
-                      <div class="flex items-center justify-between gap-2">
-                        <span class="truncate">
-                          {{ match.home_team?.team_name }}
-                          {{ "matches.vs" | transloco }}
-                          {{ match.away_team?.team_name }}
-                          @if (hasWithdrawn(match)) {
-                            <span
-                              class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                              >{{ "matches.withdrawnTeam" | transloco }}</span
-                            >
-                          }
-                        </span>
-                        <span class="font-medium whitespace-nowrap">
-                          {{
-                            score(match) ??
-                              ("matches.bracket.toPlay" | transloco)
-                          }}
-                          @if (match.is_walkover) {
-                            <span
-                              class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
-                              >{{ "matches.walkover.tag" | transloco }}</span
-                            >
-                          }
-                        </span>
-                      </div>
-                      @if (editable() && match.status === "played") {
-                        <div class="flex justify-end">
-                          <button
-                            (click)="editResult(tie, match)"
-                            [attr.aria-label]="
-                              'matches.result.editTooltip' | transloco
-                            "
-                            [matTooltip]="
-                              'matches.result.editTooltip' | transloco
-                            "
-                            class="app-action-primary"
-                            mat-icon-button
-                            type="button"
-                          >
-                            <mat-icon svgIcon="mat:scoreboard" />
-                          </button>
-                        </div>
-                      } @else if (editable()) {
-                        <div class="flex gap-2">
-                          <button
-                            (click)="editResult(tie, match)"
-                            [disabled]="hasWithdrawn(match)"
-                            mat-stroked-button
-                            type="button"
-                          >
-                            {{ "matches.bracket.register" | transloco }}
-                          </button>
-                          <button
-                            (click)="walkover(match)"
-                            mat-stroked-button
-                            type="button"
-                          >
-                            {{ "matches.walkover.action" | transloco }}
-                          </button>
-                        </div>
-                      }
+                    }
+                    @if (actions.length > 0) {
+                      <app-row-actions
+                        [actions]="actions"
+                        class="shrink-0 mr-0.5"
+                        labelKey="matches.bracket.matchMenu"
+                      />
                     }
                   </div>
                 }
-              }
-
-              @if (tie.matches.length > 1 && tie.aggregate; as aggregate) {
-                <p class="m-0 text-sm font-medium">
-                  {{
-                    "matches.bracket.global"
-                      | transloco: { a: aggregate.a, b: aggregate.b }
-                  }}
-                </p>
-              }
-              @if (tie.decided_by === "walkover") {
-                <p class="m-0 text-xs text-secondary">
-                  {{ "matches.bracket.walkoverWin" | transloco }}
-                </p>
-              }
-              @if (tie.decided_by === "penalties") {
-                <p class="m-0 text-xs text-secondary">
-                  {{ "matches.bracket.penaltiesWin" | transloco }}
-                </p>
-              }
-            </article>
+                @if (
+                  match.original_match_datetime && match.status !== "played"
+                ) {
+                  <p class="m-0 text-xs text-secondary">
+                    {{ previousSlot(match) }}
+                  </p>
+                }
+                @if (match.schedule_locked) {
+                  <p class="m-0 flex items-center gap-1 text-xs text-secondary">
+                    <mat-icon class="shrink-0 !w-4 !h-4" svgIcon="mat:lock" />
+                    {{ "matches.lockedMatch" | transloco }}
+                  </p>
+                }
+                @if (hasTeams(match)) {
+                  <span
+                    [class.opacity-60]="!match.referee"
+                    class="text-xs text-secondary"
+                  >
+                    {{
+                      match.referee
+                        ? ("matches.referee"
+                          | transloco: { name: match.referee.name ?? "—" })
+                        : ("matches.noReferee" | transloco)
+                    }}
+                  </span>
+                }
+              </div>
+            } @else if (compact && hasTeams(match)) {
+              <div class="border-t pt-3 text-sm flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-medium">{{ legLabel(match) }}</span>
+                  <span class="flex items-center gap-2 text-secondary">
+                    @if (
+                      match.original_match_datetime && match.status !== "played"
+                    ) {
+                      <span
+                        [matTooltip]="previousSlot(match)"
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-blue-600/10 text-blue-800 dark:text-blue-300"
+                        >{{ "matches.rescheduled" | transloco }}</span
+                      >
+                    }
+                    @if (match.match_datetime) {
+                      {{ slotText(match) }}
+                    } @else if (match.scheduled_date) {
+                      {{ parseDate(match.scheduled_date) | date: "dd/MM/yyyy" }}
+                    }
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="truncate">
+                    {{ match.home_team?.team_name }}
+                    {{ "matches.vs" | transloco }}
+                    {{ match.away_team?.team_name }}
+                  </span>
+                  <span class="flex items-center gap-1 whitespace-nowrap">
+                    @if (match.status === "played") {
+                      <span class="font-medium">{{ score(match) }}</span>
+                      @if (match.is_walkover) {
+                        <span
+                          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                          >{{ "matches.walkover.tag" | transloco }}</span
+                        >
+                      }
+                      @if (!readOnly()) {
+                        <span
+                          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/10 text-green-800 dark:text-green-400"
+                          >{{ "matches.played" | transloco }}</span
+                        >
+                      }
+                    } @else {
+                      <span
+                        class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                        >{{ "matches.bracket.toPlay" | transloco }}</span
+                      >
+                    }
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span
+                      [class.opacity-60]="!match.referee"
+                      class="text-xs text-secondary"
+                    >
+                      {{
+                        match.referee
+                          ? ("matches.referee"
+                            | transloco: { name: match.referee.name ?? "—" })
+                          : ("matches.noReferee" | transloco)
+                      }}
+                    </span>
+                    @if (match.schedule_locked) {
+                      <mat-icon
+                        [matTooltip]="'matches.lockedMatch' | transloco"
+                        class="!w-4 !h-4 text-secondary"
+                        svgIcon="mat:lock"
+                      />
+                    }
+                  </div>
+                  <span class="flex items-center">
+                    @if (schedulable() && match.status === "scheduled") {
+                      <button
+                        (click)="program(playoff, round, match)"
+                        [attr.aria-label]="'matches.program.action' | transloco"
+                        [matTooltip]="'matches.program.action' | transloco"
+                        class="size-9! p-1.5! [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:calendar_month" />
+                      </button>
+                    }
+                    @if (editable() && match.status === "scheduled") {
+                      <button
+                        (click)="walkover(match)"
+                        [attr.aria-label]="
+                          'matches.walkover.action' | transloco
+                        "
+                        [matTooltip]="'matches.walkover.action' | transloco"
+                        class="size-9! p-1.5! [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:flag" />
+                      </button>
+                    }
+                    @if (editable()) {
+                      @let locked = hasLaterResults(playoff, round);
+                      <!-- A disabled button gets no pointer events: the tooltip lives on its wrapper -->
+                      <span
+                        [matTooltip]="
+                          (locked
+                            ? 'matches.bracket.resultLocked'
+                            : hasWithdrawn(match)
+                              ? 'matches.result.withdrawnTooltip'
+                              : 'matches.result.editTooltip'
+                          ) | transloco
+                        "
+                        class="inline-flex"
+                      >
+                        <button
+                          (click)="editResult(tie, match)"
+                          [attr.aria-label]="
+                            'matches.result.editTooltip' | transloco
+                          "
+                          [disabled]="locked || hasWithdrawn(match)"
+                          class="size-9! p-1.5! [&_.mat-mdc-button-touch-target]:hidden app-action-primary"
+                          mat-icon-button
+                          type="button"
+                        >
+                          <mat-icon svgIcon="mat:scoreboard" />
+                        </button>
+                      </span>
+                    }
+                  </span>
+                </div>
+              </div>
+            } @else {
+              <div class="border-t pt-2 text-sm flex flex-col gap-1">
+                <div
+                  class="flex items-center justify-between gap-2 text-secondary"
+                >
+                  <span>{{ legLabel(match) }}</span>
+                  <span class="flex items-center gap-1 text-right">
+                    @if (match.match_datetime) {
+                      @if (isFinal(playoff, round)) {
+                        <span
+                          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-800 dark:text-amber-400"
+                          >{{ "matches.bracket.final" | transloco }}</span
+                        >
+                      }
+                      {{ slotText(match) }}
+                    } @else if (match.scheduled_date) {
+                      {{ parseDate(match.scheduled_date) | date: "dd/MM/yyyy" }}
+                    }
+                  </span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <span
+                    [class.opacity-60]="!match.referee"
+                    class="text-secondary"
+                  >
+                    {{
+                      match.referee
+                        ? ("matches.referee"
+                          | transloco: { name: match.referee.name ?? "—" })
+                        : ("matches.noReferee" | transloco)
+                    }}
+                  </span>
+                  @if (match.schedule_locked) {
+                    <mat-icon
+                      [matTooltip]="'matches.lockedMatch' | transloco"
+                      class="!w-4 !h-4 text-secondary"
+                      svgIcon="mat:lock"
+                    />
+                  }
+                  @if (match.original_match_datetime) {
+                    <span
+                      [matTooltip]="previousSlot(match)"
+                      class="inline-block rounded-full px-2 py-0.5 font-medium bg-blue-600/10 text-blue-800 dark:text-blue-300"
+                      >{{ "matches.rescheduled" | transloco }}</span
+                    >
+                  }
+                  @if (schedulable() && match.status === "scheduled") {
+                    <button
+                      (click)="program(playoff, round, match)"
+                      [attr.aria-label]="'matches.program.action' | transloco"
+                      [matTooltip]="'matches.program.action' | transloco"
+                      class="ml-auto app-action-primary"
+                      mat-icon-button
+                      type="button"
+                    >
+                      <mat-icon svgIcon="mat:calendar_month" />
+                    </button>
+                  }
+                </div>
+                @if (hasTeams(match)) {
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate">
+                      {{ match.home_team?.team_name }}
+                      {{ "matches.vs" | transloco }}
+                      {{ match.away_team?.team_name }}
+                      @if (hasWithdrawn(match)) {
+                        <span
+                          class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                          >{{ "matches.withdrawnTeam" | transloco }}</span
+                        >
+                      }
+                    </span>
+                    <span class="font-medium whitespace-nowrap">
+                      {{
+                        score(match) ?? ("matches.bracket.toPlay" | transloco)
+                      }}
+                      @if (match.is_walkover) {
+                        <span
+                          class="ml-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                          >{{ "matches.walkover.tag" | transloco }}</span
+                        >
+                      }
+                    </span>
+                  </div>
+                  @if (editable() && match.status === "played") {
+                    <div class="flex justify-end">
+                      <button
+                        (click)="editResult(tie, match)"
+                        [attr.aria-label]="
+                          'matches.result.editTooltip' | transloco
+                        "
+                        [matTooltip]="'matches.result.editTooltip' | transloco"
+                        class="app-action-primary"
+                        mat-icon-button
+                        type="button"
+                      >
+                        <mat-icon svgIcon="mat:scoreboard" />
+                      </button>
+                    </div>
+                  } @else if (editable()) {
+                    <div class="flex gap-2">
+                      <button
+                        (click)="editResult(tie, match)"
+                        [disabled]="hasWithdrawn(match)"
+                        mat-stroked-button
+                        type="button"
+                      >
+                        {{ "matches.bracket.register" | transloco }}
+                      </button>
+                      <button
+                        (click)="walkover(match)"
+                        mat-stroked-button
+                        type="button"
+                      >
+                        {{ "matches.walkover.action" | transloco }}
+                      </button>
+                    </div>
+                  }
+                }
+              </div>
+            }
           }
-        </div>
-      </section>
-    }
-  </div>
+
+          @if (tie.matches.length > 1 && tie.aggregate; as aggregate) {
+            <p class="m-0 text-sm font-medium">
+              {{
+                "matches.bracket.global"
+                  | transloco: { a: aggregate.a, b: aggregate.b }
+              }}
+            </p>
+          }
+          @if (tie.decided_by === "walkover") {
+            <p class="m-0 text-xs text-secondary">
+              {{ "matches.bracket.walkoverWin" | transloco }}
+            </p>
+          }
+          @if (tie.decided_by === "penalties") {
+            <p class="m-0 text-xs text-secondary">
+              {{ "matches.bracket.penaltiesWin" | transloco }}
+            </p>
+          }
+        </article>
+      }
+    </div>
+  </ng-template>
+
+  @if (isMobile()) {
+    <div class="flex flex-col gap-4">
+      @for (round of playoff.rounds; track round.index) {
+        @let open = isOpen(playoff, round);
+        <section class="flex flex-col gap-3">
+          <div class="flex min-h-12 items-center gap-1">
+            <button
+              (click)="toggleRound(playoff, round)"
+              [attr.aria-expanded]="open"
+              data-round-toggle
+              class="flex flex-1 min-w-0 items-center gap-2 py-2 text-left"
+              type="button"
+            >
+              <mat-icon
+                [svgIcon]="open ? 'mat:expand_less' : 'mat:expand_more'"
+                class="shrink-0"
+              />
+              <h2 class="m-0 min-w-0 text-lg font-medium">{{ round.name }}</h2>
+            </button>
+            @if (!readOnly()) {
+              <ng-container
+                [ngTemplateOutlet]="downloadTpl"
+                [ngTemplateOutletContext]="{ $implicit: round, playoff }"
+              />
+            }
+          </div>
+          @if (open) {
+            <ng-container
+              [ngTemplateOutlet]="tiesTpl"
+              [ngTemplateOutletContext]="{ $implicit: round, playoff }"
+            />
+          }
+        </section>
+      }
+    </div>
+  } @else {
+    <div class="flex items-stretch gap-6 overflow-x-auto pb-2">
+      @for (round of playoff.rounds; track round.index) {
+        <section class="shrink-0 w-96 flex flex-col gap-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="m-0 text-lg font-medium">{{ round.name }}</h2>
+            @if (!readOnly()) {
+              <ng-container
+                [ngTemplateOutlet]="downloadTpl"
+                [ngTemplateOutletContext]="{ $implicit: round, playoff }"
+              />
+            }
+          </div>
+          <ng-container
+            [ngTemplateOutlet]="tiesTpl"
+            [ngTemplateOutletContext]="{ $implicit: round, playoff }"
+          />
+        </section>
+      }
+    </div>
+  }
 }

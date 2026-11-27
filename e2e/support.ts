@@ -106,7 +106,7 @@ export async function gotoApp(
   await page.goto(path);
   await page.locator("#app-splash-screen").waitFor({ state: "detached" });
   if (path.startsWith("/dashboard")) {
-    await page.locator("app-sidenav").waitFor();
+    await page.locator("app-sidenav").waitFor({ state: "attached" });
   }
 }
 
@@ -1425,6 +1425,8 @@ export interface MatchesApiOptions {
   refuse?: string;
   /** Tiebreakers the standings report, in order */
   criteria?: string[];
+  /** Extra fields (referee, walkover, rescheduled...) merged into each match by id */
+  extras?: Record<number, Record<string, unknown>>;
 }
 
 export interface MatchesApi {
@@ -1467,6 +1469,7 @@ export async function mockMatchesApi(
     regularComplete = false,
     refuse,
     criteria = ["points", "goal_difference", "goals_for"],
+    extras = {},
   }: MatchesApiOptions = {},
 ): Promise<MatchesApi> {
   const api: MatchesApi = { writes: [] };
@@ -1537,7 +1540,7 @@ export async function mockMatchesApi(
     void home_id;
     void away_id;
 
-    return match;
+    return { ...match, ...extras[match.id] };
   };
 
   if (generated) {
@@ -2029,6 +2032,8 @@ export interface AgendaApiOptions {
     end: string;
     field: { id: number; name: string } | null;
     referee: { id: number; name: string } | null;
+    /** Any other field of the match JSON (score, status, leg...) */
+    extra?: Record<string, unknown>;
   }>;
 }
 
@@ -2053,8 +2058,12 @@ export async function mockAgendaApi(
 
     const noReferee = params.get("unassigned_referee") === "1";
     const field = params.get("field_id");
+    const from = params.get("date_from") ?? "";
+    const to = params.get("date_to") ?? "9999";
     const listed = matches.filter(
       (match) =>
+        match.start.slice(0, 10) >= from &&
+        match.start.slice(0, 10) <= to &&
         (!noReferee || !match.referee) &&
         (!field || String(match.field?.id) === field),
     );
@@ -2063,32 +2072,616 @@ export async function mockAgendaApi(
       json: {
         date_from: params.get("date_from"),
         date_to: params.get("date_to"),
-        days: listed.length
-          ? [
-              {
-                date: "2026-09-19",
-                matches: listed.map((match) => ({
-                  id: match.id,
-                  tournament: match.tournament,
-                  phase: "regular",
-                  round_label: match.round_label,
-                  group: "Grupo A",
-                  home_team: match.home_team,
-                  away_team: match.away_team,
-                  match_datetime: match.start,
-                  end_datetime: match.end,
-                  field: match.field,
-                  referee: match.referee,
-                  status: "scheduled",
-                  schedule_locked: false,
-                })),
-              },
-            ]
-          : [],
+        days: [...new Set(listed.map((match) => match.start.slice(0, 10)))]
+          .sort()
+          .map((date) => ({
+            date,
+            matches: listed
+              .filter((match) => match.start.startsWith(date))
+              .map((match) => ({
+                id: match.id,
+                tournament: match.tournament,
+                phase: "regular",
+                round_label: match.round_label,
+                group: "Grupo A",
+                home_team: match.home_team,
+                away_team: match.away_team,
+                match_datetime: match.start,
+                end_datetime: match.end,
+                field: match.field,
+                referee: match.referee,
+                status: "scheduled",
+                schedule_locked: false,
+                ...match.extra,
+              })),
+          })),
         fields: [
           { id: 1, name: "Cancha 1" },
           { id: 2, name: "Cancha 2" },
         ],
+      },
+    });
+  });
+
+  return api;
+}
+
+export interface MockLeague {
+  id: number;
+  name: string;
+  admin: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    status: "pending" | "active" | "inactive";
+  };
+  status: "active" | "inactive";
+  is_active: boolean;
+  max_active_tournaments: number | null;
+  created_at: string;
+}
+
+/** Deterministic leagues, newest first by id; the manager is the user with the same id (1 to 25) */
+export function makeLeagues(count: number): MockLeague[] {
+  return Array.from({ length: count }, (_, i) => {
+    const manager = makeUsers(25)[i % 25];
+    const active = i % 4 !== 3;
+
+    return {
+      id: i + 1,
+      name: `Liga ${String(i + 1).padStart(2, "0")}`,
+      admin: {
+        id: manager.id,
+        first_name: manager.first_name,
+        last_name: manager.last_name,
+        email: manager.email,
+        status: manager.status,
+      },
+      status: active ? "active" : "inactive",
+      is_active: active,
+      max_active_tournaments: i % 3 === 0 ? null : 2,
+      created_at: new Date(
+        FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+      ).toISOString(),
+    } satisfies MockLeague;
+  });
+}
+
+export interface LeaguesApi {
+  /** Query strings of every `GET /leagues` so far */
+  queries: URLSearchParams[];
+  /** Ids of the leagues deleted so far */
+  deleted: number[];
+  /** `is_active` values sent to `PATCH /leagues/{id}/status`, by league id */
+  statuses: { id: number; is_active: boolean }[];
+}
+
+/**
+ * Stubs the leagues endpoints (`GET /leagues`, status change and delete): search,
+ * manager and status filters, sort and pagination work like the real list.
+ */
+export async function mockLeaguesApi(
+  page: Page,
+  { leagues = [] }: { leagues?: MockLeague[] } = {},
+): Promise<LeaguesApi> {
+  const state = [...leagues];
+  const api: LeaguesApi = { queries: [], deleted: [], statuses: [] };
+
+  await page.route(/\/leagues\/\d+\/status$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    const body = route.request().postDataJSON() as { is_active: boolean };
+    api.statuses.push({ id, is_active: body.is_active });
+    const league = state.find((item) => item.id === id);
+
+    if (league) {
+      league.is_active = body.is_active;
+      league.status = body.is_active ? "active" : "inactive";
+    }
+
+    return route.fulfill({ json: league ?? {} });
+  });
+
+  await page.route(/\/leagues\/\d+$/, (route) => {
+    if (route.request().method() === "DELETE") {
+      const id = Number(route.request().url().split("/").pop());
+      api.deleted.push(id);
+      state.splice(0, state.length, ...state.filter((item) => item.id !== id));
+
+      return route.fulfill({ status: 204 });
+    }
+
+    return route.fulfill({ json: state[0] ?? {} });
+  });
+
+  await page.route(/\/leagues(\?.*)?$/, (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const admin = query.get("admin_user_id");
+    const status = query.get("status");
+    const sort = query.get("sort") ?? "-created_at";
+    const field = sort.replace(/^-/, "") as keyof MockLeague;
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+
+    const matching = state
+      .filter((item) => item.name.toLowerCase().includes(search))
+      .filter((item) => !admin || item.admin.id === Number(admin))
+      .filter((item) => !status || item.status === status)
+      .sort(
+        (a, b) => String(a[field]).localeCompare(String(b[field])) * direction,
+      );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}
+
+export interface MockPlayer {
+  id: number;
+  first_name: string;
+  last_name: string;
+  photo_url: string | null;
+  user_code: string;
+  gender: "male" | "female";
+  birth_date: string;
+  age: number;
+  phone: string | null;
+  is_banned: boolean;
+  active_teams: { team: string | null; tournament: string | null }[];
+}
+
+/** Deterministic players of league 1: every fifth one is banned, genders alternate */
+export function makePlayers(count: number): MockPlayer[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    first_name: FIRST_NAMES[i % FIRST_NAMES.length],
+    last_name: LAST_NAMES[i % LAST_NAMES.length],
+    photo_url: null,
+    user_code: `JUG${String(i + 1).padStart(4, "0")}`,
+    gender: i % 2 === 0 ? "male" : "female",
+    birth_date: "2000-05-15",
+    age: 26,
+    phone: i % 2 === 0 ? "5512345678" : null,
+    is_banned: i % 5 === 4,
+    active_teams:
+      i % 3 === 0 ? [{ team: "Halcones", tournament: "Torneo Apertura" }] : [],
+  }));
+}
+
+export interface PlayersApi {
+  /** Query strings of every `GET /players` so far */
+  queries: URLSearchParams[];
+  /** Ids of the players banned so far */
+  banned: number[];
+  /** Ids of the players reactivated so far */
+  unbanned: number[];
+}
+
+/** Stubs `/leagues/1/players` (list, detail, ban and unban); search, filters, sort and pagination work like the real list */
+export async function mockPlayersApi(
+  page: Page,
+  { players = [] }: { players?: MockPlayer[] } = {},
+): Promise<PlayersApi> {
+  const state = players.map((player) => ({ ...player }));
+  const api: PlayersApi = { queries: [], banned: [], unbanned: [] };
+  const idOf = (url: string, fromEnd: number) =>
+    Number(new URL(url).pathname.split("/").at(-fromEnd));
+
+  await page.route(/\/players\/\d+\/ban$/, (route) => {
+    const id = idOf(route.request().url(), 2);
+    api.banned.push(id);
+    const player = state.find((item) => item.id === id);
+
+    if (player) {
+      player.is_banned = true;
+    }
+
+    return route.fulfill({
+      json: { player, removed_rosters: 0, cancelled_requests: 0 },
+    });
+  });
+
+  await page.route(/\/players\/\d+\/unban$/, (route) => {
+    const id = idOf(route.request().url(), 2);
+    api.unbanned.push(id);
+    const player = state.find((item) => item.id === id);
+
+    if (player) {
+      player.is_banned = false;
+    }
+
+    return route.fulfill({ json: player ?? {} });
+  });
+
+  await page.route(/\/players\/\d+$/, (route) => {
+    const player = state.find(
+      (item) => item.id === idOf(route.request().url(), 1),
+    );
+
+    return route.fulfill({
+      json: {
+        ...player,
+        rosters: [
+          {
+            id: 1,
+            tournament: "Torneo Apertura con un nombre bastante largo",
+            team: "Halcones del Norte de la Ciudad",
+            jersey_number: 10,
+            status: "approved",
+            requested_at: FIXED_NOW.toISOString(),
+            removed_by: null,
+            removed_at: null,
+            removal_reason: null,
+          },
+        ],
+        bans: [],
+      },
+    });
+  });
+
+  await page.route(/\/players(\?.*)?$/, (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    api.queries.push(query);
+
+    const search = (query.get("search") ?? "").toLowerCase();
+    const gender = query.get("gender");
+    const banned = query.get("banned");
+    const sort = query.get("sort") ?? "name";
+    const direction = sort.startsWith("-") ? -1 : 1;
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+    const nameOf = (item: MockPlayer) => `${item.first_name} ${item.last_name}`;
+
+    const matching = state
+      .filter((item) =>
+        `${nameOf(item)} ${item.user_code}`.toLowerCase().includes(search),
+      )
+      .filter((item) => !gender || item.gender === gender)
+      .filter((item) => banned === null || String(item.is_banned) === banned)
+      .sort((a, b) => nameOf(a).localeCompare(nameOf(b)) * direction);
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+      },
+    });
+  });
+
+  return api;
+}
+
+export interface MockRegistration {
+  id: number;
+  status: "active" | "withdrawn";
+  created_at: string;
+  withdrawn_reason?: string | null;
+  team: {
+    id: number;
+    name: string;
+    logo_url: null;
+    manager: { name: string; pending: boolean } | null;
+  };
+}
+
+/** Deterministic registrations, newest first by id; every fifth team is withdrawn */
+export function makeRegistrations(
+  count: number,
+  { withdrawn = false }: { withdrawn?: boolean } = {},
+): MockRegistration[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    status: withdrawn && i % 5 === 4 ? "withdrawn" : "active",
+    created_at: new Date(
+      FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+    ).toISOString(),
+    withdrawn_reason: withdrawn && i % 5 === 4 ? "Sin jugadores" : null,
+    team: {
+      id: i + 1,
+      name: `Equipo ${String(i + 1).padStart(2, "0")} de los Halcones`,
+      logo_url: null,
+      manager:
+        i % 7 === 6
+          ? null
+          : { name: `Delegado ${i + 1}`, pending: i % 2 === 1 },
+    },
+  }));
+}
+
+export interface RegistrationsApi {
+  /** Ids removed by `DELETE .../registrations/{id}` so far */
+  removed: number[];
+  /** Registrations withdrawn so far, with their reason */
+  withdrawn: { id: number; reason: string }[];
+}
+
+/**
+ * Stubs the registrations of any tournament (list with search and paging,
+ * delete, withdraw, replace, preview, history and available teams) and an
+ * empty groups overview, so the page needs nothing else.
+ */
+export async function mockRegistrationsApi(
+  page: Page,
+  { registrations = [] }: { registrations?: MockRegistration[] } = {},
+): Promise<RegistrationsApi> {
+  const state = [...registrations];
+  const api: RegistrationsApi = { removed: [], withdrawn: [] };
+  const available = Array.from({ length: 12 }, (_, i) => ({
+    id: 100 + i,
+    name: `Disponible ${i + 1}`,
+    logo_url: null,
+    status: i === 3 ? "banned" : "active",
+    manager: i % 2 ? { name: `Responsable ${i + 1}`, pending: false } : null,
+  }));
+  const paged = (data: unknown[], total = data.length) => ({
+    data,
+    links: { first: null, last: "x", prev: null, next: null },
+    meta: {
+      currentPage: 1,
+      from: 1,
+      lastPage: 1,
+      perPage: 50,
+      to: data.length,
+      total,
+    },
+  });
+
+  await page.route(/\/tournaments\/\d+\/groups(\/.*)?(\?.*)?$/, (route) =>
+    route.fulfill({ json: { groups: [], teams: [] } }),
+  );
+
+  await page.route(/\/registrations\/available-teams(\?.*)?$/, (route) =>
+    route.fulfill({ json: paged(available) }),
+  );
+
+  await page.route(/\/registrations\/\d+\/withdraw\/preview$/, (route) =>
+    route.fulfill({
+      json: {
+        kept_played: 1,
+        pending_matches: 3,
+        players_released: 12,
+        warnings: [],
+      },
+    }),
+  );
+
+  await page.route(/\/registrations\/\d+\/withdraw$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    const { reason } = route.request().postDataJSON() as { reason: string };
+    api.withdrawn.push({ id, reason });
+    const found = state.find((r) => r.id === id);
+
+    if (found) {
+      found.status = "withdrawn";
+    }
+
+    return route.fulfill({
+      json: {
+        kept_played: 1,
+        pending_matches: 3,
+        players_released: 12,
+        registration: found,
+      },
+    });
+  });
+
+  await page.route(/\/registrations\/\d+\/replace$/, (route) =>
+    route.fulfill({ json: { registration: state[0], warnings: [] } }),
+  );
+
+  await page.route(/\/registrations\/\d+\/team-changes$/, (route) =>
+    route.fulfill({
+      json: {
+        data: Array.from({ length: 4 }, (_, i) => ({
+          id: i + 1,
+          old_team: { id: 1, name: `Equipo anterior número ${i + 1}` },
+          new_team: { id: 2, name: `Equipo nuevo número ${i + 1}` },
+          reason:
+            "El equipo anterior abandonó el torneo por falta de jugadores",
+          changed_by: { id: 1, name: "Administrador de la liga" },
+          created_at: "2026-09-01T10:00:00.000Z",
+        })),
+      },
+    }),
+  );
+
+  await page.route(/\/registrations\/\d+$/, (route) => {
+    const id = Number(route.request().url().split("/").pop());
+    api.removed.push(id);
+    state.splice(0, state.length, ...state.filter((r) => r.id !== id));
+
+    return route.fulfill({ status: 204 });
+  });
+
+  await page.route(/\/tournaments\/\d+\/registrations(\?.*)?$/, (route) => {
+    if (route.request().method() === "POST") {
+      return route.fulfill({ status: 201, json: {} });
+    }
+
+    const query = new URL(route.request().url()).searchParams;
+    const search = (query.get("search") ?? "").toLowerCase();
+    const perPage = query.has("skip_paging")
+      ? 1000
+      : Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+    const matching = state.filter((r) =>
+      r.team.name.toLowerCase().includes(search),
+    );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+          active_count: state.filter((r) => r.status === "active").length,
+          withdrawn_count: state.filter((r) => r.status === "withdrawn").length,
+        },
+        summary: { registered: state.length, banned: 0 },
+      },
+    });
+  });
+
+  return api;
+}
+
+export interface MockRosterEntry {
+  id: number;
+  player: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    photo_url: null;
+    user_code: string;
+  };
+  jersey_number: number;
+  status:
+    "pending" | "active" | "rejected" | "cancelled" | "removed" | "released";
+  requested_at: string;
+  requested_by: { id: number; name: string } | null;
+  removed_by: { id: number; name: string } | null;
+  removed_at: string | null;
+  removal_reason: string | null;
+  rejoin_authorized_at: string | null;
+}
+
+/** Deterministic roster: active players, and every fourth one removed (the second of those with rejoin authorized) */
+export function makeRosterEntries(count: number): MockRosterEntry[] {
+  return Array.from({ length: count }, (_, i) => {
+    const removed = i % 4 === 3;
+
+    return {
+      id: i + 1,
+      player: {
+        id: i + 1,
+        first_name: `Jugador${i + 1}`,
+        last_name: "Apellido Largo Compuesto",
+        photo_url: null,
+        user_code: `JUG${String(i + 1).padStart(4, "0")}`,
+      },
+      jersey_number: i + 1,
+      status: removed ? "removed" : "active",
+      requested_at: new Date(
+        FIXED_NOW.getTime() - (i + 1) * 86_400_000,
+      ).toISOString(),
+      requested_by: { id: 9, name: "Delegado Muy Responsable" },
+      removed_by: removed ? { id: 1, name: "Administrador" } : null,
+      removed_at: removed
+        ? new Date(FIXED_NOW.getTime() - 3_600_000).toISOString()
+        : null,
+      removal_reason: removed ? "Indisciplina reiterada en los partidos" : null,
+      rejoin_authorized_at:
+        removed && i % 8 === 7 ? "2026-09-18T10:00:00.000Z" : null,
+    };
+  });
+}
+
+/** Stubs `/registrations/{id}/roster` (filters and paging) and its remove and rejoin writes */
+export async function mockRostersApi(
+  page: Page,
+  { entries = [] }: { entries?: MockRosterEntry[] } = {},
+): Promise<{
+  queries: URLSearchParams[];
+  removed: number[];
+  rejoin: string[];
+}> {
+  const state = [...entries];
+  const api = {
+    queries: [] as URLSearchParams[],
+    removed: [] as number[],
+    rejoin: [] as string[],
+  };
+
+  await page.route(/\/roster\/\d+\/remove$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    api.removed.push(id);
+    const found = state.find((e) => e.id === id);
+
+    if (found) {
+      found.status = "removed";
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/roster\/\d+\/rejoin$/, (route) => {
+    const id = Number(route.request().url().split("/").at(-2));
+    api.rejoin.push(`${route.request().method()} ${id}`);
+    const found = state.find((e) => e.id === id);
+
+    if (found) {
+      found.rejoin_authorized_at =
+        route.request().method() === "POST" ? "2026-09-19T10:00:00.000Z" : null;
+    }
+
+    return route.fulfill({ json: found ?? {} });
+  });
+
+  await page.route(/\/roster(\?.*)?$/, (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    api.queries.push(query);
+    const search = (query.get("search") ?? "").toLowerCase();
+    const perPage = Number(query.get("per_page") ?? 5);
+    const current = Number(query.get("page") ?? 1);
+    const matching = state.filter(
+      (e) =>
+        `${e.player.first_name} ${e.player.last_name} ${e.player.user_code}`
+          .toLowerCase()
+          .includes(search) &&
+        (!query.get("status") || e.status === query.get("status")),
+    );
+    const data = matching.slice((current - 1) * perPage, current * perPage);
+
+    return route.fulfill({
+      json: {
+        data,
+        links: { first: null, last: "x", prev: null, next: null },
+        meta: {
+          currentPage: current,
+          from: data.length ? (current - 1) * perPage + 1 : null,
+          lastPage: Math.max(1, Math.ceil(matching.length / perPage)),
+          perPage,
+          to: data.length ? (current - 1) * perPage + data.length : null,
+          total: matching.length,
+        },
+        summary: {
+          active: state.filter((e) => e.status === "active").length,
+          max_roster_size: 20,
+        },
       },
     });
   });

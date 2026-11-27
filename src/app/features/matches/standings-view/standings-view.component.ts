@@ -83,6 +83,21 @@ export class StandingsViewComponent {
     "points",
   ];
 
+  /** The abbreviations explained under the table on phones */
+  protected readonly legendColumns = [
+    "played",
+    "won",
+    "drawn",
+    "lost",
+    "goalDifference",
+    "points",
+  ];
+
+  /** Goals for and against do not fit on a phone: the difference sums them up */
+  protected hiddenOnPhones(column: string): boolean {
+    return column === "goals_for" || column === "goals_against";
+  }
+
   /** Groups where the user saved an order in this session, for when the backend does not flag it */
   private readonly savedHere = signal<ReadonlySet<number>>(new Set());
 

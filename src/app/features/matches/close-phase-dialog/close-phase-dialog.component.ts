@@ -33,6 +33,7 @@ import {
   ScheduleConfigDialogComponent,
   ScheduleConfigDialogData,
 } from "../schedule-config-dialog/schedule-config-dialog.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { FormSubmitService } from "../../../shared/form-submit/form-submit.service";
 import { datesInOrder } from "../../groups/group.model";
@@ -119,6 +120,7 @@ export class ClosePhaseDialogComponent {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly parseDate = parseDate;
+  protected readonly isMobile = injectIsMobile();
 
   readonly data = inject<ClosePhaseDialogData>(MAT_DIALOG_DATA);
 
@@ -169,6 +171,7 @@ export class ClosePhaseDialogComponent {
           },
           width: "960px",
           maxWidth: "95vw",
+          panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
         },
       )
       .afterClosed()

@@ -37,6 +37,7 @@ import { FieldsQuery } from "../../fields/field.model";
 import { FieldsApi } from "../../fields/fields.api";
 import { formatDate, parseDate } from "../../tournaments/tournament.model";
 import { Match } from "../match.model";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
 import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { hasInvalidTime } from "../../../shared/time-error";
 import { MatchScheduleApi } from "../match-schedule.api";
@@ -105,9 +106,18 @@ export class ProgramMatchDialogComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
+  protected readonly isMobile = injectIsMobile();
+
   readonly data = inject<ProgramMatchDialogData>(MAT_DIALOG_DATA);
 
   private readonly tbd = this.transloco.translate("matches.bracket.tbd");
+
+  /** On a phone the keyboard covers the lower part: the search field stays in view once it opens */
+  onSearchFocus(input: HTMLElement): void {
+    if (this.isMobile()) {
+      setTimeout(() => input.scrollIntoView({ block: "nearest" }), 300);
+    }
+  }
 
   readonly home = this.data.match.home?.team_name ?? this.tbd;
   readonly away = this.data.match.away?.team_name ?? this.tbd;
@@ -255,6 +265,14 @@ export class ProgramMatchDialogComponent {
     );
   });
 
+  /**
+   * An hour picked from the list reaches the model at once: the field keeps the
+   * focus and its blur-debounced value would still read as empty ("required")
+   */
+  pickTime(time: Date): void {
+    this.model.update((value) => ({ ...value, time }));
+  }
+
   /** A suggestion fills the hour and the field */
   pickSlot(slot: { start_time: string; field_id: number }): void {
     this.model.update((value) => ({
@@ -369,10 +387,22 @@ export class ProgramMatchDialogComponent {
 
   private finish(key: string, warnings: MatchWarning[]): void {
     this.saved.set(true);
+    const messages = uniqueMessages(warnings.map((w) => w.message));
+
+    // On a phone the dialog closes: what was saved and its warnings go in one notice
+    if (messages.length && this.isMobile()) {
+      this.snackbar.warning(
+        `${this.transloco.translate(key)}. ${messages.join(" ")}`,
+      );
+      this.close();
+
+      return;
+    }
+
     this.snackbar.notifySuccess(key);
 
-    if (warnings.length) {
-      this.warnings.set(uniqueMessages(warnings.map((w) => w.message)));
+    if (messages.length) {
+      this.warnings.set(messages);
       // Only the button closes it: the warnings must be seen first
       this.dialogRef.disableClose = true;
     } else {

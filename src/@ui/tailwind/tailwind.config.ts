@@ -8,6 +8,7 @@ import addThemesPlugin, {
 import addIconsPlugin from "./plugins/icons";
 import chroma from "chroma-js";
 import addTypographyPlugin from "@tailwindcss/typography";
+import { screens } from "./breakpoints";
 
 /** Builds a 50-900 palette whose 600 shade is exactly `base`. */
 function createPalette(base: string): AppThemeColorPalette {
@@ -238,12 +239,7 @@ export default {
   important: ":root",
   darkMode: ["class", ".dark"],
   theme: {
-    screens: {
-      sm: "600px",
-      md: "960px",
-      lg: "1280px",
-      xl: "1440px",
-    },
+    screens,
     extend: {
       colors: {
         current: "currentColor",

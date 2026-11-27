@@ -65,11 +65,13 @@
     <mat-accordion multi>
       @for (day of round.matchdays; track day.matchday) {
         <mat-expansion-panel [expanded]="true">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
+          <mat-expansion-panel-header
+            class="max-sm:!h-auto max-sm:!min-h-12 max-sm:py-2"
+          >
+            <mat-panel-title class="max-sm:flex-wrap max-sm:gap-x-3">
               {{ "matches.matchday" | transloco: { number: day.matchday } }}
               @if (rangeOf(day.matches); as range) {
-                <span class="ml-3 text-sm font-normal text-secondary">{{
+                <span class="sm:ml-3 text-sm font-normal text-secondary">{{
                   range
                 }}</span>
               }
@@ -79,11 +81,12 @@
           <ul class="m-0 p-0 list-none">
             @for (match of day.matches; track match.id) {
               <li
-                class="grid items-center gap-2 py-2 border-b last:border-b-0 sm:grid-cols-[1fr_1fr_auto_1fr_1fr] sm:gap-3"
+                class="flex flex-col sm:grid sm:items-center gap-2 py-2 border-b last:border-b-0 sm:grid-cols-[1fr_1fr_auto_1fr_1fr] sm:gap-3"
               >
                 <span
+                  [class.max-sm:hidden]="!match.referee"
                   [class.opacity-60]="!match.referee"
-                  class="text-xs text-secondary"
+                  class="text-xs text-secondary max-sm:order-last"
                 >
                   @if (match.referee) {
                     {{
@@ -93,18 +96,32 @@
                   }
                 </span>
 
-                <div class="flex items-center justify-center gap-3 sm:contents">
-                  <span class="flex min-w-0 items-center justify-end gap-2">
-                    <span [class]="nameClass(match, 'home')" class="truncate">{{
-                      match.home?.team_name ?? "—"
-                    }}</span>
+                <div class="flex flex-col gap-1 sm:contents">
+                  <span
+                    class="flex min-w-0 items-center gap-2 max-sm:justify-between sm:justify-end"
+                  >
+                    <span
+                      [class]="nameClass(match, 'home')"
+                      class="min-w-0 max-sm:break-words sm:truncate"
+                      >{{ match.home?.team_name ?? "—" }}</span
+                    >
                     <app-logo-image
                       [alt]="match.home?.team_name ?? ''"
                       [src]="match.home?.logo_url ?? null"
-                      class="h-8 w-8 shrink-0 rounded-full"
+                      class="h-8 w-8 shrink-0 rounded-full max-sm:!hidden"
                     />
+                    @if (match.status === "played") {
+                      <span
+                        [class]="nameClass(match, 'home')"
+                        class="shrink-0 sm:hidden"
+                        >{{ match.home_score }}</span
+                      >
+                    }
                   </span>
-                  <span class="px-2 text-sm">
+                  <span
+                    [class.max-sm:hidden]="match.status === 'played'"
+                    class="text-sm sm:px-2"
+                  >
                     @if (match.status === "played") {
                       <span [class]="nameClass(match, 'home')">{{
                         match.home_score
@@ -124,21 +141,38 @@
                       {{ "matches.vs" | transloco }}
                     }
                   </span>
-                  <span class="flex min-w-0 items-center gap-2">
+                  <span
+                    class="flex min-w-0 items-center gap-2 max-sm:justify-between"
+                  >
                     <app-logo-image
                       [alt]="match.away?.team_name ?? ''"
                       [src]="match.away?.logo_url ?? null"
-                      class="h-8 w-8 shrink-0 rounded-full"
+                      class="h-8 w-8 shrink-0 rounded-full max-sm:!hidden"
                     />
-                    <span [class]="nameClass(match, 'away')" class="truncate">{{
-                      match.away?.team_name ?? "—"
-                    }}</span>
+                    <span
+                      [class]="nameClass(match, 'away')"
+                      class="min-w-0 max-sm:break-words sm:truncate"
+                      >{{ match.away?.team_name ?? "—" }}</span
+                    >
+                    @if (match.status === "played") {
+                      <span
+                        [class]="nameClass(match, 'away')"
+                        class="shrink-0 sm:hidden"
+                        >{{ match.away_score }}</span
+                      >
+                    }
                   </span>
                 </div>
 
                 <span
-                  class="flex items-center justify-center gap-2 whitespace-nowrap text-sm text-secondary sm:justify-end"
+                  class="flex items-center gap-2 text-sm text-secondary max-sm:flex-wrap sm:justify-end sm:whitespace-nowrap"
                 >
+                  @if (match.status === "played" && match.is_walkover) {
+                    <span
+                      class="inline-block rounded-full bg-gray-500/10 px-2 py-0.5 text-xs font-medium text-gray-600 sm:hidden dark:text-gray-400"
+                      >{{ "matches.walkover.tag" | transloco }}</span
+                    >
+                  }
                   @if (match.status !== "played") {
                     <span
                       class="inline-block rounded-full bg-gray-500/10 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400"
@@ -149,6 +183,12 @@
                     {{ slotText(match) }}
                   }
                 </span>
+                <!-- No tooltips on touch screens: the reason is written out -->
+                @if (match.is_walkover && match.walkover_reason) {
+                  <p class="m-0 text-xs text-secondary sm:hidden">
+                    {{ match.walkover_reason }}
+                  </p>
+                }
               </li>
             }
           </ul>

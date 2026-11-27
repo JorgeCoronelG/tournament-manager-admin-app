@@ -24,6 +24,9 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { forkJoin, map, of } from "rxjs";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { RefereesApi } from "../../referees/referees.api";
 import { RefereesQuery } from "../../referees/referee.model";
@@ -63,6 +66,8 @@ function mondayOf(date: Date): Date {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     MatButtonModule,
     MatButtonToggleModule,
     MatCheckboxModule,
@@ -84,6 +89,7 @@ export class AgendaViewComponent {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly league = inject(LeagueContextService);
+  protected readonly isMobile = injectIsMobile();
   protected readonly parseDate = parseDate;
   protected readonly minuteHeight = MINUTE_HEIGHT;
 
@@ -156,6 +162,51 @@ export class AgendaViewComponent {
 
   readonly days = computed(() => this.agenda()?.days ?? []);
   readonly matches = computed(() => this.days().flatMap((day) => day.matches));
+
+  /** Phones: the filters fold into a panel */
+  readonly filtersOpen = signal(false);
+
+  /** Filters in use (each one counts, "no referee" included) */
+  readonly activeFilters = computed(
+    () =>
+      [
+        this.tournament() !== "",
+        this.referee() !== "",
+        this.field() !== "",
+        this.noReferee(),
+      ].filter(Boolean).length,
+  );
+
+  clearFilters(): void {
+    this.tournament.set("");
+    this.referee.set("");
+    this.field.set("");
+    this.noReferee.set(false);
+  }
+
+  /** Phones: a list of days (one in the day view, up to seven in the week), each with its matches by hour and then by field */
+  readonly mobileDays = computed(() => {
+    const byDate = new Map<string, AgendaMatch[]>();
+
+    for (const match of this.matches()) {
+      const date = match.match_datetime.slice(0, 10);
+
+      byDate.set(date, [...(byDate.get(date) ?? []), match]);
+    }
+
+    return [...byDate.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, matches]) => ({
+        date,
+        matches: [...matches].sort(
+          (a, b) =>
+            a.match_datetime.localeCompare(b.match_datetime) ||
+            (a.field?.name ?? "\uffff").localeCompare(
+              b.field?.name ?? "\uffff",
+            ),
+        ),
+      }));
+  });
 
   /** The day view's columns: the league's active fields (the filtered one alone), plus one for matches with no field */
   readonly columns = computed(() => {
@@ -397,6 +448,7 @@ export class AgendaViewComponent {
       },
       width: "720px",
       maxWidth: "95vw",
+      panelClass: this.isMobile() ? "app-dialog-fullscreen" : "",
     });
 
     // The page keeps its place when the dialog opens and closes, and after the data is asked again

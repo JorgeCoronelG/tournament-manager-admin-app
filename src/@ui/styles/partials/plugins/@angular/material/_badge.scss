@@ -1,0 +1,5 @@
+/** Badges take the system's primary color (Material 3 paints them with `error`) */
+body {
+  --mat-badge-background-color: var(--mat-sys-primary);
+  --mat-badge-text-color: var(--mat-sys-on-primary);
+}

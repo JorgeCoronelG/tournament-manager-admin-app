@@ -14,7 +14,11 @@
         <p class="text-secondary mb-4">
           {{ "tournaments.history.detail.notFound" | transloco }}
         </p>
-        <a mat-stroked-button routerLink="/dashboard/torneos/historial">
+        <a
+          class="max-sm:w-full"
+          mat-stroked-button
+          routerLink="/dashboard/torneos/historial"
+        >
           <mat-icon svgIcon="mat:arrow_back" />
           {{ "tournaments.history.detail.backToHistory" | transloco }}
         </a>
@@ -25,9 +29,9 @@
         class="bg-foreground rounded shadow p-6 animate-pulse"
       >
         <div class="h-4 w-40 rounded bg-gray-500/20"></div>
-        <div class="mt-5 h-8 w-72 rounded bg-gray-500/20"></div>
+        <div class="mt-5 h-8 w-72 max-w-full rounded bg-gray-500/20"></div>
         <div class="mt-3 h-4 w-56 rounded bg-gray-500/20"></div>
-        <div class="mt-6 flex gap-6">
+        <div class="mt-6 flex flex-wrap gap-6">
           @for (tab of [1, 2, 3, 4]; track tab) {
             <div class="h-4 w-20 rounded bg-gray-500/20"></div>
           }
@@ -35,13 +39,15 @@
       </div>
     } @else {
       @let current = tournament()!;
-      <div class="bg-foreground rounded shadow px-6 pt-5">
+      <div class="bg-foreground rounded shadow px-4 sm:px-6 pt-5">
         <div
           class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
         >
-          <div>
-            <h1 class="m-0 text-3xl font-semibold">{{ current.name }}</h1>
-            <p class="m-0 mt-1 text-sm text-secondary">
+          <div class="min-w-0">
+            <h1 class="m-0 break-words text-2xl sm:text-3xl font-semibold">
+              {{ current.name }}
+            </h1>
+            <p class="m-0 mt-1 break-words text-sm text-secondary">
               {{
                 "tournaments.history.detail.subtitle"
                   | transloco
@@ -52,7 +58,10 @@
               }}
             </p>
           </div>
-          <app-tournament-status-chip [status]="current.status" />
+          <app-tournament-status-chip
+            class="max-sm:self-start"
+            [status]="current.status"
+          />
         </div>
 
         <nav [tabPanel]="panel" class="mt-4" mat-tab-nav-bar>

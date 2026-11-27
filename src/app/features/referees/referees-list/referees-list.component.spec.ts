@@ -1,4 +1,5 @@
 import { Clipboard } from "@angular/cdk/clipboard";
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { signal, WritableSignal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -55,10 +56,18 @@ describe("RefereesListComponent", () => {
 
   const league = (id: number) => ({ id, name: `Liga ${id}` }) as MyLeague;
 
-  function setup() {
+  function setup(mobile = false) {
     TestBed.configureTestingModule({
       providers: [
         provideTestI18n(),
+        {
+          provide: BreakpointObserver,
+          useValue: {
+            observe: (query: string) =>
+              of({ matches: mobile && query.includes("599"), breakpoints: {} }),
+            isMatched: (query: string) => mobile && query.includes("599"),
+          },
+        },
         provideRouter([]),
         provideApp({ config: appConfigs.poseidon, availableThemes: [] }),
         { provide: MatIconRegistry, useClass: FakeMatIconRegistry },
@@ -334,5 +343,105 @@ describe("RefereesListComponent", () => {
     list.openEdit(referee(2, "pending"));
     expect(notifySuccess).toHaveBeenLastCalledWith("referees.updated");
     expect(reload).toHaveBeenCalledTimes(3);
+  });
+
+  describe("on phones", () => {
+    const button = (root: ParentNode, label: string) =>
+      root.querySelector<HTMLButtonElement>(`button[aria-label^="${label}"]`);
+    const labels = () =>
+      Array.from(
+        document.querySelectorAll(".mat-mdc-menu-panel [mat-menu-item]"),
+      ).map((item) => item.textContent?.trim());
+
+    it("shows the search, the filters button and the full add button; the status waits for the panel", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+
+      expect(el.querySelector("input[type=search]")).toBeTruthy();
+      expect(button(el, "Filtros")).toBeTruthy();
+      const add = Array.from(el.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Agregar árbitro"),
+      );
+      expect(add?.classList).toContain("w-full");
+      expect(el.querySelector("mat-select")).toBeNull();
+
+      button(el, "Filtros")?.click();
+      fixture.detectChanges();
+      expect(el.querySelector("mat-select")).toBeTruthy();
+    });
+
+    it("counts the status and clears it", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+      const list = fixture.componentInstance;
+
+      button(el, "Filtros")?.click();
+      fixture.detectChanges();
+      const clear = Array.from(el.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Limpiar",
+      ) as HTMLButtonElement;
+      expect(clear.disabled).toBe(true);
+
+      list.filters.update((f) => ({ ...f, status: "inactive" }));
+      fixture.detectChanges();
+      expect(button(el, "Filtros")?.getAttribute("aria-label")).toBe(
+        "Filtros, 1 activos",
+      );
+
+      clear.click();
+      fixture.detectChanges();
+      expect(list.filters().status).toBe("");
+      expect(list.activeFilters()).toBe(0);
+    });
+
+    it("resets the filters and folds the panel when the league changes", () => {
+      const fixture = setup(true);
+      const list = fixture.componentInstance;
+
+      list.filters.update((f) => ({ ...f, status: "inactive" }));
+      list.filtersOpen.set(true);
+      fixture.detectChanges();
+      expect(list.activeFilters()).toBe(1);
+
+      activeLeague.set(league(4));
+      fixture.detectChanges();
+      expect(list.filters()).toEqual({ search: "", status: "" });
+      expect(list.activeFilters()).toBe(0);
+      expect(list.filtersOpen()).toBe(false);
+    });
+
+    it("puts the actions menu first and drops the sticky actions column", () => {
+      const columns = setup(true).componentInstance.columns();
+
+      expect(columns[0]).toBe("actionsMenu");
+      expect(columns).not.toContain("actions");
+    });
+
+    it.each([
+      [
+        "pending",
+        "active",
+        [
+          "Editar",
+          "Reenviar invitación",
+          "Dar de baja en la liga",
+          "Quitar de la liga",
+        ],
+      ],
+      ["active", "inactive", ["Dar de alta en la liga", "Quitar de la liga"]],
+      ["active", "active", ["Dar de baja en la liga", "Quitar de la liga"]],
+    ] as const)(
+      "offers the right actions to a %s account that is %s in the league",
+      async (account, status, items) => {
+        rows.set([referee(1, account, status)]);
+        const fixture = setup(true);
+
+        button(fixture.nativeElement, "Acciones")?.click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        expect(labels()).toEqual(items);
+      },
+    );
   });
 });

@@ -3,14 +3,14 @@
 </h2>
 
 <form (submit)="$event.preventDefault(); save()" novalidate>
-  <mat-dialog-content class="flex flex-col gap-4 !pt-2 min-w-[320px]">
+  <mat-dialog-content class="flex flex-col gap-4 !pt-2">
     @if (formError(); as message) {
       <div
         class="flex items-center gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
         role="alert"
       >
         <mat-icon class="shrink-0" svgIcon="mat:error" />
-        <p class="m-0 text-sm">{{ message }}</p>
+        <p class="m-0 min-w-0 break-words text-sm">{{ message }}</p>
       </div>
     }
 
@@ -26,12 +26,10 @@
     </p>
 
     <app-scroll-fade
-      [maxHeight]="scrolls ? 'max-h-80' : 'max-h-none'"
+      [maxHeight]="scrolls ? 'sm:max-h-80' : 'max-h-none'"
       [thin]="true"
     >
-      <div
-        [class]="scrolls ? 'flex flex-col gap-4 pr-3' : 'flex flex-col gap-4'"
-      >
+      <div [class.sm:pr-3]="scrolls" class="flex flex-col gap-4">
         @for (set of sets(); track $index; let s = $index) {
           <section>
             @if (sets().length > 1) {
@@ -58,13 +56,17 @@
                 let last = $last
               ) {
                 <li class="flex items-center gap-2 rounded border px-2 py-1">
-                  <span class="w-6 text-sm">{{ (starts[s] ?? 1) + i }}.</span>
+                  <span class="w-6 shrink-0 text-sm tabular-nums"
+                    >{{ (starts[s] ?? 1) + i }}.</span
+                  >
                   <app-logo-image
                     [alt]="row.team_name"
                     [src]="row.logo_url"
-                    class="w-6 h-6 rounded-full shrink-0"
+                    class="w-6 h-6 rounded-full shrink-0 max-sm:!hidden"
                   />
-                  <span class="flex-1 truncate">{{ row.team_name }}</span>
+                  <span class="min-w-0 flex-1 max-sm:break-words sm:truncate">{{
+                    row.team_name
+                  }}</span>
                   <button
                     (click)="move(s, i, -1)"
                     [attr.aria-label]="
@@ -72,6 +74,7 @@
                         | transloco: { name: row.team_name }
                     "
                     [disabled]="i === 0"
+                    class="shrink-0"
                     mat-icon-button
                     type="button"
                   >
@@ -84,6 +87,7 @@
                         | transloco: { name: row.team_name }
                     "
                     [disabled]="last"
+                    class="shrink-0"
                     mat-icon-button
                     type="button"
                   >
@@ -99,11 +103,17 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close type="button">
+    <button
+      class="max-sm:!min-w-0 max-sm:!flex-1"
+      mat-button
+      mat-dialog-close
+      type="button"
+    >
       {{ "common.cancel" | transloco }}
     </button>
     <button
       [disabled]="orderForm().submitting()"
+      class="max-sm:!min-w-0 max-sm:!flex-1"
       color="primary"
       mat-flat-button
       type="submit"

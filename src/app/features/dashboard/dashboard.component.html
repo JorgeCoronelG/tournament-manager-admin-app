@@ -7,7 +7,7 @@
     @if (leagueMessage(); as message) {
       @if (isLeagueAdmin()) {
         <p
-          class="bg-foreground rounded shadow m-0 py-10 px-6 text-center text-secondary"
+          class="bg-foreground rounded shadow m-0 py-10 px-6 text-center text-secondary max-sm:px-4 max-sm:py-6"
           role="status"
         >
           {{ message | transloco }}
@@ -16,7 +16,7 @@
     } @else if (isSuperadmin() || isLeagueAdmin()) {
       @if (resource.error()) {
         <div
-          class="bg-foreground rounded shadow py-10 px-6 text-center"
+          class="bg-foreground rounded shadow py-10 px-6 text-center max-sm:px-4 max-sm:py-6"
           role="alert"
         >
           <p class="text-secondary mb-4">
@@ -41,11 +41,13 @@
               />
             } @else {
               <div
-                class="bg-foreground rounded-xl shadow p-4 flex items-center gap-3 animate-pulse"
+                class="bg-foreground rounded-xl shadow p-3 sm:p-4 flex items-center gap-2 sm:gap-3 animate-pulse"
               >
-                <div class="size-12 shrink-0 rounded-full bg-gray-500/20"></div>
+                <div
+                  class="size-10 sm:size-12 shrink-0 rounded-full bg-gray-500/20"
+                ></div>
                 <div class="flex-1">
-                  <div class="h-6 w-12 rounded bg-gray-500/20"></div>
+                  <div class="h-6 w-10 sm:w-12 rounded bg-gray-500/20"></div>
                   <div class="mt-2 h-3 w-full rounded bg-gray-500/10"></div>
                 </div>
               </div>
@@ -58,20 +60,24 @@
 </app-page-layout>
 
 <ng-template #cardView let-card>
-  <div class="bg-foreground rounded-xl shadow p-4 flex items-center gap-3">
+  <div
+    class="bg-foreground rounded-xl shadow p-3 sm:p-4 flex items-center gap-2 sm:gap-3"
+  >
     <!-- Hover shows the definition; on a phone a tap on the icon does -->
     <button
       #tooltip="matTooltip"
       (click)="tooltip.toggle()"
       [attr.aria-label]="tip(card.key)"
       [matTooltip]="tip(card.key)"
-      class="size-12 shrink-0 cursor-help rounded-full border-0 bg-primary-600/10 p-0 text-primary-600 flex items-center justify-center"
+      class="size-10 sm:size-12 shrink-0 cursor-help rounded-full border-0 bg-primary-600/10 p-0 text-primary-600 flex items-center justify-center"
       type="button"
     >
       <mat-icon [svgIcon]="card.icon" />
     </button>
     <div class="min-w-0">
-      <div class="text-3xl font-semibold">{{ card.value | number }}</div>
+      <div class="text-2xl sm:text-3xl font-semibold">
+        {{ card.value | number }}
+      </div>
       <div class="text-secondary text-sm">
         {{ "dashboard.cards." + card.key | transloco }}
       </div>

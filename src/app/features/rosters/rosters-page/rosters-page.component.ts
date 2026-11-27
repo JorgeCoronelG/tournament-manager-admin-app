@@ -3,10 +3,13 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   linkedSignal,
   signal,
+  viewChild,
 } from "@angular/core";
+import { NgTemplateOutlet } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -27,6 +30,17 @@ import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/ap
 import { LeagueContextService } from "../../../core/league-context/league-context.service";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { LogoImageComponent } from "../../../shared/logo-image/logo-image.component";
@@ -58,6 +72,8 @@ import { RostersApi } from "../rosters.api";
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     LeagueRequiredComponent,
     LogoImageComponent,
@@ -70,7 +86,9 @@ import { RostersApi } from "../rosters.api";
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    NgTemplateOutlet,
     RosterStatusChipComponent,
+    RowActionsComponent,
     TournamentStatusChipComponent,
     TranslocoPipe,
   ],
@@ -84,14 +102,22 @@ export class RostersPageComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  readonly columns = [
+  readonly isMobile = injectIsMobile();
+
+  private readonly dataColumns = [
     "photo",
     "player",
     "jersey",
     "status",
     "request",
-    "actions",
   ];
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", ...this.dataColumns]
+      : [...this.dataColumns, "actions"],
+  );
   readonly statuses = ROSTER_STATUSES;
 
   protected readonly tournamentsResource =
@@ -159,6 +185,7 @@ export class RostersPageComponent {
     filters: this.filters,
     defaultSort: { active: "", direction: "" },
     resetOn: this.registrationId,
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) =>
       this.api.list(this.tournamentId, this.registrationId, query),
   });
@@ -168,7 +195,19 @@ export class RostersPageComponent {
   readonly total = this.list.total;
   readonly paging = this.list.paging;
   readonly hasFilters = this.list.hasFilters;
-  readonly changePage = this.list.changePage;
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  private readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["status"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   /** Active players against the tournament's maximum, if it has one */
   readonly counter = computed(() => {
@@ -209,6 +248,42 @@ export class RostersPageComponent {
 
   protected readonly playerName = playerName;
   protected readonly isWithdrawn = isWithdrawn;
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(entry: RosterEntry): RowAction[] {
+    if (entry.status === "active") {
+      const blocked = this.removeBlocked();
+
+      return [
+        {
+          icon: "mat:remove_circle",
+          labelKey: "rosters.actions.remove",
+          run: () => this.remove(entry),
+          danger: true,
+          disabled: blocked !== null,
+          // No tooltips on touch screens: the reason is written in the menu
+          hint: blocked ? this.transloco.translate(blocked) : undefined,
+        },
+      ];
+    }
+
+    if (entry.status === "removed") {
+      const revoke = !!entry.rejoin_authorized_at;
+
+      return [
+        {
+          icon: revoke ? "mat:block" : "mat:how_to_reg",
+          labelKey: revoke
+            ? "rosters.actions.revoke"
+            : "rosters.actions.authorize",
+          run: () => this.toggleRejoin(entry),
+          danger: revoke,
+        },
+      ];
+    }
+
+    return [];
+  }
 
   remove(entry: RosterEntry): void {
     const tournament = this.tournament();
