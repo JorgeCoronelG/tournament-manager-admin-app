@@ -1,9 +1,13 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  ElementRef,
   inject,
   linkedSignal,
+  viewChild,
 } from "@angular/core";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { Observable } from "rxjs";
@@ -31,6 +35,17 @@ import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { LeagueRequiredComponent } from "../../../shared/league-required/league-required.component";
 import { listState } from "../../../shared/list-state/list-state";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { UserStatusChipComponent } from "../../users/user-status-chip/user-status-chip.component";
 import {
   AddRefereeDialogComponent,
@@ -57,6 +72,8 @@ import { RefereesApi } from "../referees.api";
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     LeagueRequiredComponent,
     MatButtonModule,
@@ -69,7 +86,9 @@ import { RefereesApi } from "../referees.api";
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    NgTemplateOutlet,
     RefereeStatusChipComponent,
+    RowActionsComponent,
     TranslocoPipe,
     UserStatusChipComponent,
   ],
@@ -84,7 +103,9 @@ export class RefereesListComponent {
 
   protected readonly leagueContext = inject(LeagueContextService);
 
-  readonly columns = [
+  readonly isMobile = injectIsMobile();
+
+  private readonly dataColumns = [
     "first_name",
     "user_code",
     "email",
@@ -92,8 +113,14 @@ export class RefereesListComponent {
     "account_status",
     "status",
     "created_at",
-    "actions",
   ];
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", ...this.dataColumns]
+      : [...this.dataColumns, "actions"],
+  );
   readonly statuses = REFEREE_LEAGUE_STATUSES;
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
@@ -111,6 +138,7 @@ export class RefereesListComponent {
     defaultSort: { active: "created_at", direction: "desc" },
     // Another league has other referees: start again from the first page
     resetOn: this.leagueContext.activeLeagueId,
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(query),
   });
 
@@ -121,9 +149,66 @@ export class RefereesListComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  private readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["status"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   readonly crumbs = computed(() => [this.transloco.translate("nav.referees")]);
+
+  constructor() {
+    // Another league starts again with empty filters (see `filters`): fold the panel too
+    effect(() => {
+      this.leagueContext.activeLeagueId();
+      this.filtersOpen.set(false);
+    });
+  }
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(referee: Referee): RowAction[] {
+    const active = referee.status === "active";
+
+    return [
+      // Only a pending account can still be edited or re-invited
+      ...(referee.account_status === "pending"
+        ? [
+            {
+              icon: "mat:edit",
+              labelKey: "referees.actions.edit",
+              run: () => this.openEdit(referee),
+            },
+            {
+              icon: "mat:forward_to_inbox",
+              labelKey: "referees.actions.resendInvitation",
+              run: () => this.resendInvitation(referee),
+            },
+          ]
+        : []),
+      {
+        icon: active ? "mat:toggle_on" : "mat:toggle_off",
+        labelKey: active
+          ? "referees.actions.deactivate"
+          : "referees.actions.activate",
+        run: () => this.toggleStatus(referee),
+      },
+      {
+        icon: "mat:person_remove",
+        labelKey: "referees.actions.remove",
+        run: () => this.remove(referee),
+        danger: true,
+      },
+    ];
+  }
 
   openAdd(): void {
     this.dialog

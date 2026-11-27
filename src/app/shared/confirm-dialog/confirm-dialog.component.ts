@@ -22,19 +22,30 @@ export interface ConfirmDialogData {
     <h2 mat-dialog-title>{{ data.title }}</h2>
     <mat-dialog-content
       [innerHTML]="data.message"
-      class="whitespace-pre-line [&_small]:mt-2 [&_small]:block [&_small]:text-sm [&_small]:text-secondary"
+      class="whitespace-pre-line break-words [&_small]:mt-2 [&_small]:block [&_small]:text-sm [&_small]:text-secondary"
     />
     <mat-dialog-actions align="end">
       @if (data.cancelOutlined) {
-        <button mat-stroked-button mat-dialog-close type="button">
+        <button
+          class="max-sm:!h-auto max-sm:!min-h-11 max-sm:!min-w-0 max-sm:!flex-1 max-sm:!whitespace-normal max-sm:!px-2 max-sm:py-2"
+          mat-stroked-button
+          mat-dialog-close
+          type="button"
+        >
           {{ "common.cancel" | transloco }}
         </button>
       } @else {
-        <button mat-button mat-dialog-close type="button">
+        <button
+          class="max-sm:!h-auto max-sm:!min-h-11 max-sm:!min-w-0 max-sm:!flex-1 max-sm:!whitespace-normal max-sm:!px-2 max-sm:py-2"
+          mat-button
+          mat-dialog-close
+          type="button"
+        >
           {{ "common.cancel" | transloco }}
         </button>
       }
       <button
+        class="max-sm:!h-auto max-sm:!min-h-11 max-sm:!min-w-0 max-sm:!flex-1 max-sm:!whitespace-normal max-sm:!px-2 max-sm:py-2"
         [color]="data.tone === 'primary' ? undefined : 'warn'"
         [mat-dialog-close]="true"
         mat-flat-button

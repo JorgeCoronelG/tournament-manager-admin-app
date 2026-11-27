@@ -3,7 +3,7 @@
   --app-navigation-height: 0.00001px;
   --app-toolbar-width: 100%;
 
-  @media (min-width: theme("screens.lg")) {
+  @variant lg {
     --app-toolbar-width: calc(100% - var(--app-sidenav-width));
 
     &.app-layout-sidenav-collapsed {
@@ -24,7 +24,7 @@
   }
 }
 
-@media (min-width: theme("screens.lg")) {
+@variant lg {
   body:not([dir="rtl"]) {
     .app-layout-horizontal {
       &.app-layout-sidenav-collapsed .app-layout-sidenav-content {

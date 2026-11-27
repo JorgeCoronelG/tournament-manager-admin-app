@@ -239,7 +239,7 @@ test.describe("matches", () => {
     await expect(page.getByText("Finalizado", { exact: true })).toBeVisible();
     await expect(page.getByText("Sin horario", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("6 partidos en 3 jornadas · 1 finalizados"),
+      page.getByText("6 partidos en 3 jornadas · 1 finalizado"),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Regenerar" }),

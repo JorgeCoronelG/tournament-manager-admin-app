@@ -14,7 +14,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { firstValueFrom } from "rxjs";
-import { form, FormField, validate } from "@angular/forms/signals";
+import { form, FormField, min, validate } from "@angular/forms/signals";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
 import { failureMessage } from "../../../core/http/api-errors";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
@@ -74,6 +74,8 @@ export class MatchResultDialogComponent {
   });
 
   readonly resultForm = form(this.model, (result) => {
+    min(result.home_score, 0);
+    min(result.away_score, 0);
     validate(result.home_score, ({ value }) =>
       validScore(value()) ? undefined : { kind: "score" },
     );

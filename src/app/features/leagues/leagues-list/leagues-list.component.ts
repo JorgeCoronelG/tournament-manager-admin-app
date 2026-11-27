@@ -1,9 +1,12 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
   signal,
+  viewChild,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
@@ -27,6 +30,17 @@ import { LeagueContextService } from "../../../core/league-context/league-contex
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
 import { listState } from "../../../shared/list-state/list-state";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { UserStatusChipComponent } from "../../users/user-status-chip/user-status-chip.component";
 import { LeagueAdminSelectComponent } from "../league-admin-select/league-admin-select.component";
 import { LeagueFormDialogComponent } from "../league-form-dialog/league-form-dialog.component";
@@ -44,6 +58,8 @@ import { LeaguesApi } from "../leagues.api";
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     LeagueAdminSelectComponent,
     MatButtonModule,
@@ -56,6 +72,8 @@ import { LeaguesApi } from "../leagues.api";
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    NgTemplateOutlet,
+    RowActionsComponent,
     TranslocoPipe,
     UserStatusChipComponent,
   ],
@@ -68,14 +86,22 @@ export class LeaguesListComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
-  readonly columns = [
+  readonly isMobile = injectIsMobile();
+
+  private readonly dataColumns = [
     "name",
     "admin",
     "limits",
     "status",
     "created_at",
-    "actions",
   ];
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", ...this.dataColumns]
+      : [...this.dataColumns, "actions"],
+  );
 
   // Filters (Signal Forms). The search box waits 300 ms before it reaches the model.
   readonly filters = signal<LeaguesFilters>({
@@ -90,6 +116,7 @@ export class LeaguesListComponent {
   private readonly list = listState({
     filters: this.filters,
     defaultSort: { active: "created_at", direction: "desc" },
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(query),
   });
 
@@ -100,7 +127,20 @@ export class LeaguesListComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["adminUserId", "status"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   /** "1 torneo", "3 torneos" or "Sin límite" */
   limitsText(league: League): string {
@@ -117,6 +157,30 @@ export class LeaguesListComponent {
   }
 
   readonly crumbs = computed(() => [this.transloco.translate("nav.leagues")]);
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(league: League): RowAction[] {
+    return [
+      {
+        icon: "mat:edit",
+        labelKey: "leagues.actions.edit",
+        run: () => this.openForm(league),
+      },
+      {
+        icon: league.is_active ? "mat:toggle_on" : "mat:toggle_off",
+        labelKey: league.is_active
+          ? "leagues.actions.deactivate"
+          : "leagues.actions.activate",
+        run: () => this.toggleActive(league),
+      },
+      {
+        icon: "mat:delete",
+        labelKey: "leagues.actions.delete",
+        run: () => this.remove(league),
+        danger: true,
+      },
+    ];
+  }
 
   openForm(league?: League): void {
     this.dialog

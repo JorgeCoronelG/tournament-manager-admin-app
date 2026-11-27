@@ -19,6 +19,9 @@ import { SpinnerComponent } from "../../../../shared/spinner/spinner.component";
 /** From this many leagues on, the list gets a search box */
 const SEARCH_FROM = 8;
 
+/** Longest league name the toolbar shows before cutting it with an ellipsis */
+const MAX_NAME_LENGTH = 15;
+
 /**
  * Shows the active league in the toolbar and lets the user switch it. Renders
  * nothing for users without the `leagues.select` capability.
@@ -67,6 +70,13 @@ export class LeagueSelectorComponent {
         )
       : this.leagues();
   });
+
+  /** The name as the toolbar shows it: cut at 15 characters with an ellipsis */
+  short(name: string): string {
+    return name.length > MAX_NAME_LENGTH
+      ? `${name.slice(0, MAX_NAME_LENGTH)}…`
+      : name;
+  }
 
   select(id: number): void {
     this.context.select(id);

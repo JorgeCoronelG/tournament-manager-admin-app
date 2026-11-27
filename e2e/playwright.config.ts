@@ -13,7 +13,8 @@ export default defineConfig({
   testMatch: "*.e2e.ts",
   snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
   fullyParallel: false,
-  workers: 1,
+  // Files run in parallel; the tests of a file keep their order
+  workers: 2,
   forbidOnly: !!process.env["CI"],
   retries: process.env["CI"] ? 1 : 0,
   reporter: process.env["CI"]

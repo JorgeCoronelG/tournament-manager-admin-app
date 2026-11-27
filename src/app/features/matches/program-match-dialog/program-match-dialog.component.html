@@ -5,11 +5,21 @@
   }}
 </h2>
 
-<mat-dialog-content class="flex flex-col gap-3 !pt-2 min-w-[320px]">
+<mat-dialog-content class="flex flex-col gap-3 !pt-2">
   <div class="flex items-start justify-between gap-3">
     <div>
       <div class="flex flex-wrap items-center gap-2">
-        <p class="m-0 font-medium">{{ home }} vs {{ away }}</p>
+        @if (isMobile()) {
+          <div class="flex flex-col gap-0.5">
+            <p class="m-0 font-medium">{{ home }}</p>
+            <p class="m-0 text-xs text-secondary">
+              {{ "matches.vs" | transloco }}
+            </p>
+            <p class="m-0 font-medium">{{ away }}</p>
+          </div>
+        } @else {
+          <p class="m-0 font-medium">{{ home }} vs {{ away }}</p>
+        }
         @if (data.hasSeveralGroups && data.match.group_name) {
           <span
             class="shrink-0 rounded-full border px-2 text-xs text-secondary"
@@ -22,7 +32,7 @@
         {{ roundOf(data.match) }}
       </p>
     </div>
-    @if (view() === "edit" && !warnings().length) {
+    @if (view() === "edit" && !warnings().length && !isMobile()) {
       <div class="flex gap-1 -mt-2 -mr-2">
         <button
           (click)="openSwap()"
@@ -52,13 +62,42 @@
     }
   </div>
 
+  @if (isMobile() && view() === "edit" && !warnings().length) {
+    <div class="grid grid-cols-2 gap-2">
+      <button
+        (click)="openSwap()"
+        [class]="
+          hasSchedule ? 'app-action-primary' : 'col-span-2 app-action-primary'
+        "
+        [disabled]="working()"
+        mat-stroked-button
+        type="button"
+      >
+        <mat-icon svgIcon="mat:swap_horiz" />
+        {{ "matches.program.swapShort" | transloco }}
+      </button>
+      @if (hasSchedule) {
+        <button
+          (click)="clear()"
+          [disabled]="working()"
+          class="app-action-danger"
+          mat-stroked-button
+          type="button"
+        >
+          <mat-icon svgIcon="mat:event_busy" />
+          {{ "matches.program.clearShort" | transloco }}
+        </button>
+      }
+    </div>
+  }
+
   @if (errors().length) {
     <div
       class="flex items-start gap-3 p-3 rounded border border-red-600 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
       role="alert"
     >
       <mat-icon class="shrink-0" svgIcon="mat:error" />
-      <div class="text-sm">
+      <div class="min-w-0 text-sm">
         @for (message of errors(); track message) {
           <p class="m-0">{{ message }}</p>
         }
@@ -72,14 +111,14 @@
       role="status"
     >
       <mat-icon class="shrink-0" svgIcon="mat:warning" />
-      <div class="text-sm">
+      <div class="min-w-0 text-sm">
         @for (message of warnings(); track message) {
           <p class="m-0">{{ message }}</p>
         }
       </div>
     </div>
   } @else if (view() === "edit") {
-    <div class="grid gap-x-3 sm:grid-cols-3">
+    <div class="grid gap-x-3 max-sm:grid-cols-2 sm:grid-cols-3">
       <mat-form-field class="w-full">
         <mat-label>{{ "matches.program.date" | transloco }}</mat-label>
         <input
@@ -94,7 +133,7 @@
           class="[&_.mat-mdc-button-touch-target]:hidden"
           matIconSuffix
         />
-        <mat-datepicker #datePicker />
+        <mat-datepicker #datePicker [touchUi]="isMobile()" />
         @if (programForm.date().errors().length) {
           <mat-error>{{ "validation.required" | transloco }}</mat-error>
         }
@@ -113,7 +152,11 @@
           class="[&_.mat-mdc-button-touch-target]:hidden"
           matIconSuffix
         />
-        <mat-timepicker #timePicker interval="15 minutes" />
+        <mat-timepicker
+          #timePicker
+          (selected)="pickTime($event.value)"
+          interval="15 minutes"
+        />
         @if (programForm.time().errors().length) {
           <mat-error>{{
             (hasInvalidTime(programForm.time().errors())
@@ -124,7 +167,7 @@
         }
       </mat-form-field>
 
-      <mat-form-field class="w-full">
+      <mat-form-field class="w-full max-sm:col-span-2">
         <mat-label>{{ "matches.program.field" | transloco }}</mat-label>
         <mat-select [formField]="programForm.field">
           @for (field of fields(); track field.id) {
@@ -139,7 +182,9 @@
 
     @if (slots().length) {
       <section class="flex flex-col gap-2 p-4 rounded-lg border">
-        <div class="flex items-center justify-between gap-3">
+        <div
+          class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1"
+        >
           <h3 class="m-0 text-sm font-medium">
             {{ "matches.program.suggestions" | transloco }}
           </h3>
@@ -153,13 +198,12 @@
           </span>
         </div>
         <app-scroll-fade
-          [maxHeight]="slotsExpanded() ? 'max-h-40' : 'max-h-none'"
+          [maxHeight]="
+            slotsExpanded() ? 'max-h-none sm:max-h-40' : 'max-h-none'
+          "
           [thin]="true"
         >
-          <div
-            [class]="slotsExpanded() ? 'pr-3' : ''"
-            class="flex flex-wrap gap-2"
-          >
+          <div [class.sm:pr-3]="slotsExpanded()" class="flex flex-wrap gap-2">
             @for (
               slot of visibleSlots();
               track slot.start_time + slot.field_id
@@ -172,7 +216,7 @@
                     ? 'border-primary-600 bg-primary-600/10 text-primary-700 dark:text-primary-300'
                     : 'border-gray-400'
                 "
-                class="rounded-full border px-3 py-1 text-sm cursor-pointer"
+                class="rounded-full border px-3 text-sm cursor-pointer max-sm:min-h-10 max-sm:py-2 sm:py-1"
                 type="button"
               >
                 {{ clockLabel(slot.start_time) }} · {{ slot.field_name }}
@@ -184,7 +228,7 @@
           <button
             (click)="slotsExpanded.set(!slotsExpanded())"
             [attr.aria-expanded]="slotsExpanded()"
-            class="flex items-center justify-center gap-1 self-center text-sm bg-transparent border-0 p-0 cursor-pointer"
+            class="flex items-center justify-center gap-1 self-center text-sm bg-transparent border-0 p-0 cursor-pointer max-sm:min-h-10"
             type="button"
           >
             {{
@@ -225,9 +269,9 @@
     </mat-form-field>
 
     <mat-checkbox
+      class="-ml-3 max-sm:[&_label]:!whitespace-normal sm:-mt-3"
       (change)="locked.set($event.checked)"
       [checked]="locked()"
-      class="-ml-3 -mt-3"
     >
       {{ "matches.program.lock" | transloco }}
       <span class="text-secondary">
@@ -240,6 +284,7 @@
         <mat-label>{{ "matches.program.search" | transloco }}</mat-label>
         <input
           #searchInput
+          (focus)="onSearchFocus(searchInput)"
           (input)="search.set(searchInput.value)"
           [value]="search()"
           autocomplete="off"
@@ -250,7 +295,7 @@
 
       <app-scroll-fade
         class="overflow-hidden rounded border"
-        maxHeight="max-h-45"
+        [maxHeight]="isMobile() ? 'max-h-64' : 'max-h-45'"
         [thin]="true"
       >
         <ul class="m-0 p-0 list-none">
@@ -264,7 +309,7 @@
                     ? 'bg-primary-600/10'
                     : 'bg-transparent'
                 "
-                class="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm cursor-pointer"
+                class="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm cursor-pointer max-sm:flex-col max-sm:items-start max-sm:min-h-12"
                 type="button"
               >
                 <span class="flex flex-wrap items-center gap-2">

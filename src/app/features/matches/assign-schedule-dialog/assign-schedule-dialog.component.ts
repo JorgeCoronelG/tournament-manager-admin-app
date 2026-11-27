@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,6 +19,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatRadioModule } from "@angular/material/radio";
 import { Observable } from "rxjs";
 import { TranslocoPipe, TranslocoService } from "@jsverse/transloco";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
 import { ScrollFadeComponent } from "../../../shared/scroll-fade/scroll-fade.component";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { parseDate } from "../../tournaments/tournament.model";
@@ -82,6 +83,7 @@ export interface AssignScheduleDialogData {
     MatIconModule,
     MatProgressBarModule,
     MatRadioModule,
+    NgTemplateOutlet,
     ScrollFadeComponent,
     TranslocoPipe,
   ],
@@ -92,6 +94,8 @@ export class AssignScheduleDialogComponent {
     inject<MatDialogRef<AssignScheduleDialogComponent, boolean>>(MatDialogRef);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
+
+  protected readonly isMobile = injectIsMobile();
 
   readonly data = inject<AssignScheduleDialogData>(MAT_DIALOG_DATA);
 
@@ -275,7 +279,8 @@ export class AssignScheduleDialogComponent {
         this.preview.set(result);
 
         // The playoffs' options are one column: the dialog opens narrow and widens once there are matches to show
-        if (this.playoffs) {
+        // (on a phone the dialog is already full screen)
+        if (this.playoffs && !this.isMobile()) {
           this.dialogRef.updateSize("960px");
         }
       },

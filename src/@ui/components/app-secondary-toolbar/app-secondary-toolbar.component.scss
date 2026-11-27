@@ -19,7 +19,7 @@
     @apply hidden;
   }
 
-  @media (min-width: theme("screens.sm")) {
+  @variant sm {
     app-breadcrumbs {
       @apply block;
     }

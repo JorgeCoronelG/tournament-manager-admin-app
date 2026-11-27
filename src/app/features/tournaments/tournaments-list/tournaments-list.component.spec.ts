@@ -1,4 +1,5 @@
 import { signal, WritableSignal } from "@angular/core";
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIconRegistry } from "@angular/material/icon";
@@ -58,17 +59,27 @@ describe("TournamentsListComponent", () => {
   let leagues: WritableSignal<MyLeague[]>;
   let activeLeague: WritableSignal<MyLeague | null>;
   let query: () => TournamentsQuery;
+  let limitsValue: unknown;
 
-  function setup() {
+  function setup(mobile = false) {
     TestBed.configureTestingModule({
       providers: [
         provideTestI18n(),
+        {
+          provide: BreakpointObserver,
+          useValue: {
+            observe: (q: string) =>
+              of({ matches: mobile && q.includes("599"), breakpoints: {} }),
+            isMatched: (q: string) => mobile && q.includes("599"),
+          },
+        },
         provideRouter([]),
         {
           provide: LeagueLimitsApi,
           useValue: {
             ofActiveLeague: () => ({
-              hasValue: () => false,
+              hasValue: () => limitsValue !== undefined,
+              value: () => limitsValue,
               error: () => undefined,
               reload: vi.fn(),
             }),
@@ -139,6 +150,7 @@ describe("TournamentsListComponent", () => {
     ]) {
       fn.mockReset();
     }
+    limitsValue = undefined;
     setStatus.mockReturnValue(of({}));
     remove.mockReturnValue(of(undefined));
     rows = signal<Tournament[] | undefined>([
@@ -337,5 +349,198 @@ describe("TournamentsListComponent", () => {
 
     expect(reload).toHaveBeenCalled();
     expect(notifySuccess).toHaveBeenCalledWith("tournaments.created");
+  });
+
+  it("shows the usage when the league has a limit and says so when it has none", () => {
+    limitsValue = {
+      max_active_tournaments: 3,
+      usage: { active_tournaments: 2, tournaments: [] },
+    };
+    expect(setup().nativeElement.textContent).toContain(
+      "Torneos activos 2 de 3",
+    );
+
+    TestBed.resetTestingModule();
+    limitsValue = {
+      max_active_tournaments: null,
+      usage: { active_tournaments: 2, tournaments: [] },
+    };
+    const text = setup().nativeElement.textContent;
+    expect(text).toContain("Sin límite de torneos activos");
+    expect(text).not.toContain("∞");
+  });
+
+  describe("on phones", () => {
+    const labels = (root: ParentNode) =>
+      Array.from(root.querySelectorAll("[mat-menu-item]")).map((item) =>
+        item.textContent?.replace(/\s+/g, " ").trim(),
+      );
+
+    async function openMenu(
+      fixture: ReturnType<typeof setup>,
+      row: number,
+    ): Promise<HTMLElement> {
+      const rowEl = fixture.nativeElement.querySelectorAll("tr[mat-row]")[row];
+      (
+        rowEl.querySelector("app-row-actions button") as HTMLButtonElement
+      ).click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      return document.querySelector(".mat-mdc-menu-panel") as HTMLElement;
+    }
+
+    afterEach(() =>
+      document.querySelector(".cdk-overlay-container")?.replaceChildren(),
+    );
+
+    it("shows the search, the filters button and a full-width add button", () => {
+      const fixture = setup(true);
+      const el: HTMLElement = fixture.nativeElement;
+
+      expect(el.querySelector("input[type=search]")).not.toBeNull();
+      expect(el.querySelector("app-filters-toggle")).not.toBeNull();
+      expect(el.querySelector("mat-select")).toBeNull();
+      const add = Array.from(el.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Nuevo torneo"),
+      );
+      expect(add?.classList.contains("w-full")).toBe(true);
+    });
+
+    it("keeps gender and status in the panel, counts both and clears both", () => {
+      const fixture = setup(true);
+      const list = fixture.componentInstance;
+      const el: HTMLElement = fixture.nativeElement;
+
+      list.filtersForm.gender().value.set("male");
+      list.filtersForm.status().value.set("finished");
+      list.filtersForm.search().value.set("abc");
+      fixture.detectChanges();
+
+      expect(list.activeFilters()).toBe(2);
+
+      list.filtersOpen.set(true);
+      fixture.detectChanges();
+      expect(el.querySelectorAll("app-filters-panel mat-select")).toHaveLength(
+        2,
+      );
+
+      list.clearFilters();
+      fixture.detectChanges();
+      expect(list.filters()).toMatchObject({
+        gender: "",
+        status: "",
+        search: "abc",
+      });
+      expect(list.activeFilters()).toBe(0);
+    });
+
+    it("starts with the panel open only when a filter is already set", () => {
+      expect(setup(true).componentInstance.filtersOpen()).toBe(false);
+    });
+
+    it("uses the menu column first, without the desktop actions or sticky header", () => {
+      const fixture = setup(true);
+
+      expect(fixture.componentInstance.columns()[0]).toBe("actionsMenu");
+      expect(fixture.componentInstance.columns()).not.toContain("actions");
+      expect(
+        fixture.nativeElement.querySelector(
+          "tr[mat-header-row].mat-mdc-table-sticky",
+        ),
+      ).toBeNull();
+    });
+
+    it("lists the menu actions of a planned tournament, delete apart", async () => {
+      const fixture = setup(true);
+      const panel = await openMenu(fixture, 0);
+
+      expect(labels(panel)).toEqual(["Editar", "Iniciar torneo", "Eliminar"]);
+      expect(panel.querySelectorAll("mat-divider")).toHaveLength(1);
+    });
+
+    it("offers edit and finish for a tournament in progress", async () => {
+      const fixture = setup(true);
+      const panel = await openMenu(fixture, 1);
+
+      expect(labels(panel)).toEqual(["Editar", "Finalizar torneo"]);
+      expect(panel.querySelectorAll("mat-divider")).toHaveLength(0);
+    });
+
+    it("offers edit and finish for a tournament in the playoffs", () => {
+      const list = setup(true).componentInstance;
+
+      expect(
+        list.rowActions(tournament(7, "playoffs")).map((a) => a.labelKey),
+      ).toEqual(["tournaments.actions.edit", "tournaments.actions.finish"]);
+    });
+
+    it("has no menu for a finished tournament", () => {
+      const fixture = setup(true);
+      const rowsEl = fixture.nativeElement.querySelectorAll("tr[mat-row]");
+
+      expect(rowsEl[2].querySelector("app-row-actions")).toBeNull();
+      expect(rowsEl[0].querySelector("app-row-actions")).not.toBeNull();
+    });
+
+    it("disables start at the limit and says why inside the menu", async () => {
+      limitsValue = {
+        max_active_tournaments: 1,
+        usage: { active_tournaments: 1, tournaments: [] },
+      };
+      const fixture = setup(true);
+      const panel = await openMenu(fixture, 0);
+      const start =
+        panel.querySelectorAll<HTMLButtonElement>("[mat-menu-item]")[1];
+
+      expect(start.disabled).toBe(true);
+      expect(start.getAttribute("aria-disabled")).toBe("true");
+      expect(start.textContent).toContain("Iniciar torneo");
+      expect(start.textContent).toContain(
+        fixture.componentInstance.advanceTip(tournament(1)).trim(),
+      );
+      expect(start.textContent).not.toBe("Iniciar torneo");
+    });
+
+    it("pages by 10 and hides the page size and first/last buttons", () => {
+      const fixture = setup(true);
+
+      expect(query()).toMatchObject({ pageSize: 10 });
+      expect(
+        fixture.nativeElement.querySelector(".mat-mdc-paginator-page-size"),
+      ).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector(
+          ".mat-mdc-paginator-navigation-first",
+        ),
+      ).toBeNull();
+    });
+
+    it("clears the filters of the old league together with 'Clear' when the league changes", () => {
+      const fixture = setup(true);
+      const list = fixture.componentInstance;
+
+      list.filtersForm.gender().value.set("male");
+      TestBed.tick();
+      list.clearFilters();
+      list.filtersForm.status().value.set("planning");
+      activeLeague.set(league(4));
+      TestBed.tick();
+
+      expect(list.filters()).toEqual({ search: "", gender: "", status: "" });
+    });
+  });
+
+  it("does not move the desktop table: icon buttons and sticky header", () => {
+    const fixture = setup();
+
+    expect(fixture.componentInstance.columns().at(-1)).toBe("actions");
+    expect(
+      fixture.nativeElement.querySelector("app-filters-toggle"),
+    ).toBeNull();
+    // Gender and status, plus the paginator's page size
+    expect(fixture.nativeElement.querySelectorAll("mat-select")).toHaveLength(
+      3,
+    );
   });
 });

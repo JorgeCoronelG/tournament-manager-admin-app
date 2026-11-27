@@ -8,7 +8,7 @@
       <app-league-required />
     } @else {
       <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
+        <mat-form-field class="w-full sm:w-72">
           <mat-label>{{ "matches.tournament" | transloco }}</mat-label>
           <mat-select [formField]="pickerForm.tournament">
             @for (item of tournaments(); track item.id) {
@@ -23,7 +23,9 @@
       </div>
 
       @if (!tournament()) {
-        <p class="py-10 px-6 text-center text-secondary">
+        <p
+          class="py-10 px-6 text-center text-secondary max-sm:px-4 max-sm:py-6"
+        >
           {{
             (tournamentsResource.hasValue() && tournaments().length === 0
               ? "matches.noTournaments"
@@ -36,7 +38,9 @@
           <mat-tab [label]="'statistics.tabs.standings' | transloco">
             <div class="pt-4">
               @if (!started()) {
-                <p class="py-10 px-6 text-center text-secondary">
+                <p
+                  class="py-10 px-6 text-center text-secondary max-sm:px-4 max-sm:py-6"
+                >
                   {{ "matches.planning" | transloco }}
                 </p>
               } @else {
@@ -46,7 +50,10 @@
                 />
 
                 @if (standingsResource.error()) {
-                  <div class="py-10 px-6 text-center" role="alert">
+                  <div
+                    class="py-10 px-6 text-center max-sm:px-4 max-sm:py-6"
+                    role="alert"
+                  >
                     <p class="text-secondary mb-4">
                       {{ "matches.standings.error" | transloco }}
                     </p>

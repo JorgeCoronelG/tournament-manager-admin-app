@@ -1,172 +1,177 @@
-<div
-  class="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100"
->
-  <div class="bg-foreground rounded shadow overflow-hidden w-full max-w-md">
-    @if (submitting()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
+<!-- The document does not scroll (base.css), so each public screen has its own scroll box -->
+<div class="h-dvh overflow-y-auto bg-gray-100 dark:bg-gray-700">
+  <div class="flex min-h-full flex-col items-center justify-center p-6">
+    <div class="bg-foreground rounded shadow overflow-hidden w-full max-w-md">
+      @if (submitting()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
 
-    <div class="p-6 pb-0 flex flex-col items-center justify-center">
-      <img alt="Logo" class="w-16" src="assets/img/logo/logo.png" />
-    </div>
-
-    @if (activated()) {
-      <div class="p-6 flex flex-col gap-4 text-center">
-        <h2 class="m-0">{{ "activateAccount.title" | transloco }}</h2>
-        <p class="m-0" role="status">
-          {{ "activateAccount.done" | transloco }}
-        </p>
-        <a [routerLink]="['/']" color="primary" mat-flat-button>
-          {{ "activateAccount.goToLogin" | transloco }}
-        </a>
-      </div>
-    } @else {
-      <div class="text-center mt-4 px-6">
-        <h2 class="m-0">{{ "activateAccount.title" | transloco }}</h2>
-        <p class="text-secondary m-0">
-          {{
-            (manualEntry()
-              ? "activateAccount.manualSubtitle"
-              : "activateAccount.subtitle"
-            ) | transloco
-          }}
-        </p>
+      <div class="p-6 pb-0 flex flex-col items-center justify-center">
+        <img alt="Logo" class="w-16" src="assets/img/logo/logo.png" />
       </div>
 
-      <form
-        (submit)="$event.preventDefault(); activate()"
-        class="p-6 flex flex-col gap-2"
-        novalidate
-      >
-        @if (rejected(); as message) {
-          <div
-            class="flex items-start gap-3 mb-4 p-3 rounded border border-warn-600 bg-warn-50 text-warn-800 dark:border-warn-400 dark:bg-warn-950 dark:text-warn-200"
-            role="alert"
-          >
-            <mat-icon class="shrink-0" svgIcon="mat:error" />
-            <div>
-              <p class="m-0 font-medium">{{ message }}</p>
-              <p class="m-0 mt-1 text-sm">
-                {{ "activateAccount.askNewInvitation" | transloco }}
-              </p>
+      @if (activated()) {
+        <div class="p-6 flex flex-col gap-4 text-center">
+          <h2 class="m-0">{{ "activateAccount.title" | transloco }}</h2>
+          <p class="m-0" role="status">
+            {{ "activateAccount.done" | transloco }}
+          </p>
+          <a [routerLink]="['/']" color="primary" mat-flat-button>
+            {{ "activateAccount.goToLogin" | transloco }}
+          </a>
+        </div>
+      } @else {
+        <div class="text-center mt-4 px-6">
+          <h2 class="m-0">{{ "activateAccount.title" | transloco }}</h2>
+          <p class="text-secondary m-0">
+            {{
+              (manualEntry()
+                ? "activateAccount.manualSubtitle"
+                : "activateAccount.subtitle"
+              ) | transloco
+            }}
+          </p>
+        </div>
+
+        <form
+          (submit)="$event.preventDefault(); activate()"
+          class="p-6 flex flex-col gap-2 max-sm:[&_.mat-mdc-form-field-subscript-wrapper]:min-h-11"
+          novalidate
+        >
+          @if (rejected(); as message) {
+            <div
+              class="flex items-start gap-3 mb-4 p-3 rounded border border-warn-600 bg-warn-50 text-warn-800 dark:border-warn-400 dark:bg-warn-950 dark:text-warn-200"
+              role="alert"
+            >
+              <mat-icon class="shrink-0" svgIcon="mat:error" />
+              <div>
+                <p class="m-0 font-medium">{{ message }}</p>
+                <p class="m-0 mt-1 text-sm">
+                  {{ "activateAccount.askNewInvitation" | transloco }}
+                </p>
+              </div>
             </div>
-          </div>
-        }
+          }
 
-        @if (manualEntry()) {
+          @if (manualEntry()) {
+            <mat-form-field>
+              <mat-label>{{ "login.email" | transloco }}</mat-label>
+              <input
+                [formField]="activateForm.email"
+                autocomplete="email"
+                matInput
+                type="email"
+              />
+              @if (activateForm.email().errors().length) {
+                <mat-error>{{
+                  (activateForm.email().value()
+                    ? "validation.email"
+                    : "validation.required"
+                  ) | transloco
+                }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>{{ "forgotPassword.code" | transloco }}</mat-label>
+              <input
+                [formField]="activateForm.code"
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                matInput
+              />
+              @if (activateForm.code().errors().length) {
+                <mat-error>{{
+                  "forgotPassword.codeError" | transloco
+                }}</mat-error>
+              }
+            </mat-form-field>
+          }
+
           <mat-form-field>
-            <mat-label>{{ "login.email" | transloco }}</mat-label>
+            <mat-label>{{
+              "forgotPassword.newPassword" | transloco
+            }}</mat-label>
             <input
-              [formField]="activateForm.email"
-              autocomplete="email"
+              [formField]="activateForm.password"
+              [type]="visible().password ? 'text' : 'password'"
+              autocomplete="new-password"
               matInput
-              type="email"
             />
-            @if (activateForm.email().errors().length) {
+            <button
+              (click)="toggleVisibility('password')"
+              [attr.aria-label]="'login.toggleVisibility' | transloco"
+              [matTooltip]="'login.toggleVisibility' | transloco"
+              mat-icon-button
+              matIconSuffix
+              type="button"
+            >
+              <mat-icon
+                [svgIcon]="
+                  visible().password ? 'mat:visibility_off' : 'mat:visibility'
+                "
+              />
+            </button>
+            @if (activateForm.password().errors().length) {
               <mat-error>{{
-                (activateForm.email().value()
-                  ? "validation.email"
+                "forgotPassword.passwordError" | transloco
+              }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>{{
+              "forgotPassword.confirmPassword" | transloco
+            }}</mat-label>
+            <input
+              [formField]="activateForm.passwordConfirmation"
+              [type]="visible().confirmation ? 'text' : 'password'"
+              autocomplete="new-password"
+              matInput
+            />
+            <button
+              (click)="toggleVisibility('confirmation')"
+              [attr.aria-label]="'login.toggleVisibility' | transloco"
+              [matTooltip]="'login.toggleVisibility' | transloco"
+              mat-icon-button
+              matIconSuffix
+              type="button"
+            >
+              <mat-icon
+                [svgIcon]="
+                  visible().confirmation
+                    ? 'mat:visibility_off'
+                    : 'mat:visibility'
+                "
+              />
+            </button>
+            @if (activateForm.passwordConfirmation().errors().length) {
+              <mat-error>{{
+                (activateForm.passwordConfirmation().value()
+                  ? "forgotPassword.passwordMismatch"
                   : "validation.required"
                 ) | transloco
               }}</mat-error>
             }
           </mat-form-field>
 
-          <mat-form-field>
-            <mat-label>{{ "forgotPassword.code" | transloco }}</mat-label>
-            <input
-              [formField]="activateForm.code"
-              autocomplete="one-time-code"
-              inputmode="numeric"
-              matInput
-            />
-            @if (activateForm.code().errors().length) {
-              <mat-error>{{
-                "forgotPassword.codeError" | transloco
-              }}</mat-error>
-            }
-          </mat-form-field>
-        }
-
-        <mat-form-field>
-          <mat-label>{{ "forgotPassword.newPassword" | transloco }}</mat-label>
-          <input
-            [formField]="activateForm.password"
-            [type]="visible().password ? 'text' : 'password'"
-            autocomplete="new-password"
-            matInput
-          />
           <button
-            (click)="toggleVisibility('password')"
-            [attr.aria-label]="'login.toggleVisibility' | transloco"
-            [matTooltip]="'login.toggleVisibility' | transloco"
-            mat-icon-button
-            matIconSuffix
-            type="button"
+            [disabled]="submitting()"
+            color="primary"
+            mat-flat-button
+            type="submit"
           >
-            <mat-icon
-              [svgIcon]="
-                visible().password ? 'mat:visibility_off' : 'mat:visibility'
-              "
-            />
+            {{ "activateAccount.submit" | transloco }}
           </button>
-          @if (activateForm.password().errors().length) {
-            <mat-error>{{
-              "forgotPassword.passwordError" | transloco
-            }}</mat-error>
-          }
-        </mat-form-field>
 
-        <mat-form-field>
-          <mat-label>{{
-            "forgotPassword.confirmPassword" | transloco
-          }}</mat-label>
-          <input
-            [formField]="activateForm.passwordConfirmation"
-            [type]="visible().confirmation ? 'text' : 'password'"
-            autocomplete="new-password"
-            matInput
-          />
-          <button
-            (click)="toggleVisibility('confirmation')"
-            [attr.aria-label]="'login.toggleVisibility' | transloco"
-            [matTooltip]="'login.toggleVisibility' | transloco"
-            mat-icon-button
-            matIconSuffix
-            type="button"
+          <a
+            [routerLink]="['/']"
+            class="text-sm text-center text-secondary hover:underline max-sm:flex max-sm:min-h-11 max-sm:items-center max-sm:justify-center"
           >
-            <mat-icon
-              [svgIcon]="
-                visible().confirmation ? 'mat:visibility_off' : 'mat:visibility'
-              "
-            />
-          </button>
-          @if (activateForm.passwordConfirmation().errors().length) {
-            <mat-error>{{
-              (activateForm.passwordConfirmation().value()
-                ? "forgotPassword.passwordMismatch"
-                : "validation.required"
-              ) | transloco
-            }}</mat-error>
-          }
-        </mat-form-field>
-
-        <button
-          [disabled]="submitting()"
-          color="primary"
-          mat-flat-button
-          type="submit"
-        >
-          {{ "activateAccount.submit" | transloco }}
-        </button>
-
-        <a
-          [routerLink]="['/']"
-          class="text-sm text-center text-secondary hover:underline"
-        >
-          {{ "forgotPassword.backToLogin" | transloco }}
-        </a>
-      </form>
-    }
+            {{ "forgotPassword.backToLogin" | transloco }}
+          </a>
+        </form>
+      }
+    </div>
   </div>
 </div>

@@ -142,6 +142,33 @@ describe("LeagueAdminSelectComponent", () => {
     expect(fixture.nativeElement.querySelector("button")).toBeNull();
   });
 
+  it("clears the picked manager's name when the value is reset from outside", () => {
+    const fixture = setup();
+    const { componentInstance: select } = fixture;
+
+    select.choose(user(1));
+    fixture.detectChanges();
+    expect(select.text()).toBe("Ana1 Pérez");
+
+    select.value.set("");
+    fixture.detectChanges();
+    expect(select.text()).toBe("");
+  });
+
+  it("keeps what the user is typing when the choice is dropped by typing", () => {
+    const fixture = setup();
+    const { componentInstance: select } = fixture;
+
+    select.choose(user(1));
+    const element = input(fixture);
+    element.value = "Ana";
+    element.dispatchEvent(new Event("input"));
+    fixture.detectChanges();
+
+    expect(select.value()).toBe("");
+    expect(select.text()).toBe("Ana");
+  });
+
   it("unchecks the option that was picked when it is cleared", async () => {
     const fixture = setup();
     const selected = () =>

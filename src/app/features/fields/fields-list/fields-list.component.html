@@ -7,19 +7,8 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "fields.search" | transloco }}</mat-label>
-          <mat-icon matPrefix svgIcon="mat:search" />
-          <input
-            [formField]="filtersForm.search"
-            autocomplete="off"
-            matInput
-            type="search"
-          />
-        </mat-form-field>
-
-        <mat-form-field class="w-48">
+      <ng-template #statusField let-width>
+        <mat-form-field [class]="width">
           <mat-label>{{ "fields.fields.status" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.status">
             <mat-option value="">{{
@@ -32,11 +21,64 @@
             }
           </mat-select>
         </mat-form-field>
+      </ng-template>
 
-        <span class="flex-1"></span>
+      <div
+        class="flex items-start max-sm:gap-2 max-sm:mb-2 sm:flex-wrap sm:gap-4 sm:mb-4"
+      >
+        <mat-form-field class="max-sm:flex-1 max-sm:min-w-0 sm:w-72">
+          <mat-label>{{ "fields.search" | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="mat:search" />
+          <input
+            [formField]="filtersForm.search"
+            autocomplete="off"
+            matInput
+            type="search"
+          />
+        </mat-form-field>
 
+        @if (isMobile()) {
+          <app-filters-toggle
+            [(open)]="filtersOpen"
+            [count]="activeFilters()"
+            activeKey="fields.filters.active"
+            titleKey="fields.filters.title"
+          />
+        } @else {
+          <ng-container
+            *ngTemplateOutlet="statusField; context: { $implicit: 'w-48' }"
+          />
+
+          <span class="flex-1"></span>
+
+          <button
+            (click)="openForm()"
+            color="primary"
+            mat-flat-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+            {{ "fields.add" | transloco }}
+          </button>
+        }
+      </div>
+
+      @if (isMobile() && filtersOpen()) {
+        <app-filters-panel
+          (cleared)="clearFilters()"
+          [canClear]="activeFilters() > 0"
+          clearKey="fields.filters.clear"
+        >
+          <ng-container
+            *ngTemplateOutlet="statusField; context: { $implicit: 'w-full' }"
+          />
+        </app-filters-panel>
+      }
+
+      @if (isMobile()) {
         <button
           (click)="openForm()"
+          class="w-full mb-4"
           color="primary"
           mat-flat-button
           type="button"
@@ -44,9 +86,9 @@
           <mat-icon svgIcon="mat:add" />
           {{ "fields.add" | transloco }}
         </button>
-      </div>
+      }
 
-      <div class="app-table-card bg-foreground rounded shadow">
+      <div #tableCard class="app-table-card bg-foreground rounded shadow">
         <mat-progress-bar
           [class.invisible]="!resource.isLoading()"
           mode="indeterminate"
@@ -86,6 +128,20 @@
               </th>
               <td *matCellDef="let field" mat-cell class="whitespace-nowrap">
                 {{ field.created_at | appDateFormatRelative }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actionsMenu">
+              <th *matHeaderCellDef mat-header-cell>
+                <span class="sr-only">{{
+                  "fields.fields.actions" | transloco
+                }}</span>
+              </th>
+              <td *matCellDef="let field" class="w-14" mat-cell>
+                <app-row-actions
+                  [actions]="rowActions(field)"
+                  labelKey="fields.actions.menu"
+                />
               </td>
             </ng-container>
 
@@ -145,8 +201,11 @@
               </td>
             </ng-container>
 
-            <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-            <tr *matRowDef="let row; columns: columns" mat-row></tr>
+            <tr
+              *matHeaderRowDef="columns(); sticky: !isMobile()"
+              mat-header-row
+            ></tr>
+            <tr *matRowDef="let row; columns: columns()" mat-row></tr>
           </table>
         </div>
 
@@ -177,7 +236,8 @@
           [pageIndex]="paging().page"
           [pageSizeOptions]="[5, 10, 25]"
           [pageSize]="paging().pageSize"
-          showFirstLastButtons
+          [hidePageSize]="isMobile()"
+          [showFirstLastButtons]="!isMobile()"
         />
       </div>
     }

@@ -20,7 +20,7 @@
 
   // Hide sidenav on vertical layout:
   // Global Search displays it, even when it's out of the view
-  @media (min-width: theme("screens.lg")) {
+  @variant lg {
     .app-sidenav {
       @apply hidden;
     }

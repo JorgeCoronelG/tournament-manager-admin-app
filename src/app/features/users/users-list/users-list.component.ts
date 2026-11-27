@@ -2,11 +2,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
   signal,
+  viewChild,
 } from "@angular/core";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { Observable } from "rxjs";
+import { NgTemplateOutlet } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -27,6 +30,17 @@ import { AppSecondaryToolbarComponent } from "@ui/components/app-secondary-toolb
 import { AppDateFormatRelativePipe } from "@ui/pipes/app-date-format-relative/app-date-format-relative.pipe";
 import { SnackbarService } from "../../../core/snackbar/snackbar.service";
 import { ConfirmDialogService } from "../../../shared/confirm-dialog/confirm-dialog.service";
+import { FiltersPanelComponent } from "../../../shared/mobile-filters/filters-panel.component";
+import { FiltersToggleComponent } from "../../../shared/mobile-filters/filters-toggle.component";
+import { injectIsMobile } from "../../../shared/responsive/is-mobile";
+import {
+  mobileList,
+  mobilePageSize,
+} from "../../../shared/responsive/mobile-list";
+import {
+  RowAction,
+  RowActionsComponent,
+} from "../../../shared/row-actions/row-actions.component";
 import { listState } from "../../../shared/list-state/list-state";
 import { UserFormDialogComponent } from "../user-form-dialog/user-form-dialog.component";
 import { UserStatusChipComponent } from "../user-status-chip/user-status-chip.component";
@@ -44,6 +58,8 @@ import { UsersApi } from "../users.api";
     AppPageLayoutComponent,
     AppPageLayoutContentDirective,
     AppSecondaryToolbarComponent,
+    FiltersPanelComponent,
+    FiltersToggleComponent,
     FormField,
     MatButtonModule,
     MatFormFieldModule,
@@ -55,6 +71,8 @@ import { UsersApi } from "../users.api";
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    NgTemplateOutlet,
+    RowActionsComponent,
     TranslocoPipe,
     UserStatusChipComponent,
   ],
@@ -67,7 +85,9 @@ export class UsersListComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
 
-  readonly columns = [
+  readonly isMobile = injectIsMobile();
+
+  private readonly dataColumns = [
     "first_name",
     "last_name",
     "user_code",
@@ -76,8 +96,14 @@ export class UsersListComponent {
     "roles",
     "status",
     "created_at",
-    "actions",
   ];
+
+  /** Desktop: icon buttons in a sticky last column. Phones: a "⋮" menu as the first one. */
+  readonly columns = computed(() =>
+    this.isMobile()
+      ? ["actionsMenu", ...this.dataColumns]
+      : [...this.dataColumns, "actions"],
+  );
 
   readonly roles = this.api.roles();
 
@@ -94,6 +120,7 @@ export class UsersListComponent {
   private readonly list = listState({
     filters: this.filters,
     defaultSort: { active: "created_at", direction: "desc" },
+    pageSize: mobilePageSize(this.isMobile()),
     load: (query) => this.api.list(query),
   });
 
@@ -104,7 +131,20 @@ export class UsersListComponent {
   readonly total = this.list.total;
   readonly hasFilters = this.list.hasFilters;
   readonly sort = this.list.sort;
-  readonly changePage = this.list.changePage;
+
+  private readonly tableCard = viewChild<ElementRef<HTMLElement>>("tableCard");
+
+  /** Phones: the folding filters panel, its badge and the page scroll */
+  readonly mobile = mobileList({
+    filters: this.filters,
+    activeKeys: ["roleId", "status"],
+    changePage: this.list.changePage,
+    tableCard: this.tableCard,
+  });
+  readonly filtersOpen = this.mobile.filtersOpen;
+  readonly activeFilters = this.mobile.activeFilters;
+  readonly clearFilters = this.mobile.clearFilters;
+  readonly changePage = this.mobile.changePage;
 
   readonly crumbs = computed(() => [this.transloco.translate("nav.users")]);
 
@@ -128,6 +168,36 @@ export class UsersListComponent {
           this.snackbar.notifySuccess(user ? "users.updated" : "users.created");
         }
       });
+  }
+
+  /** The row's actions for the phone menu: the same as the desktop buttons */
+  rowActions(user: User): RowAction[] {
+    return [
+      {
+        icon: "mat:edit",
+        labelKey: "users.actions.edit",
+        run: () => this.openForm(user),
+      },
+      user.status === "pending"
+        ? {
+            icon: "mat:forward_to_inbox",
+            labelKey: "users.actions.resendInvitation",
+            run: () => this.resendInvitation(user),
+          }
+        : {
+            icon: user.is_active ? "mat:toggle_on" : "mat:toggle_off",
+            labelKey: user.is_active
+              ? "users.actions.deactivate"
+              : "users.actions.activate",
+            run: () => this.toggleActive(user),
+          },
+      {
+        icon: "mat:delete",
+        labelKey: "users.actions.delete",
+        run: () => this.remove(user),
+        danger: true,
+      },
+    ];
   }
 
   copyCode(user: User): void {

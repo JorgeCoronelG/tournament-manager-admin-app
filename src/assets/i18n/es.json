@@ -107,10 +107,14 @@
       "pending": "Este usuario aún no ha activado su cuenta."
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allRoles": "Todos los roles",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "activate": "Activar",
       "deactivate": "Desactivar",
@@ -158,10 +162,14 @@
       "actions": "Acciones"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "admin": "Filtrar por encargado",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "activate": "Activar liga",
       "deactivate": "Desactivar liga",
@@ -309,6 +317,14 @@
     "history": {
       "title": "Historial de torneos",
       "search": "Buscar torneo...",
+      "filters": {
+        "title": "Filtros",
+        "clear": "Limpiar",
+        "active": "{{count}} activos"
+      },
+      "actions": {
+        "menu": "Acciones"
+      },
       "year": "Año",
       "allYears": "Todos los años",
       "columns": {
@@ -410,10 +426,14 @@
       "none": "Sin límite"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allGenders": "Todos los géneros",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "start": "Iniciar torneo",
       "finish": "Finalizar torneo",
@@ -463,6 +483,7 @@
     "limits": {
       "error": "No pudimos cargar el uso de los límites.",
       "usageTournaments": "Torneos activos {{used}} de {{max}}",
+      "unlimitedTournaments": "Sin límite de torneos activos",
       "reachedTournamentsOne": "Esta liga permite tener 1 torneo activo a la vez. Finaliza uno o solicita ampliar el límite a soporte.",
       "reachedTournaments": "Esta liga permite tener {{limit}} torneos activos a la vez. Finaliza uno o solicita ampliar el límite a soporte."
     }
@@ -509,9 +530,13 @@
       "inactive": "Inactivo"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "copyCode": "Copiar clave {{code}}",
       "edit": "Editar",
       "resendInvitation": "Reenviar invitación",
@@ -577,9 +602,13 @@
       "inactive": "Inactiva"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allStatuses": "Todos los estados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "activate": "Activar",
       "deactivate": "Desactivar",
@@ -643,12 +672,16 @@
       "banned": "Vetado"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allGenders": "Todas",
       "allStatuses": "Todos",
       "banned": "Vetado",
       "notBanned": "Activo"
     },
     "actions": {
+      "menu": "Acciones",
       "detail": "Ver detalle",
       "gender": "Corregir rama",
       "ban": "Vetar",
@@ -698,6 +731,11 @@
     "tournament": "Torneo",
     "team": "Equipo",
     "search": "Buscar por nombre o clave",
+    "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos"
+    },
     "allStatuses": "Todos los estados",
     "withdrawn": "Baja",
     "pickTournament": "Elige un torneo para ver sus plantillas.",
@@ -743,6 +781,7 @@
     "finishedHint": "El torneo terminó: ya no se puede quitar jugadores.",
     "playoffsHint": "La liguilla ya inició; ya no se puede quitar jugadores.",
     "actions": {
+      "menu": "Acciones",
       "remove": "Quitar jugador",
       "authorize": "Autorizar reingreso",
       "revoke": "Revocar reingreso"
@@ -772,6 +811,14 @@
   },
   "matches": {
     "title": "Calendario",
+    "actions": {
+      "menu": "Acciones del calendario"
+    },
+    "match": {
+      "actions": {
+        "menu": "Acciones del partido"
+      }
+    },
     "tournament": "Torneo",
     "pickTournament": "Selecciona un torneo para consultar su calendario.",
     "onlyInProgress": "Solo se muestran torneos activos.",
@@ -823,6 +870,7 @@
     "played": "Finalizado",
     "noDate": "Sin horario",
     "playedCount": "{{played}} finalizados",
+    "playedCountOne": "1 finalizado",
     "referee": "Árbitro: {{name}}",
     "noReferee": "Sin árbitro",
     "lockedMatch": "Fijado: el generador no lo mueve.",
@@ -854,6 +902,8 @@
         "lock": "y dejará de estar fijado",
         "confirm": "Quitar"
       },
+      "swapShort": "Intercambiar",
+      "clearShort": "Quitar horario",
       "swapTitle": "Intercambiar partido",
       "swap": "Intercambiar con otro partido",
       "swapConfirm": "Intercambiar",
@@ -891,6 +941,11 @@
       "prevWeek": "Semana anterior",
       "nextWeek": "Semana siguiente",
       "referee": "Árbitro",
+      "filters": {
+        "title": "Filtros",
+        "clear": "Limpiar filtros",
+        "active": "{{count}} activos"
+      },
       "field": "Cancha",
       "noField": "Sin cancha",
       "noReferee": "Solo sin árbitro",
@@ -1073,6 +1128,7 @@
       "second": "Vuelta",
       "toPlay": "Por jugar",
       "winnerOf": "Ganador {{round}} {{n}}",
+      "matchMenu": "Acciones del partido",
       "resultLocked": "No puedes modificar este resultado porque la siguiente ronda ya tiene resultados registrados.",
       "pen": "pen.",
       "register": "Registrar resultado",
@@ -1091,6 +1147,7 @@
       "reason": "Motivo (opcional)",
       "reasonHint": "Ej. El equipo no se presentó o no completó los jugadores requeridos.",
       "confirm": "Registrar victoria por default",
+      "confirmShort": "Registrar",
       "tag": "Por default",
       "saved": "Victoria por default registrada"
     },
@@ -1103,6 +1160,7 @@
       "editTooltip": "Editar resultado",
       "withdrawnTooltip": "Un equipo está en baja: usa Ganado por default.",
       "goalsOf": "Goles de {{team}}",
+      "goals": "Goles",
       "scoreError": "Ingresa un entero de 0 a {{max}}",
       "saved": "Resultado guardado",
       "voided": "Resultado anulado",
@@ -1307,6 +1365,7 @@
       "warningDetail": "Se eliminarán los partidos actuales y se generarán nuevos enfrentamientos desde cero.",
       "warningClosing": "Esta acción no se puede deshacer.",
       "lost": "Se perderán {{what}}.",
+      "lostSingle": "Se perderá {{what}}.",
       "lostSchedulesOne": "{{count}} horario asignado",
       "lostSchedulesMany": "{{count}} horarios asignados",
       "lostLockedOne": "({{count}} partido fijado)",
@@ -1406,6 +1465,7 @@
       "hint": "Asigna estos equipos a un grupo antes de iniciar el torneo."
     },
     "actions": {
+      "menu": "Acciones",
       "rename": "Renombrar {{name}}",
       "edit": "Editar {{name}}",
       "delete": "Eliminar {{name}}"
@@ -1545,6 +1605,7 @@
     "replaced": "Equipo reemplazado.",
     "replacedRoster": "El equipo nuevo debe registrar su plantilla.",
     "actions": {
+      "menu": "Acciones",
       "remove": "Quitar inscripción",
       "withdraw": "Dar de baja",
       "replace": "Reemplazar equipo",
@@ -1650,10 +1711,14 @@
       "banned": "Vetado"
     },
     "filters": {
+      "title": "Filtros",
+      "clear": "Limpiar",
+      "active": "{{count}} activos",
       "allStatuses": "Todos los estados",
       "allManagers": "Todos los delegados"
     },
     "actions": {
+      "menu": "Acciones",
       "edit": "Editar",
       "assignManager": "Asignar delegado",
       "changeManager": "Cambiar delegado",

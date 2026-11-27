@@ -7,19 +7,8 @@
     @if (!leagueContext.activeLeague()) {
       <app-league-required />
     } @else {
-      <div class="flex flex-wrap items-start gap-4 mb-4">
-        <mat-form-field class="w-72">
-          <mat-label>{{ "tournaments.search" | transloco }}</mat-label>
-          <mat-icon matPrefix svgIcon="mat:search" />
-          <input
-            [formField]="filtersForm.search"
-            autocomplete="off"
-            matInput
-            type="search"
-          />
-        </mat-form-field>
-
-        <mat-form-field class="w-48">
+      <ng-template #genderField let-width>
+        <mat-form-field [class]="width">
           <mat-label>{{ "tournaments.fields.gender" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.gender">
             <mat-option value="">{{
@@ -32,8 +21,10 @@
             }
           </mat-select>
         </mat-form-field>
+      </ng-template>
 
-        <mat-form-field class="w-48">
+      <ng-template #statusField let-width>
+        <mat-form-field [class]="width">
           <mat-label>{{ "tournaments.fields.status" | transloco }}</mat-label>
           <mat-select [formField]="filtersForm.status">
             <mat-option value="">{{
@@ -46,11 +37,70 @@
             }
           </mat-select>
         </mat-form-field>
+      </ng-template>
 
-        <span class="flex-1"></span>
+      <div
+        class="flex items-start max-sm:gap-2 max-sm:mb-2 sm:flex-wrap sm:gap-4 sm:mb-4"
+      >
+        <mat-form-field class="max-sm:flex-1 max-sm:min-w-0 sm:w-72">
+          <mat-label>{{ "tournaments.search" | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="mat:search" />
+          <input
+            [formField]="filtersForm.search"
+            autocomplete="off"
+            matInput
+            type="search"
+          />
+        </mat-form-field>
 
+        @if (isMobile()) {
+          <app-filters-toggle
+            [(open)]="filtersOpen"
+            [count]="activeFilters()"
+            activeKey="tournaments.filters.active"
+            titleKey="tournaments.filters.title"
+          />
+        } @else {
+          <ng-container
+            *ngTemplateOutlet="genderField; context: { $implicit: 'w-48' }"
+          />
+          <ng-container
+            *ngTemplateOutlet="statusField; context: { $implicit: 'w-48' }"
+          />
+
+          <span class="flex-1"></span>
+
+          <button
+            (click)="openForm()"
+            color="primary"
+            mat-flat-button
+            type="button"
+          >
+            <mat-icon svgIcon="mat:add" />
+            {{ "tournaments.new" | transloco }}
+          </button>
+        }
+      </div>
+
+      @if (isMobile() && filtersOpen()) {
+        <app-filters-panel
+          (cleared)="clearFilters()"
+          [canClear]="activeFilters() > 0"
+          clearKey="tournaments.filters.clear"
+        >
+          <ng-container
+            *ngTemplateOutlet="genderField; context: { $implicit: 'w-full' }"
+          />
+          <ng-container
+            *ngTemplateOutlet="statusField; context: { $implicit: 'w-full' }"
+          />
+        </app-filters-panel>
+      }
+
+      @if (isMobile()) {
         <button
           (click)="openForm()"
+          class="w-full mb-4"
           color="primary"
           mat-flat-button
           type="button"
@@ -58,14 +108,14 @@
           <mat-icon svgIcon="mat:add" />
           {{ "tournaments.new" | transloco }}
         </button>
-      </div>
+      }
 
       @if (limits.error()) {
         <p class="m-0 mb-3 text-sm text-secondary">
           {{ "tournaments.limits.error" | transloco }}
           <button
             (click)="limits.reload()"
-            class="underline cursor-pointer bg-transparent border-0 p-0 text-primary-600"
+            class="underline cursor-pointer bg-transparent border-0 p-0 text-primary-600 max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
             type="button"
           >
             {{ "common.retry" | transloco }}
@@ -73,18 +123,22 @@
         </p>
       } @else if (usage(); as limits) {
         <p class="m-0 mb-3 text-sm text-secondary">
-          {{
-            "tournaments.limits.usageTournaments"
-              | transloco
-                : {
-                    used: limits.usage.active_tournaments,
-                    max: limits.max_active_tournaments ?? "∞",
-                  }
-          }}
+          @if (limits.max_active_tournaments === null) {
+            {{ "tournaments.limits.unlimitedTournaments" | transloco }}
+          } @else {
+            {{
+              "tournaments.limits.usageTournaments"
+                | transloco
+                  : {
+                      used: limits.usage.active_tournaments,
+                      max: limits.max_active_tournaments,
+                    }
+            }}
+          }
         </p>
       }
 
-      <div class="app-table-card bg-foreground rounded shadow">
+      <div #tableCard class="app-table-card bg-foreground rounded shadow">
         <mat-progress-bar
           [class.invisible]="!resource.isLoading()"
           mode="indeterminate"
@@ -142,6 +196,23 @@
               </th>
               <td *matCellDef="let tournament" mat-cell>
                 <app-tournament-status-chip [status]="tournament.status" />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actionsMenu">
+              <th *matHeaderCellDef mat-header-cell>
+                <span class="sr-only">{{
+                  "tournaments.fields.actions" | transloco
+                }}</span>
+              </th>
+              <td *matCellDef="let tournament" class="w-14" mat-cell>
+                @let actions = rowActions(tournament);
+                @if (actions.length) {
+                  <app-row-actions
+                    [actions]="actions"
+                    labelKey="tournaments.actions.menu"
+                  />
+                }
               </td>
             </ng-container>
 
@@ -217,8 +288,11 @@
               </td>
             </ng-container>
 
-            <tr *matHeaderRowDef="columns; sticky: true" mat-header-row></tr>
-            <tr *matRowDef="let row; columns: columns" mat-row></tr>
+            <tr
+              *matHeaderRowDef="columns(); sticky: !isMobile()"
+              mat-header-row
+            ></tr>
+            <tr *matRowDef="let row; columns: columns()" mat-row></tr>
           </table>
         </div>
 
@@ -247,9 +321,10 @@
           (page)="changePage($event)"
           [length]="total()"
           [pageIndex]="paging().page"
+          [hidePageSize]="isMobile()"
           [pageSizeOptions]="[5, 10, 25]"
           [pageSize]="paging().pageSize"
-          showFirstLastButtons
+          [showFirstLastButtons]="!isMobile()"
         />
       </div>
     }
