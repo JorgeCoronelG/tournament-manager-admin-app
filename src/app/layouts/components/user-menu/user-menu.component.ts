@@ -35,13 +35,13 @@ export class UserMenuComponent {
   readonly user = this.currentUser.user;
 
   openChangePassword(): void {
-    this.layout.closeSidenav();
+    this.closeSidenavDrawer();
     this.dialog.open(ChangePasswordDialogComponent);
     this.popoverRef.close();
   }
 
   async logout(): Promise<void> {
-    this.layout.closeSidenav();
+    this.closeSidenavDrawer();
     this.popoverRef.close();
 
     try {
@@ -53,5 +53,15 @@ export class UserMenuComponent {
     this.authToken.clear();
     this.currentUser.clear();
     await this.router.navigateByUrl("/");
+  }
+
+  /**
+   * Below desktop the sidenav is a drawer over the content, so it gets out of
+   * the way. On desktop it is part of the layout and stays open.
+   */
+  private closeSidenavDrawer(): void {
+    if (!this.layout.isDesktop()) {
+      this.layout.closeSidenav();
+    }
   }
 }
