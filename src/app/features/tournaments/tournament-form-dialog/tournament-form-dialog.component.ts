@@ -238,22 +238,14 @@ export class TournamentFormDialogComponent {
     disabled(tournament.max_roster_size, locked);
     disabled(tournament.min_matches_for_playoffs, locked);
 
-    // A finished tournament is not edited at all; the new fields also stay
-    // closed once it is in progress (the form dialog explains why)
+    // These only change while planning (the form dialog explains why)
     const closed = () =>
       this.tournament?.status !== undefined &&
       this.tournament.status !== "planning";
     disabled(tournament.rounds, closed);
     disabled(tournament.match_duration_minutes, closed);
+    disabled(tournament.walkover_goals, closed);
     disabled(tournament.tiebreakers, closed);
-
-    // The default win can still change in progress, but not in the playoffs
-    disabled(
-      tournament.walkover_goals,
-      () =>
-        this.tournament?.status === "playoffs" ||
-        this.tournament?.status === "finished",
-    );
   });
 
   /** An error in the hidden tab would block saving with nothing visible */
