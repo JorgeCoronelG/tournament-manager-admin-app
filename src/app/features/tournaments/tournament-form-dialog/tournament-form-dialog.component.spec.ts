@@ -243,7 +243,15 @@ describe("TournamentFormDialogComponent", () => {
     expect(f.min_matches_for_playoffs().disabled()).toBe(true);
     expect(f.rounds().disabled()).toBe(true);
     expect(f.match_duration_minutes().disabled()).toBe(true);
+    expect(f.walkover_goals().disabled()).toBe(true);
     expect(f.tiebreakers().disabled()).toBe(true);
+  });
+
+  it("only enables the name during the playoffs", () => {
+    const f = setup(existing("playoffs")).tournamentForm;
+
+    expect(f.name().disabled()).toBe(false);
+    expect(f.walkover_goals().disabled()).toBe(true);
   });
 
   it("disables the new fields in a finished tournament", () => {
@@ -251,6 +259,7 @@ describe("TournamentFormDialogComponent", () => {
 
     expect(f.rounds().disabled()).toBe(true);
     expect(f.match_duration_minutes().disabled()).toBe(true);
+    expect(f.walkover_goals().disabled()).toBe(true);
     expect(f.tiebreakers().disabled()).toBe(true);
   });
 
